@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-class AppTheme {
+
+class MyTheme {
   static const Color primaryBlue = Color(0xFF0056D2);
   static const Color secondaryBlue = Color(0xFFE3F2FD);
   static const Color criticalRed = Color(0xFFDC3545);
@@ -23,22 +23,22 @@ class AppTheme {
         surface: Colors.white,
       ),
       useMaterial3: true,
-      textTheme: GoogleFonts.interTextTheme().copyWith(
-        displayLarge: GoogleFonts.inter(
+      textTheme: const TextTheme(
+        displayLarge: TextStyle(
           fontSize: 24,
           fontWeight: FontWeight.bold,
           color: textDark,
         ),
-        titleLarge: GoogleFonts.inter(
+        titleLarge: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: textDark,
         ),
-        bodyLarge: GoogleFonts.inter(
+        bodyLarge: TextStyle(
           fontSize: 16,
           color: textDark,
         ),
-        bodyMedium: GoogleFonts.inter(
+        bodyMedium: TextStyle(
           fontSize: 14,
           color: textLight,
         ),

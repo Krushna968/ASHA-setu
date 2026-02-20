@@ -9,7 +9,7 @@ class MessengerScreen extends StatelessWidget {
     return DefaultTabController(
       length: 3,
       child: Scaffold(
-        backgroundColor: AppTheme.backgroundWhite,
+        backgroundColor: MyTheme.backgroundWhite,
         appBar: AppBar(
           title: const Text('ASHA Messenger'),
           leading: IconButton(
@@ -21,9 +21,9 @@ class MessengerScreen extends StatelessWidget {
             IconButton(icon: const Icon(Icons.more_vert), onPressed: () {}),
           ],
           bottom: const TabBar(
-            labelColor: AppTheme.primaryBlue,
+            labelColor: MyTheme.primaryBlue,
             unselectedLabelColor: Colors.grey,
-            indicatorColor: AppTheme.primaryBlue,
+            indicatorColor: MyTheme.primaryBlue,
             indicatorWeight: 3,
             tabs: [
               Tab(text: 'All Messages'),
@@ -66,7 +66,7 @@ class MessengerScreen extends StatelessWidget {
         ),
         bottomNavigationBar: BottomNavigationBar(
           type: BottomNavigationBarType.fixed,
-          selectedItemColor: AppTheme.primaryBlue,
+          selectedItemColor: MyTheme.primaryBlue,
           unselectedItemColor: Colors.grey,
           showUnselectedLabels: true,
           currentIndex: 0, // Inbox
@@ -117,7 +117,7 @@ class MessengerScreen extends StatelessWidget {
                         ),
                         Text(
                           '8:45 AM',
-                          style: TextStyle(color: AppTheme.criticalRed, fontSize: 12, fontWeight: FontWeight.bold),
+                          style: TextStyle(color: MyTheme.criticalRed, fontSize: 12, fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),
@@ -125,7 +125,7 @@ class MessengerScreen extends StatelessWidget {
                     const Text(
                       'CRITICAL INSTRUCTION:',
                       style: TextStyle(
-                        color: AppTheme.criticalRed,
+                        color: MyTheme.criticalRed,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),
@@ -133,7 +133,7 @@ class MessengerScreen extends StatelessWidget {
                     const SizedBox(height: 4),
                     const Text(
                       'Emergency pulse polio drive updated for Ward 4. Please confirm deployment immediately.',
-                      style: TextStyle(color: AppTheme.textDark),
+                      style: TextStyle(color: MyTheme.textDark),
                     ),
                   ],
                 ),
@@ -146,7 +146,7 @@ class MessengerScreen extends StatelessWidget {
                Container(
                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                  decoration: BoxDecoration(
-                   color: AppTheme.criticalRed,
+                   color: MyTheme.criticalRed,
                    borderRadius: BorderRadius.circular(12),
                  ),
                  child: const Text(
@@ -159,7 +159,7 @@ class MessengerScreen extends StatelessWidget {
                  child: ElevatedButton(
                    onPressed: () {},
                    style: ElevatedButton.styleFrom(
-                     backgroundColor: AppTheme.criticalRed,
+                     backgroundColor: MyTheme.criticalRed,
                      padding: const EdgeInsets.symmetric(vertical: 12),
                    ),
                    child: const Row(
@@ -283,7 +283,7 @@ class MessengerScreen extends StatelessWidget {
                   child: Row(
                     children: [
                       CircleAvatar(
-                        backgroundColor: isPlaying ? AppTheme.primaryBlue : Colors.orange,
+                        backgroundColor: isPlaying ? MyTheme.primaryBlue : Colors.orange,
                         radius: 20,
                         child: Icon(
                           isPlaying ? Icons.play_arrow : Icons.play_arrow,
@@ -302,7 +302,7 @@ class MessengerScreen extends StatelessWidget {
                             alignment: Alignment.centerLeft,
                             widthFactor: isPlaying ? 0.3 : 0.0,
                             child: Container(
-                              color: isPlaying ? AppTheme.primaryBlue : Colors.orange,
+                              color: isPlaying ? MyTheme.primaryBlue : Colors.orange,
                             ),
                           ),
                         ),
@@ -312,12 +312,12 @@ class MessengerScreen extends StatelessWidget {
                         Text(
                           duration,
                           style: TextStyle(
-                            color: isPlaying ? AppTheme.primaryBlue : Colors.orange,
+                            color: isPlaying ? MyTheme.primaryBlue : Colors.orange,
                             fontWeight: FontWeight.bold,
                           ),
                         )
                        else
-                         const Icon(Icons.chat_bubble, color: AppTheme.primaryBlue),
+                         const Icon(Icons.chat_bubble, color: MyTheme.primaryBlue),
                     ],
                   ),
                 ),

@@ -7,7 +7,7 @@ class DashboardScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.backgroundWhite,
+      backgroundColor: MyTheme.backgroundWhite,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16.0),
@@ -23,7 +23,7 @@ class DashboardScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              _buildPriorityCards(),
+              _buildPriorityCards(context),
               const SizedBox(height: 24),
               _buildSyncButton(context),
               const SizedBox(height: 24),
@@ -35,26 +35,29 @@ class DashboardScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               _buildQuickAction(context, Icons.person_add, 'Add New Household', '/visit-form'),
-              _buildQuickAction(context, Icons.inventory, 'Inventory Status', null),
-              _buildQuickAction(context, Icons.book, 'Learning Materials', null),
+              _buildQuickAction(context, Icons.inventory, 'Inventory Status', '/inventory'),
+              _buildQuickAction(context, Icons.book, 'Learning Materials', '/learning'),
+              _buildQuickAction(context, Icons.help_outline, 'Help & Support', '/help'),
             ],
           ),
         ),
       ),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: AppTheme.primaryBlue,
+        selectedItemColor: MyTheme.primaryBlue,
         unselectedItemColor: Colors.grey,
         showUnselectedLabels: true,
         currentIndex: 0,
         onTap: (index) {
           if (index == 1) Navigator.pushNamed(context, '/messenger');
+          if (index == 2) Navigator.pushNamed(context, '/calendar');
+          if (index == 3) Navigator.pushNamed(context, '/profile');
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
           BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: 'Messages'),
           BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: 'Calendar'),
-          BottomNavigationBarItem(icon: Icon(Icons.help_outline), label: 'Help'),
+          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
         ],
       ),
     );
@@ -73,12 +76,12 @@ class DashboardScreen extends StatelessWidget {
               ),
               child: const Row(
                 children: [
-                  Icon(Icons.cloud_off, size: 16, color: AppTheme.primaryBlue),
+                  Icon(Icons.cloud_off, size: 16, color: MyTheme.primaryBlue),
                   SizedBox(width: 8),
                   Text(
                     'OFFLINE MODE',
                     style: TextStyle(
-                      color: AppTheme.primaryBlue,
+                      color: MyTheme.primaryBlue,
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
                     ),
@@ -130,7 +133,7 @@ class DashboardScreen extends StatelessWidget {
           children: [
              IconButton(
               icon: const Icon(Icons.notifications_none, size: 28),
-              onPressed: () {},
+              onPressed: () => Navigator.pushNamed(context, '/help'),
             ),
              Positioned(
               right: 12,
@@ -150,26 +153,29 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildPriorityCards() {
+  Widget _buildPriorityCards(BuildContext context) {
     return Column(
       children: [
         _buildCard(
           icon: Icons.home_work,
-          iconColor: AppTheme.primaryBlue,
+          iconColor: MyTheme.primaryBlue,
           title: "Today's Visits",
           count: '12',
           progress: 0.6,
           progressLabel: '8/12 DONE',
         ),
         const SizedBox(height: 12),
-        _buildCard(
-          icon: Icons.warning_amber_rounded, // Use warning icon for emergency
-          iconColor: AppTheme.criticalRed,
-          bgColor: Colors.red.shade50,
-          title: "Emergency Alerts",
-          subtitle: "Immediate attention required",
-          count: '3', // Badge count
-          isAlert: true,
+        GestureDetector(
+          onTap: () => Navigator.pushNamed(context, '/emergency'),
+          child: _buildCard(
+            icon: Icons.warning_amber_rounded, // Use warning icon for emergency
+            iconColor: Colors.red,
+            bgColor: Colors.red.shade50,
+            title: "Emergency Alerts",
+            subtitle: "Immediate attention required",
+            count: '3', // Badge count
+            isAlert: true,
+          ),
         ),
         const SizedBox(height: 12),
         _buildCard(
@@ -229,7 +235,7 @@ class DashboardScreen extends StatelessWidget {
                  Container(
                   padding: const EdgeInsets.all(8),
                    decoration: const BoxDecoration(
-                     color: AppTheme.criticalRed,
+                     color: MyTheme.criticalRed,
                      shape: BoxShape.circle,
                    ),
                    child: Text(count, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -240,7 +246,7 @@ class DashboardScreen extends StatelessWidget {
                    style: const TextStyle(
                      fontSize: 28,
                      fontWeight: FontWeight.bold,
-                     color: AppTheme.textDark,
+                     color: MyTheme.textDark,
                    ),
                 )
                else if (trailingLabel != null)
@@ -260,7 +266,7 @@ class DashboardScreen extends StatelessWidget {
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: AppTheme.textDark,
+              color: MyTheme.textDark,
             ),
           ),
           if (subtitle != null)
@@ -282,7 +288,7 @@ class DashboardScreen extends StatelessWidget {
                        value: progress,
                        minHeight: 6,
                        backgroundColor: Colors.grey.shade200,
-                       color: AppTheme.successGreen,
+                       color: MyTheme.successGreen,
                      ),
                    ),
                  ),
@@ -293,7 +299,7 @@ class DashboardScreen extends StatelessWidget {
                      style: const TextStyle(
                        fontSize: 10,
                        fontWeight: FontWeight.bold,
-                       color: AppTheme.successGreen,
+                       color: MyTheme.successGreen,
                      ),
                    ),
                  ]
@@ -308,7 +314,7 @@ class DashboardScreen extends StatelessWidget {
                  style: const TextStyle(
                      fontSize: 28,
                      fontWeight: FontWeight.bold,
-                     color: AppTheme.primaryBlue, // Special color for visits
+                     color: MyTheme.primaryBlue, // Special color for visits
                    ),
                ),
              ),
@@ -322,7 +328,7 @@ class DashboardScreen extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppTheme.primaryBlue,
+        color: MyTheme.primaryBlue,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
@@ -379,7 +385,7 @@ class DashboardScreen extends StatelessWidget {
                    color: Colors.blue.shade50,
                    borderRadius: BorderRadius.circular(12),
                  ),
-                 child: Icon(icon, color: AppTheme.primaryBlue),
+                 child: Icon(icon, color: MyTheme.primaryBlue),
               ),
               const SizedBox(width: 16),
               Text(
@@ -387,7 +393,7 @@ class DashboardScreen extends StatelessWidget {
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
-                  color: AppTheme.textDark,
+                  color: MyTheme.textDark,
                 ),
               ),
               const Spacer(),

@@ -59,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.language, size: 20, color: AppTheme.primaryBlue),
+                  const Icon(Icons.language, size: 20, color: MyTheme.primaryBlue),
                   const SizedBox(width: 8),
                   Text(
                     'SELECT LANGUAGE / भाषा चुनें',
@@ -93,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   'Mobile Number / मोबाइल नंबर',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
-                    color: AppTheme.textDark,
+                    color: MyTheme.primaryBlue,
                   ),
                 ),
               ),
@@ -105,7 +105,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 decoration: InputDecoration(
                   prefixIcon: const Padding(
                     padding: EdgeInsets.all(16.0),
-                    child: Text('+91', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textDark)),
+                    child: Text('+91', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: MyTheme.textDark)),
                   ),
                   hintText: '0 0 0 0 0 0 0 0 0 0',
                   hintStyle: TextStyle(color: Colors.grey.shade400),
@@ -170,14 +170,14 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? AppTheme.primaryBlue : Colors.transparent,
+            color: isSelected ? MyTheme.primaryBlue : Colors.transparent,
             borderRadius: BorderRadius.circular(30),
           ),
           child: Text(
             label,
             textAlign: TextAlign.center,
             style: TextStyle(
-              color: isSelected ? Colors.white : AppTheme.textDark,
+              color: isSelected ? Colors.white : MyTheme.textDark,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -195,7 +195,7 @@ class _LoginScreenState extends State<LoginScreen> {
             color: Colors.blue.shade50,
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, color: AppTheme.primaryBlue, size: 24),
+          child: Icon(icon, color: MyTheme.primaryBlue, size: 24),
         ),
         const SizedBox(height: 8),
         Text(
