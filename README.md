@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Krushna968/SwasthyaSetu/releases/download/v1.0.0/SwasthyaSetu.apk">
-    <img src="https://img.shields.io/badge/Download%20APK-SwasthyaSetu%20v1.0.0-blue?style=for-the-badge&logo=android" alt="Download APK"/>
+  <a href="https://github.com/Krushna968/SwasthyaSetu/releases/download/v1.0.0/app-release.apk">
+    <img src="https://img.shields.io/badge/Download%20APK-SwasthyaSetu%20v1.0.5-blue?style=for-the-badge&logo=android" alt="Download APK"/>
   </a>
    
   <img src="https://img.shields.io/badge/Flutter-3.41.2-02569B?style=for-the-badge&logo=flutter"/>
@@ -35,7 +35,7 @@ This app digitalizes the entire ASHA workflow — household visits, patient trac
 
 | Platform | Link |
 |----------|------|
-| Android APK | [SwasthyaSetu v1.0.0](https://github.com/Krushna968/SwasthyaSetu/releases/download/v1.0.0/SwasthyaSetu.apk) |
+| Android APK | [SwasthyaSetu v1.0.5](https://github.com/Krushna968/SwasthyaSetu/releases/download/v1.0.0/app-release.apk) |
 
 ---
 
