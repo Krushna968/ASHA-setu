@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="web/favicon.png" alt="SwasthyaSetu Logo" width="130"/>
+  <img src="assets/icons/app_icon.png" alt="SwasthyaSetu Logo" width="180"/>
 </p>
 
 <h1 align="center">SwasthyaSetu — मेरी आशा</h1>
