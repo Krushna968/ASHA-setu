@@ -12,16 +12,16 @@ import 'screens/profile_screen.dart';
 import 'screens/help_support_screen.dart';
 
 void main() {
-  runApp(const SwasthyaSetuApp());
+  runApp(const AshaSetuApp());
 }
 
-class SwasthyaSetuApp extends StatelessWidget {
-  const SwasthyaSetuApp({super.key});
+class AshaSetuApp extends StatelessWidget {
+  const AshaSetuApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Swasthya Setu',
+      title: 'ASHA Setu',
       theme: MyTheme.lightTheme,
       initialRoute: '/',
       routes: {

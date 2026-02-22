@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="assets/icons/app_icon.png" alt="SwasthyaSetu Logo" width="180"/>
+  <img src="assets/icons/app_icon.png" alt="ASHA Setu Logo" width="180"/>
 </p>
 
-<h1 align="center">SwasthyaSetu — मेरी आशा</h1>
+<h1 align="center">ASHA Setu — मेरी आशा</h1>
 
 <p align="center">
   <b>An ASHA Worker Digital Portal built with Flutter</b><br/>
@@ -10,8 +10,8 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/Krushna968/SwasthyaSetu/releases/download/v1.0.0/app-release.apk">
-    <img src="https://img.shields.io/badge/Download%20APK-SwasthyaSetu%20v1.0.5-blue?style=for-the-badge&logo=android" alt="Download APK"/>
+  <a href="https://github.com/Krushna968/ASHA-Setu/releases/download/v1.0.0/app-release.apk">
+    <img src="https://img.shields.io/badge/Download%20APK-ASHA%20Setu%20v1.0.5-blue?style=for-the-badge&logo=android" alt="Download APK"/>
   </a>
    
   <img src="https://img.shields.io/badge/Flutter-3.41.2-02569B?style=for-the-badge&logo=flutter"/>
@@ -25,7 +25,7 @@
 
 ## About the Project
 
-**SwasthyaSetu** (स्वास्थ्य सेतु — "Health Bridge") is a comprehensive mobile application built for **ASHA (Accredited Social Health Activist) workers** in India. ASHA workers are the backbone of India's primary healthcare system, serving as the first point of contact for communities in rural and semi-urban areas.
+**ASHA Setu** (आशा सेतु — "Hope Bridge") is a comprehensive mobile application built for **ASHA (Accredited Social Health Activist) workers** in India. ASHA workers are the backbone of India's primary healthcare system, serving as the first point of contact for communities in rural and semi-urban areas.
 
 This app digitalizes the entire ASHA workflow — household visits, patient tracking, medicine inventory, emergency response — replacing paper-based processes with a fast, offline-capable, multilingual digital portal.
 
@@ -35,7 +35,7 @@ This app digitalizes the entire ASHA workflow — household visits, patient trac
 
 | Platform | Link |
 |----------|------|
-| Android APK | [SwasthyaSetu v1.0.5](https://github.com/Krushna968/SwasthyaSetu/releases/download/v1.0.0/app-release.apk) |
+| Android APK | [ASHA Setu v1.0.5](https://github.com/Krushna968/ASHA-Setu/releases/download/v1.0.0/app-release.apk) |
 
 ---
 
@@ -59,7 +59,7 @@ This app digitalizes the entire ASHA workflow — household visits, patient trac
 ## Project Structure
 
 ```
-SwasthyaSetu/
+ASHA-Setu/
 ├── lib/
 │   ├── main.dart                    # App entry, MaterialApp, named routes
 │   ├── theme/
@@ -218,8 +218,8 @@ All tokens are in `lib/theme/app_theme.dart`:
 ### Run Locally
 
 ```bash
-git clone https://github.com/Krushna968/SwasthyaSetu.git
-cd SwasthyaSetu
+git clone https://github.com/Krushna968/ASHA-Setu.git
+cd ASHA-Setu
 flutter pub get
 flutter run
 ```
@@ -291,7 +291,7 @@ flutter build appbundle
 
 ## License
 
-Educational and social-good project. All rights reserved © 2026 SwasthyaSetu / Krushna968.
+Educational and social-good project. All rights reserved © 2026 ASHA Setu / Krushna968.
 
 ---
 

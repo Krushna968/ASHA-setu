@@ -1,11 +1,11 @@
 {
-    "name": "swasthya_setu",
-    "short_name": "swasthya_setu",
+    "name": "ASHA Setu",
+    "short_name": "ASHA Setu",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#FFFFFF",
     "theme_color": "#1565C0",
-    "description": "A new Flutter project.",
+    "description": "ASHA Setu — मेरी आशा | Mobile app for ASHA health workers.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
