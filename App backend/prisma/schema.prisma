@@ -1,0 +1,60 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Worker {
+  id           String         @id @default(uuid())
+  employeeId   String         @unique
+  name         String
+  mobileNumber String         @unique
+  email        String?        @unique
+  village      String
+  totalVisits  Int            @default(0)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  patients     Patient[]
+  tasks        Task[]
+  visitHistory VisitHistory[]
+}
+
+model Patient {
+  id           String         @id @default(uuid())
+  name         String
+  age          Int
+  category     String         // e.g., 'ANC', 'PNC', 'IMMUNIZATION', 'GENERAL'
+  address      String
+  workerId     String
+  worker       Worker         @relation(fields: [workerId], references: [id])
+  visitHistory VisitHistory[]
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  status      String   @default("PENDING") // 'PENDING', 'IN_PROGRESS', 'COMPLETED'
+  priority    String   @default("MEDIUM")  // 'HIGH', 'MEDIUM', 'LOW'
+  dueDate     DateTime
+  workerId    String
+  worker      Worker   @relation(fields: [workerId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model VisitHistory {
+  id        String   @id @default(uuid())
+  workerId  String
+  patientId String
+  visitDate DateTime @default(now())
+  outcome   String
+  worker    Worker   @relation(fields: [workerId], references: [id])
+  patient   Patient  @relation(fields: [patientId], references: [id])
+}
