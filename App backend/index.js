@@ -19,9 +19,16 @@ dotenv.config();
 let serviceAccount;
 try {
     if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-        // Handle escaped newlines that often occur in Environment Variables
-        const configStr = process.env.FIREBASE_SERVICE_ACCOUNT.replace(/\\n/g, '\n');
-        serviceAccount = JSON.parse(configStr);
+        const rawJson = process.env.FIREBASE_SERVICE_ACCOUNT;
+        try {
+            // First try standard parse
+            serviceAccount = JSON.parse(rawJson);
+        } catch (parseError) {
+            // If it fails with "control character" errors, its likely due to raw newlines
+            // We fix this by escaping real newlines
+            const fixedJson = rawJson.replace(/\n/g, '\\n');
+            serviceAccount = JSON.parse(fixedJson);
+        }
     } else {
         serviceAccount = require('./serviceAccountKey.json');
     }
