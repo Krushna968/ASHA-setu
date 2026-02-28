@@ -15,54 +15,40 @@ if (!fs.existsSync(uploadDir)) {
 // Load environment variables
 dotenv.config();
 
-// Initialize Firebase Admin SDK
+// Initialize Firebase Admin SDK (Optional)
 let serviceAccount;
 try {
     if (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
-        console.log('Loading Firebase credentials from Base64 environment variable...');
-        // Decode the base64 string back to utf8 JSON
         const decodedStr = Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64, 'base64').toString('utf8');
         serviceAccount = JSON.parse(decodedStr);
     } else if (process.env.FIREBASE_SERVICE_ACCOUNT) {
         const rawJson = process.env.FIREBASE_SERVICE_ACCOUNT.trim();
-        console.log('Attempting to parse FIREBASE_SERVICE_ACCOUNT (Length:', rawJson.length, ')');
-
         try {
-            // Try 1: Standard parse
             serviceAccount = JSON.parse(rawJson);
-        } catch (parseError) {
+        } catch (e) {
+            // Silently try fallback for common env var escaping issues
             try {
-                // Try 2: Handle raw newlines (common in multi-line pastes)
                 serviceAccount = JSON.parse(rawJson.replace(/\n/g, '\\n'));
-            } catch (secondError) {
-                // Try 3: Handle escaped backslashes if double-escaped during paste
-                serviceAccount = JSON.parse(rawJson.replace(/\\\\n/g, '\\n'));
-                console.log('Used fallback parsing for service account');
+            } catch (e2) {
+                // Not valid JSON or Base64 in wrong slot
             }
         }
+    }
 
-        // Critical: Restoring real newlines to the private key for the PEM format
-        if (serviceAccount && serviceAccount.private_key) {
+    if (serviceAccount) {
+        // Restore PEM format for private key
+        if (serviceAccount.private_key) {
             serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
         }
-    } else {
-        serviceAccount = require('./serviceAccountKey.json');
-    }
-} catch (error) {
-    console.error('Error loading Firebase service account:', error.message);
-}
-
-if (serviceAccount) {
-    try {
         admin.initializeApp({
             credential: admin.credential.cert(serviceAccount)
         });
-        console.log('Firebase Admin SDK initialized successfully');
-    } catch (e) {
-        console.error('Firebase initialization error:', e.message);
+        console.log('✅ Firebase Admin SDK initialized');
+    } else {
+        console.log('⚠️ Firebase initialized skipped (Missing/Invalid credentials)');
     }
-} else {
-    console.warn('Firebase Admin SDK not initialized: Missing service account credentials.');
+} catch (error) {
+    console.warn('⚠️ Firebase initialization skipped:', error.message);
 }
 
 const app = express();
