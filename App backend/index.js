@@ -19,15 +19,26 @@ dotenv.config();
 let serviceAccount;
 try {
     if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-        const rawJson = process.env.FIREBASE_SERVICE_ACCOUNT;
+        const rawJson = process.env.FIREBASE_SERVICE_ACCOUNT.trim();
+        console.log('Attempting to parse FIREBASE_SERVICE_ACCOUNT (Length:', rawJson.length, ')');
+
         try {
-            // First try standard parse
+            // Try 1: Standard parse
             serviceAccount = JSON.parse(rawJson);
         } catch (parseError) {
-            // If it fails with "control character" errors, its likely due to raw newlines
-            // We fix this by escaping real newlines
-            const fixedJson = rawJson.replace(/\n/g, '\\n');
-            serviceAccount = JSON.parse(fixedJson);
+            try {
+                // Try 2: Handle raw newlines (common in multi-line pastes)
+                serviceAccount = JSON.parse(rawJson.replace(/\n/g, '\\n'));
+            } catch (secondError) {
+                // Try 3: Handle escaped backslashes if double-escaped during paste
+                serviceAccount = JSON.parse(rawJson.replace(/\\\\n/g, '\\n'));
+                console.log('Used fallback parsing for service account');
+            }
+        }
+
+        // Critical: Restoring real newlines to the private key for the PEM format
+        if (serviceAccount && serviceAccount.private_key) {
+            serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
         }
     } else {
         serviceAccount = require('./serviceAccountKey.json');
@@ -37,9 +48,14 @@ try {
 }
 
 if (serviceAccount) {
-    admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount)
-    });
+    try {
+        admin.initializeApp({
+            credential: admin.credential.cert(serviceAccount)
+        });
+        console.log('Firebase Admin SDK initialized successfully');
+    } catch (e) {
+        console.error('Firebase initialization error:', e.message);
+    }
 } else {
     console.warn('Firebase Admin SDK not initialized: Missing service account credentials.');
 }
