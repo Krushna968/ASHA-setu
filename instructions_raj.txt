@@ -107,6 +107,88 @@ STEP 5: Run the app to see the current state
   (You'll need to add the import at the top of main.dart too)
   Remember to change it BACK to LoginScreen() before committing!
 
+  ALTERNATIVELY: You can run the backend and test the FULL app flow 
+  (login with YOUR phone number 9137113650, navigate to screens, etc.). 
+  See PART 3B below.
+
+
+================================================================================
+PART 3B: HOW TO RUN THE BACKEND (Optional — For Full Testing)
+================================================================================
+
+If you want to test the full app (login with OTP, navigate to all screens),
+you need to run the backend server. YOUR PHONE NUMBER (9137113650) IS ALREADY 
+REGISTERED IN THE DATABASE as a worker in Kalyan — so you can actually log in!
+
+STEP 1: Install Node.js
+  - Download from https://nodejs.org/ (use the LTS version)
+  - Verify: Open terminal and run: node --version
+
+STEP 2: Install backend dependencies
+  cd "App backend"
+  npm install
+
+STEP 3: Create the .env file
+  Create a file called ".env" (just .env, no other name) inside the 
+  "App backend" folder. Paste this EXACT content:
+
+  ⚠️ ASK KRUSHNA on WhatsApp — he will send you the .env file contents.
+  He cannot put it on GitHub because it contains secret keys (AWS, Database).
+  
+  The .env file should have these 6 variables:
+    DATABASE_URL="..."     (Supabase PostgreSQL connection string)
+    JWT_SECRET="..."       (Secret key for authentication tokens)
+    AWS_ACCESS_KEY_ID="..."  (AWS credentials for OTP SMS)
+    AWS_SECRET_ACCESS_KEY="..."  (AWS credentials for OTP SMS)
+    AWS_REGION="ap-south-1"
+    PORT=5000
+
+  Krushna will WhatsApp you the exact values to paste.
+
+  ⚠️ IMPORTANT: Do NOT share this .env file with anyone outside the team.
+  ⚠️ IMPORTANT: Do NOT commit this file to Git (it's already in .gitignore).
+
+STEP 4: Generate Prisma Client
+  npx prisma generate
+
+STEP 5: Start the backend server
+  node index.js
+
+  You should see: "Server running on port 5000"
+  The backend is now running at http://localhost:5000
+
+STEP 6: Update the Flutter app to point to YOUR backend
+  Open: App frontend/lib/services/api_service.dart
+  
+  Find the line that says "baseUrl" and change it to YOUR computer's IP:
+  
+  If testing on EMULATOR (Android Studio emulator):
+    static const String baseUrl = 'http://10.0.2.2:5000/api';
+  
+  If testing on PHYSICAL PHONE (connected to same WiFi as your PC):
+    Step A: Find your PC's IP address:
+      - Windows: Open cmd → type: ipconfig → look for "IPv4 Address" 
+        (usually something like 192.168.x.x)
+      - Mac: System Preferences → Network → look for IP
+    Step B: Use that IP in baseUrl:
+      static const String baseUrl = 'http://YOUR_PC_IP:5000/api';
+      Example: static const String baseUrl = 'http://192.168.1.5:5000/api';
+  
+  ⚠️ IMPORTANT: Change this BACK to the original before committing!
+  ⚠️ DO NOT commit your local IP address.
+
+STEP 7: Test login with YOUR number
+  - Run the Flutter app: flutter run
+  - Enter YOUR phone number: 9137113650
+  - You will receive an OTP via SMS to your phone
+  - Enter the OTP and you'll be logged in to the dashboard
+  - Your profile: Name = "Raj", Area = "Kalyan"
+  - From there you can navigate to the messenger screen to test your UI changes
+
+  NOTE: Registered phone numbers in the system:
+  - Your number: 9137113650 (Worker: Raj, Area: Kalyan)
+  - Krushna's number (already registered)
+
 
 ================================================================================
 PART 4: YOUR 3 TASKS — WHAT EXACTLY TO DO
