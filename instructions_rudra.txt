@@ -168,16 +168,18 @@ STEP 6: Update the Flutter app to point to YOUR backend
   ⚠️ IMPORTANT: Change this BACK to the original before committing!
   ⚠️ DO NOT commit your local IP address.
 
-STEP 7: Test login
+STEP 7: Test login with YOUR number
   - Run the Flutter app: flutter run
-  - Enter any registered phone number on the login screen
-  - You will receive an OTP via SMS
+  - Enter YOUR phone number: 8652075823
+  - You will receive an OTP via SMS to your phone
   - Enter the OTP and you'll be logged in to the dashboard
-  - From there you can navigate to any screen
+  - Your profile: Name = "Rudra", Area = "Panvel"
+  - From there you can navigate to any screen to test your UI changes
 
   NOTE: Registered phone numbers in the system:
+  - Your number: 8652075823 (Worker: Rudra, Area: Panvel)
+  - Raj's number: 9137113650 (Worker: Raj, Area: Kalyan)
   - Krushna's number (already registered)
-  - Raj's number: 9137113650 (registered in Kalyan area)
 
 
 ================================================================================
