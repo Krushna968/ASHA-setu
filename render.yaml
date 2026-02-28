@@ -3,7 +3,7 @@ services:
     name: asha-setu-backend
     runtime: node
     plan: free
-    buildCommand: cd "App backend" && npm install && npx prisma generate
+    buildCommand: cd "App backend" && npm install && npx prisma generate && npx prisma db push
     startCommand: cd "App backend" && node index.js
     envVars:
       - key: PORT

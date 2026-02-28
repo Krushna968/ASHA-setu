@@ -19,7 +19,9 @@ dotenv.config();
 let serviceAccount;
 try {
     if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+        // Handle escaped newlines that often occur in Environment Variables
+        const configStr = process.env.FIREBASE_SERVICE_ACCOUNT.replace(/\\n/g, '\n');
+        serviceAccount = JSON.parse(configStr);
     } else {
         serviceAccount = require('./serviceAccountKey.json');
     }
