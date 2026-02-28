@@ -1,18 +1,39 @@
 const express = require('express');
+const admin = require('firebase-admin');
+// NOTE: On Render, set FIREBASE_SERVICE_ACCOUNT as an environment variable (JSON string)
 const cors = require('cors');
 const dotenv = require('dotenv');
 const path = require('path');
+const fs = require('fs');
+
+// Ensure uploads directory exists
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
+}
 
 // Load environment variables
 dotenv.config();
 
-const admin = require('firebase-admin');
-const serviceAccount = require('./serviceAccountKey.json');
-
 // Initialize Firebase Admin SDK
-admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
-});
+let serviceAccount;
+try {
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+        serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    } else {
+        serviceAccount = require('./serviceAccountKey.json');
+    }
+} catch (error) {
+    console.error('Error loading Firebase service account:', error.message);
+}
+
+if (serviceAccount) {
+    admin.initializeApp({
+        credential: admin.credential.cert(serviceAccount)
+    });
+} else {
+    console.warn('Firebase Admin SDK not initialized: Missing service account credentials.');
+}
 
 const app = express();
 

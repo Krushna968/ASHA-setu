@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
@@ -19,7 +18,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _village = 'Loading Data...';
   String _lastSyncTime = 'JUST NOW';
   String? _profileImageUrl;
-  bool _isLoading = true;
   bool _isUploadingImage = false;
 
   @override
@@ -38,11 +36,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _village = stats['village'] ?? 'Local Village';
           _profileImageUrl = stats['profileImage'];
           _lastSyncTime = DateFormat('hh:mm a').format(DateTime.now());
-          _isLoading = false;
         });
       }
     } catch (e) {
-      if (mounted) setState(() => _isLoading = false);
+      // Handle error
     }
   }
 
@@ -322,7 +319,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 2)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
         ],
       ),
       child: Column(

@@ -13,6 +13,7 @@ import 'screens/learning_screen.dart';
 import 'screens/patients_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/help_support_screen.dart';
+import 'screens/add_patient_screen.dart';
 import 'services/auth_service.dart';
 
 void main() async {
@@ -66,9 +67,9 @@ class AshaSetuApp extends StatelessWidget {
         '/calendar': (context) => const CalendarScreen(),
         '/inventory': (context) => const InventoryScreen(),
         '/learning': (context) => const LearningScreen(),
-        '/patients': (context) => const PatientsScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/help': (context) => const HelpSupportScreen(),
+        '/add-patient': (context) => const AddPatientScreen(),
         '/login': (context) => const LoginScreen(),
       },
       debugShowCheckedModeBanner: false,

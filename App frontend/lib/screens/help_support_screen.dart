@@ -149,7 +149,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: Colors.white, size: 22),
@@ -161,7 +161,7 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
                 children: [
                   Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
                   const SizedBox(height: 2),
-                  Text(subtitle, style: TextStyle(color: Colors.white.withOpacity(0.85), fontSize: 12)),
+                  Text(subtitle, style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 12)),
                 ],
               ),
             ),
@@ -252,8 +252,8 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: expanded ? MyTheme.primaryBlue.withOpacity(0.3) : Colors.grey.shade200),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.03), blurRadius: 6, offset: const Offset(0, 2))],
+          border: Border.all(color: expanded ? MyTheme.primaryBlue.withValues(alpha: 0.3) : Colors.grey.shade200),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 6, offset: const Offset(0, 2))],
         ),
         child: AnimatedSize(
           duration: const Duration(milliseconds: 250),

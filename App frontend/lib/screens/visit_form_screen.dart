@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import '../services/api_service.dart';
 
 class VisitFormScreen extends StatefulWidget {
   const VisitFormScreen({super.key});
@@ -9,32 +10,146 @@ class VisitFormScreen extends StatefulWidget {
 }
 
 class _VisitFormScreenState extends State<VisitFormScreen> {
-  int _currentStep = 1;
-  final int _totalSteps = 3;
+  int _currentStep = 0;
+  bool _isSubmitting = false;
 
-  // Step 2 Data
-  final List<Map<String, dynamic>> _members = [
-    {'name': 'Anita Sharma', 'age': 32, 'gender': 'F', 'risk': 'High', 'pregnant': true},
-    {'name': 'Rajesh Sharma', 'age': 35, 'gender': 'M', 'risk': 'Low', 'pregnant': false},
-    {'name': 'Rohan Sharma', 'age': 5, 'gender': 'M', 'risk': 'Medium', 'pregnant': false},
+  // Step 1 — Patient Selection
+  List<dynamic> _patients = [];
+  bool _loadingPatients = true;
+  String? _selectedPatientId;
+  String _selectedPatientName = '';
+  String _searchQuery = '';
+  final _searchController = TextEditingController();
+
+  // Step 2 — Visit Details
+  DateTime _visitDate = DateTime.now();
+  String _visitType = 'Routine Checkup';
+  final List<String> _visitTypes = [
+    'Routine Checkup',
+    'ANC Follow-up',
+    'PNC Follow-up',
+    'Immunization',
+    'Emergency',
+    'Medicine Delivery',
+    'Health Education',
   ];
 
-  // Step 3 Data
-  bool _fever = false;
-  bool _cough = false;
-  bool _breathing = false;
-  bool _diarrhea = false;
+  // Step 3 — Symptoms & Outcome
+  final Set<String> _selectedSymptoms = {};
+  final List<_SymptomOption> _symptoms = [
+    _SymptomOption('Fever / High Temperature', Icons.thermostat_rounded, Colors.red),
+    _SymptomOption('Persistent Cough', Icons.air_rounded, Colors.orange),
+    _SymptomOption('Breathing Difficulty', Icons.coronavirus_rounded, Colors.deepOrange),
+    _SymptomOption('Diarrhea / Stomach Pain', Icons.sick_rounded, Colors.amber),
+    _SymptomOption('Body Pain / Weakness', Icons.accessibility_new_rounded, Colors.purple),
+    _SymptomOption('Skin Rash / Allergy', Icons.healing_rounded, Colors.pink),
+  ];
+  final _notesController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPatients();
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _notesController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fetchPatients() async {
+    try {
+      final response = await ApiService.get('/patients');
+      if (response != null && response['patients'] != null) {
+        setState(() {
+          _patients = response['patients'];
+          _loadingPatients = false;
+        });
+      }
+    } catch (e) {
+      setState(() => _loadingPatients = false);
+    }
+  }
+
+  Future<void> _submitVisit() async {
+    if (_selectedPatientId == null) return;
+
+    setState(() => _isSubmitting = true);
+
+    final String outcome = [
+      'Type: $_visitType',
+      if (_selectedSymptoms.isNotEmpty) 'Symptoms: ${_selectedSymptoms.join(', ')}',
+      if (_notesController.text.trim().isNotEmpty) 'Notes: ${_notesController.text.trim()}',
+      if (_selectedSymptoms.isEmpty) 'No symptoms reported',
+    ].join(' | ');
+
+    try {
+      final response = await ApiService.post('/visits', {
+        'patientId': _selectedPatientId,
+        'visitDate': _visitDate.toIso8601String(),
+        'outcome': outcome,
+      });
+
+      if (mounted) {
+        if (!response.containsKey('error')) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Row(
+                children: const [
+                  Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+                  SizedBox(width: 8),
+                  Text('Visit logged successfully!'),
+                ],
+              ),
+              backgroundColor: MyTheme.successGreen,
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              margin: const EdgeInsets.all(16),
+            ),
+          );
+          Navigator.pop(context, true);
+        } else {
+          throw Exception(response['error']);
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed: ${e.toString()}'),
+            backgroundColor: MyTheme.criticalRed,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            margin: const EdgeInsets.all(16),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isSubmitting = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final steps = ['Patient', 'Details', 'Symptoms'];
+
     return Scaffold(
       backgroundColor: MyTheme.backgroundWhite,
       appBar: AppBar(
-        title: const Text('New Household Visit'),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
+        foregroundColor: MyTheme.textDark,
+        title: const Text(
+          'Log Visit',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () {
-            if (_currentStep > 1) {
+            if (_currentStep > 0) {
               setState(() => _currentStep--);
             } else {
               Navigator.pop(context);
@@ -42,372 +157,504 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
           },
         ),
       ),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildProgressBar(),
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
-                child: _buildCurrentStepContent(),
-              ),
+      body: Column(
+        children: [
+          // Progress indicator
+          _buildProgressIndicator(steps),
+          // Content
+          Expanded(
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              child: _currentStep == 0
+                  ? _buildStep1()
+                  : _currentStep == 1
+                      ? _buildStep2()
+                      : _buildStep3(),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
-      bottomSheet: _buildBottomBar(),
+      bottomNavigationBar: _buildBottomBar(),
     );
   }
 
-  Widget _buildProgressBar() {
-    double progress = _currentStep / _totalSteps;
-    String title = 'Basic Information';
-    if (_currentStep == 2) title = 'Member Details';
-    if (_currentStep == 3) title = 'Health Checklist';
-
+  // ─────────────────────────────────────────────────────────
+  // PROGRESS INDICATOR
+  // ─────────────────────────────────────────────────────────
+  Widget _buildProgressIndicator(List<String> steps) {
     return Container(
       color: Colors.white,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
       child: Column(
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: MyTheme.primaryBlue,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
+            children: List.generate(steps.length, (i) {
+              final isCompleted = i < _currentStep;
+              final isActive = i == _currentStep;
+              return Expanded(
+                child: Row(
+                  children: [
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: isCompleted
+                            ? MyTheme.successGreen
+                            : isActive
+                                ? MyTheme.primaryBlue
+                                : Colors.grey[200],
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: isCompleted
+                            ? const Icon(Icons.check_rounded, color: Colors.white, size: 16)
+                            : Text(
+                                '${i + 1}',
+                                style: TextStyle(
+                                  color: isActive ? Colors.white : Colors.grey[500],
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      steps[i],
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+                        color: isActive ? MyTheme.primaryBlue : Colors.grey[500],
+                      ),
+                    ),
+                    if (i < steps.length - 1)
+                      Expanded(
+                        child: Container(
+                          height: 2,
+                          margin: const EdgeInsets.symmetric(horizontal: 8),
+                          color: isCompleted ? MyTheme.successGreen : Colors.grey[200],
+                        ),
+                      ),
+                  ],
                 ),
-              ),
-              Text(
-                'Step $_currentStep of $_totalSteps',
-                style: const TextStyle(
-                  color: Colors.grey,
-                  fontSize: 14,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 8,
-              backgroundColor: const Color(0xFFE0E0E0),
-              color: MyTheme.primaryBlue,
-            ),
+              );
+            }),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCurrentStepContent() {
-    switch (_currentStep) {
-      case 1:
-        return _buildStep1();
-      case 2:
-        return _buildStep2();
-      case 3:
-        return _buildStep3();
-      default:
-        return _buildStep1();
-    }
-  }
-
+  // ─────────────────────────────────────────────────────────
+  // STEP 1 — Select Patient
+  // ─────────────────────────────────────────────────────────
   Widget _buildStep1() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildInputField('Household ID', 'Enter or scan ID'),
-        const SizedBox(height: 16),
-        _buildInputField('Head of Family', 'Full Name'),
-        const SizedBox(height: 16),
-        _buildInputField('Phone Number', 'Contact Number', isPhone: true),
-        const SizedBox(height: 24),
-        _buildLocationSection(),
-        const SizedBox(height: 100),
-      ],
-    );
-  }
+    final filtered = _searchQuery.isEmpty
+        ? _patients
+        : _patients.where((p) {
+            final name = (p['name'] ?? '').toString().toLowerCase();
+            return name.contains(_searchQuery.toLowerCase());
+          }).toList();
 
-  Widget _buildStep2() {
     return Column(
+      key: const ValueKey('step1'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            const Text(
-              'Family Members',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: MyTheme.textDark),
+        // Search
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
+              ],
             ),
-            TextButton.icon(
-              onPressed: () {},
-              icon: const Icon(Icons.add, color: MyTheme.primaryBlue),
-              label: const Text('Add Member', style: TextStyle(color: MyTheme.primaryBlue)),
+            child: TextField(
+              controller: _searchController,
+              onChanged: (v) => setState(() => _searchQuery = v),
+              decoration: InputDecoration(
+                hintText: 'Search patient by name...',
+                hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+                prefixIcon: Icon(Icons.search_rounded, color: Colors.grey[400]),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(vertical: 14),
+              ),
             ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        ..._members.map((member) => _buildMemberCard(member)),
-        const SizedBox(height: 100),
-      ],
-    );
-  }
-
-  Widget _buildStep3() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Symptoms Checklist',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: MyTheme.textDark),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Check all that apply to any family member.',
-          style: TextStyle(color: Colors.grey),
-        ),
-        const SizedBox(height: 16),
-        _buildCheckbox('Fever / High Temperature', _fever, (v) => setState(() => _fever = v!)),
-        _buildCheckbox('Persistent Cough', _cough, (v) => setState(() => _cough = v!)),
-        _buildCheckbox('Breathing Difficulty', _breathing, (v) => setState(() => _breathing = v!)),
-        _buildCheckbox('Diarrhea / Stomach Pain', _diarrhea, (v) => setState(() => _diarrhea = v!)),
-        
-        const SizedBox(height: 32),
-        const Text(
-          'Observations / Notes',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: MyTheme.textDark),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          width: double.infinity,
-          height: 120,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade300),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  shape: BoxShape.circle,
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+          child: Text(
+            'Select a patient (${filtered.length} found)',
+            style: TextStyle(fontSize: 12, color: Colors.grey[500], fontWeight: FontWeight.w500),
+          ),
+        ),
+        // Patient list
+        Expanded(
+          child: _loadingPatients
+              ? const Center(child: CircularProgressIndicator(color: MyTheme.primaryBlue))
+              : ListView.builder(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                  itemCount: filtered.length,
+                  itemBuilder: (context, i) {
+                    final p = filtered[i];
+                    final isSelected = p['id'] == _selectedPatientId;
+                    final name = p['name'] ?? 'Unknown';
+                    final category = p['category'] ?? 'General';
+                    final age = p['age'] ?? 0;
+                    final initials = name.split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join().toUpperCase();
+
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedPatientId = p['id'];
+                          _selectedPatientName = name;
+                        });
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: isSelected ? MyTheme.primaryBlue.withValues(alpha: 0.06) : Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: isSelected ? MyTheme.primaryBlue : Colors.grey.shade200,
+                            width: isSelected ? 1.5 : 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 42,
+                              height: 42,
+                              decoration: BoxDecoration(
+                                color: MyTheme.primaryBlue.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Center(
+                                child: Text(initials, style: const TextStyle(fontWeight: FontWeight.bold, color: MyTheme.primaryBlue)),
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                                  Text('Age $age • $category', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                                ],
+                              ),
+                            ),
+                            if (isSelected)
+                              const Icon(Icons.check_circle_rounded, color: MyTheme.primaryBlue, size: 22),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 ),
-                child: const Icon(Icons.mic, color: MyTheme.primaryBlue, size: 32),
-              ),
-              const SizedBox(height: 8),
-              const Text('Tap to Record Voice Note', style: TextStyle(color: MyTheme.primaryBlue, fontWeight: FontWeight.bold)),
-            ],
-          ),
         ),
-        const SizedBox(height: 100),
       ],
     );
   }
 
-  Widget _buildMemberCard(Map<String, dynamic> member) {
-    Color riskColor = Colors.green;
-    if (member['risk'] == 'Medium') riskColor = Colors.orange;
-    if (member['risk'] == 'High') riskColor = MyTheme.criticalRed;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey.shade200),
-        boxShadow: [BoxShadow(color: Colors.grey.shade100, blurRadius: 5, offset: const Offset(0, 3))],
-      ),
+  // ─────────────────────────────────────────────────────────
+  // STEP 2 — Visit Details
+  // ─────────────────────────────────────────────────────────
+  Widget _buildStep2() {
+    return SingleChildScrollView(
+      key: const ValueKey('step2'),
+      padding: const EdgeInsets.all(20),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: Colors.blue.shade50,
-                child: Text(member['name'][0], style: const TextStyle(fontWeight: FontWeight.bold, color: MyTheme.primaryBlue)),
+          // Selected patient chip
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: MyTheme.primaryBlue.withValues(alpha: 0.06),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: MyTheme.primaryBlue.withValues(alpha: 0.15)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.person_rounded, color: MyTheme.primaryBlue, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  _selectedPatientName,
+                  style: const TextStyle(fontWeight: FontWeight.w600, color: MyTheme.primaryBlue),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Visit Date
+          const Text('Visit Date', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: MyTheme.textDark)),
+          const SizedBox(height: 8),
+          GestureDetector(
+            onTap: () async {
+              final picked = await showDatePicker(
+                context: context,
+                initialDate: _visitDate,
+                firstDate: DateTime(2024),
+                lastDate: DateTime.now(),
+              );
+              if (picked != null) setState(() => _visitDate = picked);
+            },
+            child: Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.grey.shade200),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
+                children: [
+                  Icon(Icons.calendar_today_rounded, color: MyTheme.primaryBlue, size: 20),
+                  const SizedBox(width: 10),
+                  Text(
+                    '${_visitDate.day}/${_visitDate.month}/${_visitDate.year}',
+                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                  ),
+                  const Spacer(),
+                  Icon(Icons.edit_calendar_rounded, color: Colors.grey[400], size: 18),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+
+          // Visit Type
+          const Text('Visit Type', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: MyTheme.textDark)),
+          const SizedBox(height: 10),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: _visitTypes.map((type) {
+              final isSelected = _visitType == type;
+              return GestureDetector(
+                onTap: () => setState(() => _visitType = type),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: isSelected ? MyTheme.primaryBlue : Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isSelected ? MyTheme.primaryBlue : Colors.grey.shade200,
+                    ),
+                  ),
+                  child: Text(
+                    type,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected ? Colors.white : Colors.grey[600],
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // STEP 3 — Symptoms & Notes
+  // ─────────────────────────────────────────────────────────
+  Widget _buildStep3() {
+    return SingleChildScrollView(
+      key: const ValueKey('step3'),
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Symptoms Observed', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: MyTheme.textDark)),
+          const SizedBox(height: 4),
+          Text('Tap all that apply', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+          const SizedBox(height: 14),
+
+          ...List.generate(_symptoms.length, (i) {
+            final s = _symptoms[i];
+            final isSelected = _selectedSymptoms.contains(s.name);
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  if (isSelected) {
+                    _selectedSymptoms.remove(s.name);
+                  } else {
+                    _selectedSymptoms.add(s.name);
+                  }
+                });
+              },
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: isSelected ? s.color.withValues(alpha: 0.08) : Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isSelected ? s.color : Colors.grey.shade200,
+                    width: isSelected ? 1.5 : 1,
+                  ),
+                ),
+                child: Row(
                   children: [
-                    Text(member['name'], style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                    Text('${member['age']} Yrs • ${member['gender']}', style: TextStyle(color: Colors.grey.shade600)),
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: (isSelected ? s.color : Colors.grey[400])!.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(s.icon, color: isSelected ? s.color : Colors.grey[400], size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        s.name,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: isSelected ? s.color : Colors.grey[700],
+                        ),
+                      ),
+                    ),
+                    if (isSelected)
+                      Icon(Icons.check_circle_rounded, color: s.color, size: 20),
                   ],
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: riskColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  '${member['risk']} Risk',
-                  style: TextStyle(color: riskColor, fontWeight: FontWeight.bold, fontSize: 12),
-                ),
-              ),
-            ],
-          ),
-          if (member['pregnant'] == true) ...[
-            const SizedBox(height: 12),
-            const Divider(),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                const Icon(Icons.pregnant_woman, size: 20, color: Colors.purple),
-                const SizedBox(width: 8),
-                Text('Pregnant', style: TextStyle(color: Colors.grey.shade800, fontWeight: FontWeight.w500)),
-                const Spacer(),
-                 const Icon(Icons.check_circle, size: 18, color: MyTheme.successGreen),
-                const SizedBox(width: 4),
-                 const Text('ANC Due', style: TextStyle(fontSize: 12, color: MyTheme.successGreen, fontWeight: FontWeight.bold)),
+            );
+          }),
+
+          const SizedBox(height: 20),
+          const Text('Notes / Observations', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: MyTheme.textDark)),
+          const SizedBox(height: 8),
+          Container(
+            decoration: BoxDecoration(
+              boxShadow: [
+                BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 8, offset: const Offset(0, 2)),
               ],
             ),
-          ]
+            child: TextField(
+              controller: _notesController,
+              maxLines: 4,
+              style: const TextStyle(fontSize: 14),
+              decoration: InputDecoration(
+                hintText: 'Any additional observations...',
+                hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey.shade200),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: MyTheme.primaryBlue, width: 1.5),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
         ],
       ),
     );
   }
 
-  Widget _buildCheckbox(String label, bool value, Function(bool?) onChanged) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: value ? MyTheme.criticalRed : Colors.grey.shade200),
-      ),
-      child: CheckboxListTile(
-        title: Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
-        value: value,
-        onChanged: onChanged,
-        activeColor: MyTheme.criticalRed,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-      ),
-    );
-  }
-
+  // ─────────────────────────────────────────────────────────
+  // BOTTOM BAR
+  // ─────────────────────────────────────────────────────────
   Widget _buildBottomBar() {
+    final isLastStep = _currentStep == 2;
+    final canProceed = _currentStep == 0 ? _selectedPatientId != null : true;
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade200,
-            blurRadius: 10,
-            offset: const Offset(0, -5),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -3)),
+        ],
+      ),
+      child: Row(
+        children: [
+          if (_currentStep > 0)
+            Expanded(
+              flex: 1,
+              child: OutlinedButton(
+                onPressed: () => setState(() => _currentStep--),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  side: BorderSide(color: Colors.grey.shade300),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('Back', style: TextStyle(fontWeight: FontWeight.w600)),
+              ),
+            ),
+          if (_currentStep > 0) const SizedBox(width: 12),
+          Expanded(
+            flex: 2,
+            child: ElevatedButton(
+              onPressed: canProceed
+                  ? () {
+                      if (isLastStep) {
+                        _submitVisit();
+                      } else {
+                        setState(() => _currentStep++);
+                      }
+                    }
+                  : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: isLastStep ? MyTheme.successGreen : MyTheme.primaryBlue,
+                foregroundColor: Colors.white,
+                disabledBackgroundColor: Colors.grey[300],
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                elevation: 0,
+              ),
+              child: _isSubmitting
+                  ? const SizedBox(
+                      width: 22, height: 22,
+                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          isLastStep ? 'Submit Visit' : 'Continue',
+                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(width: 6),
+                        Icon(isLastStep ? Icons.check_rounded : Icons.arrow_forward_rounded, size: 18),
+                      ],
+                    ),
+            ),
           ),
         ],
       ),
-      child: SizedBox(
-        width: double.infinity,
-        height: 56,
-        child: ElevatedButton(
-          onPressed: () {
-            if (_currentStep < _totalSteps) {
-              setState(() => _currentStep++);
-            } else {
-              // Submit
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Visit Report Submitted Successfully!')),
-              );
-            }
-          },
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(_currentStep < _totalSteps ? 'Next Step' : 'Submit Report', style: const TextStyle(fontSize: 18)),
-              const SizedBox(width: 8),
-              Icon(_currentStep < _totalSteps ? Icons.arrow_forward : Icons.check),
-            ],
-          ),
-        ),
-      ),
     );
   }
+}
 
-  // Reusing Step 1 Widgets from previous implementation
-  Widget _buildInputField(String label, String hint, {bool isPhone = false}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF424242)),
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                keyboardType: isPhone ? TextInputType.phone : TextInputType.text,
-                decoration: InputDecoration(
-                  hintText: hint,
-                  hintStyle: TextStyle(color: Colors.grey.shade400),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Container(
-              width: 56,
-              height: 56,
-              decoration: BoxDecoration(
-                color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(Icons.mic, color: MyTheme.primaryBlue),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
+// ─────────────────────────────────────────────────────────
+// HELPER DATA CLASS
+// ─────────────────────────────────────────────────────────
+class _SymptomOption {
+  final String name;
+  final IconData icon;
+  final Color color;
 
-  Widget _buildLocationSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.location_on, size: 18, color: MyTheme.primaryBlue),
-                SizedBox(width: 8),
-                Text('Current Location', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Color(0xFF424242))),
-              ],
-            ),
-            Text('GPS VERIFIED', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: MyTheme.successGreen)),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Container(
-          height: 200,
-          width: double.infinity,
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.grey.shade300),
-          ),
-          child: const Center(
-            child: Icon(Icons.location_on, size: 48, color: MyTheme.primaryBlue),
-          ),
-        ),
-      ],
-    );
-  }
+  _SymptomOption(this.name, this.icon, this.color);
 }

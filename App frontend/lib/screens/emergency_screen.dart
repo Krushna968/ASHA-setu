@@ -11,21 +11,19 @@ class EmergencyScreen extends StatefulWidget {
 
 class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _animation;
-  int _secondsRemaining = 5;
   Timer? _timer;
+  int _secondsRemaining = 5;
 
   @override
   void initState() {
     super.initState();
+    
     // Ripple animation controller
     _controller = AnimationController(
-        vsync: this,
-        duration: const Duration(seconds: 2),
-      )..repeat();
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat();
     
-    _animation = Tween<double>(begin: 0.0, end: 1.0).animate(_controller);
-
     // Countdown timer
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsRemaining > 0) {
@@ -112,7 +110,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
                           color: Colors.white,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.2),
+                              color: Colors.black.withValues(alpha: 0.2),
                               blurRadius: 20,
                               spreadRadius: 5,
                             )
@@ -156,7 +154,7 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
                     margin: const EdgeInsets.symmetric(horizontal: 32),
                     padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.2),
+                      color: Colors.black.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(50),
                       border: Border.all(color: Colors.white24),
                     ),
@@ -307,9 +305,9 @@ class _EmergencyScreenState extends State<EmergencyScreen> with SingleTickerProv
           height: size,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Colors.white.withOpacity(opacity * 0.3),
+            color: Colors.white.withValues(alpha: opacity * 0.3),
             border: Border.all(
-              color: Colors.white.withOpacity(opacity * 0.5),
+              color: Colors.white.withValues(alpha: opacity * 0.5),
               width: 1,
             ),
           ),

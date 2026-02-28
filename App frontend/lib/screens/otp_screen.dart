@@ -62,7 +62,9 @@ class _OtpScreenState extends State<OtpScreen> {
         // Save auth data locally (our custom Node.js JWT)
         await AuthService.saveAuthData(result['token'], result['worker']);
         
-        Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (route) => false);
+        if (mounted) {
+          Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (route) => false);
+        }
       }
     } catch (e) {
        setState(() {
