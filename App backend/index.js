@@ -18,7 +18,12 @@ dotenv.config();
 // Initialize Firebase Admin SDK
 let serviceAccount;
 try {
-    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+    if (process.env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
+        console.log('Loading Firebase credentials from Base64 environment variable...');
+        // Decode the base64 string back to utf8 JSON
+        const decodedStr = Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64, 'base64').toString('utf8');
+        serviceAccount = JSON.parse(decodedStr);
+    } else if (process.env.FIREBASE_SERVICE_ACCOUNT) {
         const rawJson = process.env.FIREBASE_SERVICE_ACCOUNT.trim();
         console.log('Attempting to parse FIREBASE_SERVICE_ACCOUNT (Length:', rawJson.length, ')');
 
