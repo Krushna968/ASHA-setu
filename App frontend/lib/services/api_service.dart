@@ -3,10 +3,8 @@ import 'package:http/http.dart' as http;
 import 'auth_service.dart';
 
 class ApiService {
-  // Base URL for the local backend
-  // 10.0.2.2 is used for Android emulator to access the host machine's localhost
-  // If running on a physical device, replace with your PC's local IP address (e.g., 192.168.1.x)
-  static const String baseUrl = 'http://10.75.109.134:5000/api';
+  // Base URL for the production backend on Render
+  static const String baseUrl = 'https://asha-setu-backend.onrender.com/api';
 
   // Include token in header
   static Future<Map<String, String>> _getHeaders() async {
