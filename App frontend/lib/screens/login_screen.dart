@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
 import '../services/api_service.dart';
 import 'otp_screen.dart';
@@ -28,24 +29,31 @@ class _LoginScreenState extends State<LoginScreen> {
       _errorMessage = null;
     });
 
-    final result = await ApiService.sendOtp(phone);
+    final formattedPhone = phone.startsWith('+91') ? phone : '+91$phone';
 
-    setState(() {
-      _isLoading = false;
-    });
-
-    if (result.containsKey('error')) {
-      setState(() => _errorMessage = result['error']);
-    } else {
-      // Navigate to OTP Screen
-      if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => OtpScreen(mobileNumber: phone),
-          ),
-        );
+    try {
+      final result = await ApiService.sendOtp(formattedPhone);
+      
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      
+      if (result.containsKey('error')) {
+         setState(() => _errorMessage = result['error']);
+      } else {
+         Navigator.push(
+           context,
+           MaterialPageRoute(
+             builder: (context) => OtpScreen(
+               mobileNumber: formattedPhone,
+             ),
+           ),
+         );
       }
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'An error occurred. Try again.';
+      });
     }
   }
 
@@ -55,42 +63,48 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
+          padding: EdgeInsets.only(
+            left: 24.0,
+            right: 24.0,
+            top: 24.0,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24.0,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 48),
+              const SizedBox(height: 24), // Reduced from 48
               // Logo Placeholder
               Container(
-                width: 120,
-                height: 120,
+                width: 100, // Reduced size
+                height: 100,
                 decoration: BoxDecoration(
-                  color: Colors.green.shade100, // Placeholder color matching logo bg
+                  color: Colors.blue.shade50,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  Icons.health_and_safety, // Placeholder icon
-                  size: 64,
-                  color: Colors.green.shade800,
+                child: const Icon(
+                  Icons.favorite, // ASHA-like heart/care icon
+                  size: 56,
+                  color: MyTheme.primaryBlue,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16), // Reduced
               Text(
-                'NATIONAL HEALTH MISSION',
+                'Meri Asha',
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: const Color(0xFF0056D2),
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                  color: MyTheme.primaryBlue,
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               Text(
-                'ASHA Digital Portal',
+                'ASHA Digital App',
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                   color: Colors.grey[600],
+                  fontWeight: FontWeight.w500,
                 ),
               ),
-              const SizedBox(height: 48),
+              const SizedBox(height: 24), // Reduced to shift language selection up
               
               // Language Selection
               Row(
@@ -99,7 +113,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   const Icon(Icons.language, size: 20, color: MyTheme.primaryBlue),
                   const SizedBox(width: 8),
                   Text(
-                    'SELECT LANGUAGE / भाषा चुनें',
+                    _selectedLanguage == 'हिंदी' ? 'भाषा चुनें' : 'SELECT LANGUAGE',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -116,18 +130,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Row(
                   children: [
                     _buildLanguageOption('English'),
-                    _buildLanguageOption('हिंदी'), // Hindi
+                    _buildLanguageOption('हिंदी'),
                     _buildLanguageOption('Regional'),
                   ],
                 ),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 24), // Reduced to shift mobile number up
 
               // Mobile Number Input
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'Mobile Number / मोबाइल नंबर',
+                  _selectedLanguage == 'हिंदी' ? 'मोबाइल नंबर' : 'Mobile Number',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: MyTheme.primaryBlue,
@@ -137,15 +151,19 @@ class _LoginScreenState extends State<LoginScreen> {
               const SizedBox(height: 12),
               TextField(
                 controller: _phoneController,
-                keyboardType: TextInputType.phone,
+                keyboardType: TextInputType.number,
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(10),
+                ],
                 style: const TextStyle(fontSize: 18, letterSpacing: 1.2, fontWeight: FontWeight.bold, color: Colors.grey),
                 decoration: InputDecoration(
                   prefixIcon: const Padding(
                     padding: EdgeInsets.all(16.0),
                     child: Text('+91', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: MyTheme.textDark)),
                   ),
-                  hintText: '0 0 0 0 0 0 0 0 0 0',
-                  hintStyle: TextStyle(color: Colors.grey.shade400),
+                  hintText: '0000000000',
+                  hintStyle: TextStyle(color: Colors.grey.shade400, letterSpacing: 2),
                   suffixIcon: const Icon(Icons.phone_android, color: Colors.grey),
                 ),
               ),
@@ -162,19 +180,23 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _handleSendOtp,
                   child: _isLoading 
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Row(
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                      )
+                    : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text('Get OTP / ओटीपी प्राप्त करें', style: TextStyle(fontSize: 18)),
-                          SizedBox(width: 8),
-                          Icon(Icons.arrow_forward),
+                          Text(_selectedLanguage == 'हिंदी' ? 'ओटीपी प्राप्त करें' : 'Get OTP', style: const TextStyle(fontSize: 18)),
+                          const SizedBox(width: 8),
+                          const Icon(Icons.arrow_forward),
                         ],
                       ),
                 ),
               ),
 
-              const SizedBox(height: 64),
+              const SizedBox(height: 32), // Reduced from 64
               // Footer Support
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -186,7 +208,9 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 24),
                Text(
-                'By logging in, you agree to the Digital Healthcare\nTerms & Conditions and Privacy Policy of the National\nHealth Mission.',
+                _selectedLanguage == 'हिंदी' 
+                  ? 'लॉग इन करके, आप आशा सेवा शर्तों से सहमत होते हैं।'
+                  : 'By logging in, you agree to the ASHA App\nTerms & Conditions and Privacy Policy.',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                   color: Colors.grey[500],

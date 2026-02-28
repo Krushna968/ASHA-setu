@@ -85,24 +85,6 @@ class _CalendarScreenState extends State<CalendarScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: MyTheme.primaryBlue,
-        unselectedItemColor: Colors.grey,
-        showUnselectedLabels: true,
-        currentIndex: 2, // Calendar tab
-        onTap: (index) {
-          if (index == 0) Navigator.pushReplacementNamed(context, '/dashboard');
-          if (index == 1) Navigator.pushReplacementNamed(context, '/messenger');
-          // index 2 is current
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: 'Messages'),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: 'Calendar'),
-          BottomNavigationBarItem(icon: Icon(Icons.help_outline), label: 'Help'),
-        ],
-      ),
     );
   }
 

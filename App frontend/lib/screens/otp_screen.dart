@@ -6,7 +6,10 @@ import '../services/auth_service.dart';
 class OtpScreen extends StatefulWidget {
   final String mobileNumber;
 
-  const OtpScreen({super.key, required this.mobileNumber});
+  const OtpScreen({
+    super.key, 
+    required this.mobileNumber,
+  });
 
   @override
   State<OtpScreen> createState() => _OtpScreenState();
@@ -44,21 +47,28 @@ class _OtpScreenState extends State<OtpScreen> {
       _errorMessage = null;
     });
 
-    final result = await ApiService.verifyOtp(widget.mobileNumber, otpString);
+    try {
+      // Send OTP to backend for verification
+      final result = await ApiService.verifyOtp(widget.mobileNumber, otpString);
 
-    setState(() {
-      _isLoading = false;
-    });
+      if (!mounted) return;
 
-    if (result.containsKey('error')) {
-      setState(() => _errorMessage = result['error']);
-    } else if (result.containsKey('token') && result.containsKey('worker')) {
-      // Save auth data locally
-      await AuthService.saveAuthData(result['token'], result['worker']);
-      
-      if (mounted) {
+      if (result.containsKey('error')) {
+        setState(() {
+          _errorMessage = result['error'];
+          _isLoading = false;
+        });
+      } else if (result.containsKey('token') && result.containsKey('worker')) {
+        // Save auth data locally (our custom Node.js JWT)
+        await AuthService.saveAuthData(result['token'], result['worker']);
+        
         Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (route) => false);
       }
+    } catch (e) {
+       setState(() {
+        _isLoading = false;
+        _errorMessage = 'Login failed. Please try again.';
+      });
     }
   }
 
@@ -73,7 +83,12 @@ class _OtpScreenState extends State<OtpScreen> {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
+          padding: EdgeInsets.only(
+            left: 24.0,
+            right: 24.0,
+            top: 24.0,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 24.0,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -115,15 +130,17 @@ class _OtpScreenState extends State<OtpScreen> {
                 children: List.generate(
                   6,
                   (index) => SizedBox(
-                    width: 45,
+                    width: 50,
+                    height: 60,
                     child: TextField(
                       controller: _otpControllers[index],
                       focusNode: _focusNodes[index],
                       keyboardType: TextInputType.number,
                       textAlign: TextAlign.center,
                       maxLength: 1,
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                      style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                       decoration: InputDecoration(
+                        contentPadding: EdgeInsets.zero,
                         counterText: '',
                         filled: true,
                         fillColor: Colors.grey.shade50,
@@ -166,7 +183,11 @@ class _OtpScreenState extends State<OtpScreen> {
                 child: ElevatedButton(
                   onPressed: _isLoading ? null : _verifyOtp,
                   child: _isLoading 
-                    ? const CircularProgressIndicator(color: Colors.white)
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5),
+                      )
                     : const Text('Verify & Login', style: TextStyle(fontSize: 18)),
                 ),
               ),

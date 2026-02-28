@@ -1,8 +1,90 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:image_picker/image_picker.dart';
 import '../theme/app_theme.dart';
+import '../services/auth_service.dart';
+import '../services/api_service.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  String _workerName = 'Loading...';
+  String _employeeId = '...';
+  String _village = 'Loading Data...';
+  String _lastSyncTime = 'JUST NOW';
+  String? _profileImageUrl;
+  bool _isLoading = true;
+  bool _isUploadingImage = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfileData();
+  }
+
+  Future<void> _loadProfileData() async {
+    try {
+      final stats = await ApiService.get('/worker/stats');
+      if (mounted && !stats.containsKey('error')) {
+        setState(() {
+          _workerName = stats['name'] ?? 'ASHA Worker';
+          _employeeId = stats['employeeId'] ?? 'Unknown ID';
+          _village = stats['village'] ?? 'Local Village';
+          _profileImageUrl = stats['profileImage'];
+          _lastSyncTime = DateFormat('hh:mm a').format(DateTime.now());
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _pickAndUploadImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+
+    if (pickedFile == null) return; // User canceled
+
+    setState(() => _isUploadingImage = true);
+
+    try {
+      // Send directly to Postgres Backend via Multipart
+      final response = await ApiService.postMultipart(
+        '/worker/update-profile', 
+        pickedFile.path, 
+        'profileImage'
+      );
+      
+      if (!response.containsKey('error')) {
+        setState(() {
+          _profileImageUrl = response['profileImage'];
+        });
+        if (mounted) {
+           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Profile picture updated successfully!', style: TextStyle(color: Colors.white)), backgroundColor: MyTheme.successGreen));
+        }
+      } else {
+        throw Exception(response['error']);
+      }
+    } catch (e) {
+      debugPrint('UPLOAD ERROR: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Upload failed: ${e.toString()}', maxLines: 3, overflow: TextOverflow.ellipsis), 
+          backgroundColor: MyTheme.criticalRed,
+          duration: const Duration(seconds: 5),
+        ));
+      }
+    } finally {
+      setState(() => _isUploadingImage = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -11,10 +93,7 @@ class ProfileScreen extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: MyTheme.textDark),
-          onPressed: () => Navigator.pop(context),
-        ),
+        automaticallyImplyLeading: false,
         title: const Text(
           'Worker Profile',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: MyTheme.textDark),
@@ -96,22 +175,6 @@ class ProfileScreen extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: MyTheme.primaryBlue,
-        unselectedItemColor: Colors.grey,
-        showUnselectedLabels: true,
-        currentIndex: 3,
-        onTap: (index) {
-          if (index == 0) Navigator.pop(context);
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.people_outline), label: 'Patients'),
-          BottomNavigationBarItem(icon: Icon(Icons.assignment_outlined), label: 'Tasks'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-        ],
-      ),
     );
   }
 
@@ -128,35 +191,43 @@ class ProfileScreen extends StatelessWidget {
                 border: Border.all(color: const Color(0xFFDDE8FF), width: 4),
                 color: const Color(0xFF77B5D9),
               ),
-              child: const CircleAvatar(
-                backgroundColor: Color(0xFF77B5D9),
-                child: Icon(Icons.person, size: 64, color: Colors.white),
+              child: ClipOval(
+                child: _profileImageUrl != null
+                    ? Image.network(_profileImageUrl!, fit: BoxFit.cover, width: 110, height: 110,
+                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.person, size: 64, color: Colors.white))
+                    : const Icon(Icons.person, size: 64, color: Colors.white),
               ),
             ),
             Positioned(
               bottom: 4,
               right: 4,
-              child: Container(
-                width: 30,
-                height: 30,
-                decoration: const BoxDecoration(
-                  color: MyTheme.primaryBlue,
-                  shape: BoxShape.circle,
+              child: GestureDetector(
+                onTap: _isUploadingImage ? null : _pickAndUploadImage,
+                child: Container(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
+                    color: _isUploadingImage ? Colors.grey : MyTheme.primaryBlue,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white, width: 2),
+                  ),
+                  child: _isUploadingImage 
+                    ? const Padding(padding: EdgeInsets.all(6), child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                    : const Icon(Icons.edit, size: 16, color: Colors.white),
                 ),
-                child: const Icon(Icons.edit, size: 16, color: Colors.white),
               ),
             ),
           ],
         ),
         const SizedBox(height: 16),
-        const Text(
-          'Sunita Sharma',
-          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: MyTheme.textDark),
+        Text(
+          _workerName,
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: MyTheme.textDark),
         ),
         const SizedBox(height: 4),
-        const Text(
-          'ASHA ID: AS-99201',
-          style: TextStyle(fontSize: 14, color: MyTheme.primaryBlue, fontWeight: FontWeight.w600),
+        Text(
+          'ASHA ID: $_employeeId',
+          style: const TextStyle(fontSize: 14, color: MyTheme.primaryBlue, fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
         Container(
@@ -174,9 +245,9 @@ class ProfileScreen extends StatelessWidget {
                 decoration: const BoxDecoration(color: MyTheme.successGreen, shape: BoxShape.circle),
               ),
               const SizedBox(width: 6),
-              const Text(
-                'LAST SYNCED: 5M AGO',
-                style: TextStyle(
+              Text(
+                'SYNCED: $_lastSyncTime',
+                style: const TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 0.5,
@@ -218,9 +289,9 @@ class ProfileScreen extends StatelessWidget {
                   style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade600, letterSpacing: 0.8),
                 ),
                 const SizedBox(height: 2),
-                const Text(
-                  'Raigad Sector B, Gram Panchayat',
-                  style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: MyTheme.textDark),
+                Text(
+                  _village.toUpperCase(),
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: MyTheme.textDark),
                 ),
               ],
             ),
@@ -310,9 +381,12 @@ class ProfileScreen extends StatelessWidget {
                 ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(backgroundColor: MyTheme.criticalRed),
-                  onPressed: () {
+                  onPressed: () async {
                     Navigator.pop(ctx);
-                    Navigator.pushNamedAndRemoveUntil(context, '/', (r) => false);
+                    await AuthService.logout();
+                    if (context.mounted) {
+                      Navigator.pushNamedAndRemoveUntil(context, '/login', (r) => false);
+                    }
                   },
                   child: const Text('Logout'),
                 ),

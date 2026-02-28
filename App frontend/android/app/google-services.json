@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "794000208212",
+    "project_id": "asha-portal-30695",
+    "storage_bucket": "asha-portal-30695.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:794000208212:android:c9f45ed08c9c390736d8c1",
+        "android_client_info": {
+          "package_name": "com.example.asha_setu"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "794000208212-tfgqv9v9r37nol403usb4gfgo0hceoft.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.asha_setu",
+            "certificate_hash": "b84fa260725c139cb0ab5e3a5ca726842325d821"
+          }
+        },
+        {
+          "client_id": "794000208212-2jalo63v81dde6gkcosg66j4gr7ealhh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCCQ2cXTkMRRbIvW6Xfr1uqD_v36hiJMJE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "794000208212-2jalo63v81dde6gkcosg66j4gr7ealhh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

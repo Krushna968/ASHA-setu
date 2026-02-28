@@ -1,83 +1,74 @@
 const { PrismaClient } = require('@prisma/client');
 const jwt = require('jsonwebtoken');
-const twilio = require('twilio');
+const admin = require('firebase-admin');
 
 const prisma = new PrismaClient();
 
-// In-memory store for OTPs (Mobile -> OTP string).  
-// In production, use Redis.
-const otpStore = new Map();
+const { SNSClient, PublishCommand } = require("@aws-sdk/client-sns");
 
-// Initialize Twilio client only if credentials exist
-let twilioClient = null;
-if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_PHONE_NUMBER) {
-    twilioClient = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-}
+const snsClient = new SNSClient({
+    region: process.env.AWS_REGION || "ap-south-1",
+    credentials: {
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+    },
+});
 
-const sendOtp = async (req, res) => {
+const loginWorker = async (req, res) => {
     try {
-        const { mobileNumber } = req.body;
-
+        let { mobileNumber } = req.body;
         if (!mobileNumber) {
             return res.status(400).json({ error: 'Mobile number is required' });
         }
 
+        // Ensure it has +91 for SNS but store it without +91 in our DB
+        const fullNumber = mobileNumber.startsWith('+91') ? mobileNumber : '+91' + mobileNumber;
+        const dbNumber = fullNumber.substring(3);
+
         const worker = await prisma.worker.findUnique({
-            where: { mobileNumber }
+            where: { mobileNumber: dbNumber }
         });
 
         if (!worker) {
-            return res.status(404).json({ error: 'No ASHA worker registered with this number' });
+            return res.status(403).json({ error: 'Unauthorized: No ASHA worker registered with this number' });
         }
 
-        // Generate a random 6-digit OTP
-        const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
+        // Generate OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const otpExpiry = new Date(Date.now() + 10 * 60000); // 10 minutes
 
-        // Store the OTP in memory for verification later
-        otpStore.set(mobileNumber, otpCode);
+        await prisma.worker.update({
+            where: { id: worker.id },
+            data: { otp, otpExpiry }
+        });
 
-        // Send OTP via Twilio
-        if (twilioClient) {
-            // Indian numbers need +91 country code format for Twilio
-            const formattedNumber = mobileNumber.startsWith('+') ? mobileNumber : `+91${mobileNumber}`;
+        // Send OTP via AWS SNS
+        console.log(`Sending OTP to ${fullNumber}`);
+        const params = {
+            Message: `Your ASHA-Setu login OTP is: ${otp}`,
+            PhoneNumber: fullNumber
+        };
+        const snsResponse = await snsClient.send(new PublishCommand(params));
+        console.log("SNS Response:", snsResponse);
 
-            await twilioClient.messages.create({
-                body: `Your ASHA Portal verification code is: ${otpCode}`,
-                from: process.env.TWILIO_PHONE_NUMBER,
-                to: formattedNumber
-            });
-            console.log(`Sent real SMS OTP to ${formattedNumber}. (The code is: ${otpCode})`);
-        } else {
-            // Fallback for local testing if Twilio isn't set up yet
-            console.log(`[Twilio Not configured] Mock SMS: The OTP for ${mobileNumber} is ${otpCode}`);
-        }
-
-        res.json({ message: 'OTP sent successfully', mobileNumber });
+        res.json({ message: 'OTP sent successfully' });
     } catch (error) {
-        console.error("sendOtp error", error);
-        const errorMsg = error.message || 'Failed to send OTP';
-        res.status(500).json({ error: errorMsg });
+        console.error("loginWorker error", error);
+        res.status(500).json({ error: 'Failed to send OTP' });
     }
 };
 
 const verifyOtp = async (req, res) => {
     try {
-        const { mobileNumber, otp } = req.body;
-
+        let { mobileNumber, otp } = req.body;
         if (!mobileNumber || !otp) {
             return res.status(400).json({ error: 'Mobile number and OTP are required' });
         }
 
-        const storedOtp = otpStore.get(mobileNumber);
-
-        if (!storedOtp || storedOtp !== otp) {
-            return res.status(401).json({ error: 'Invalid or expired OTP' });
-        }
-
-        otpStore.delete(mobileNumber);
+        const dbNumber = mobileNumber.startsWith('+91') ? mobileNumber.substring(3) : mobileNumber;
 
         const worker = await prisma.worker.findUnique({
-            where: { mobileNumber },
+            where: { mobileNumber: dbNumber },
             include: {
                 _count: {
                     select: { patients: true, tasks: true }
@@ -86,8 +77,18 @@ const verifyOtp = async (req, res) => {
         });
 
         if (!worker) {
-            return res.status(404).json({ error: 'Worker not found' });
+            return res.status(403).json({ error: 'Unauthorized: Worker not found' });
         }
+
+        if (worker.otp !== otp || new Date() > worker.otpExpiry) {
+            return res.status(401).json({ error: 'Invalid or expired OTP' });
+        }
+
+        // Clear OTP upon successful login
+        await prisma.worker.update({
+            where: { id: worker.id },
+            data: { otp: null, otpExpiry: null }
+        });
 
         const token = jwt.sign(
             { id: worker.id, employeeId: worker.employeeId, mobileNumber: worker.mobileNumber },
@@ -110,11 +111,10 @@ const verifyOtp = async (req, res) => {
                 }
             }
         });
-
     } catch (error) {
         console.error("verifyOtp error", error);
-        res.status(500).json({ error: 'Failed to verify OTP' });
+        res.status(500).json({ error: 'Verification failed' });
     }
-}
+};
 
-module.exports = { sendOtp, verifyOtp };
+module.exports = { loginWorker, verifyOtp };

@@ -12,10 +12,7 @@ class MessengerScreen extends StatelessWidget {
         backgroundColor: MyTheme.backgroundWhite,
         appBar: AppBar(
           title: const Text('ASHA Messenger'),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => Navigator.pop(context),
-          ),
+          automaticallyImplyLeading: false,
           actions: [
             IconButton(icon: const Icon(Icons.search), onPressed: () {}),
             IconButton(icon: const Icon(Icons.more_vert), onPressed: () {}),
@@ -62,26 +59,6 @@ class MessengerScreen extends StatelessWidget {
               isPlaying: true, // Visual play state
               isBlueCard: true,
             ),
-          ],
-        ),
-        bottomNavigationBar: BottomNavigationBar(
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: MyTheme.primaryBlue,
-          unselectedItemColor: Colors.grey,
-          showUnselectedLabels: true,
-          currentIndex: 0, // Inbox
-          onTap: (index) {
-             if (index == 0) {
-               // Already on Inbox
-             } else {
-               // Placeholder for other tabs
-             }
-          },
-          items: const [
-            BottomNavigationBarItem(icon: Icon(Icons.inbox), label: 'Inbox'),
-            BottomNavigationBarItem(icon: Icon(Icons.assignment), label: 'Tasks'),
-            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profile'),
-            BottomNavigationBarItem(icon: Icon(Icons.help), label: 'Help'),
           ],
         ),
       ),

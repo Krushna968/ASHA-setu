@@ -10,30 +10,106 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Admin {
+  id        String   @id @default(uuid())
+  name      String
+  email     String   @unique
+  role      String   @default("DISTRICT_OFFICER")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Worker {
-  id           String         @id @default(uuid())
-  employeeId   String         @unique
-  name         String
-  mobileNumber String         @unique
-  email        String?        @unique
-  village      String
-  totalVisits  Int            @default(0)
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  patients     Patient[]
-  tasks        Task[]
-  visitHistory VisitHistory[]
+  id               String             @id @default(uuid())
+  employeeId       String             @unique
+  name             String
+  mobileNumber     String             @unique
+  email            String?            @unique
+  village          String
+  gender           String?
+  profileImage     String?
+  totalVisits      Int                @default(0)
+  otp              String?
+  otpExpiry        DateTime?
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  patients         Patient[]
+  tasks            Task[]
+  visitHistory     VisitHistory[]
+  inventory        InventoryItem[]
+  households       Household[]
+  learningProgress LearningProgress[]
+  messagesSent     Message[]          @relation("SentMessages")
+  messagesReceived Message[]          @relation("ReceivedMessages")
 }
 
 model Patient {
   id           String         @id @default(uuid())
   name         String
   age          Int
-  category     String         // e.g., 'ANC', 'PNC', 'IMMUNIZATION', 'GENERAL'
-  address      String
+  gender       String?
+  category     String // e.g., 'ANC', 'PNC', 'INFANT', 'GENERAL'
+  address      String? // Address can now be null if inherited from Household
+  pregnancyEDD DateTime? // Expected Date of Delivery for ANC
   workerId     String
+  householdId  String?
   worker       Worker         @relation(fields: [workerId], references: [id])
+  household    Household?     @relation(fields: [householdId], references: [id])
   visitHistory VisitHistory[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model Household {
+  id            String    @id @default(uuid())
+  headName      String // Name of the head of the family
+  address       String
+  village       String?
+  familyMembers Patient[] // Relation to individual patients in the family
+  workerId      String
+  worker        Worker    @relation(fields: [workerId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model LearningModule {
+  id          String             @id @default(uuid())
+  title       String
+  description String?
+  contentUrl  String? // Link to video or article
+  durationMin Int? // Estimated duration in minutes
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  progress    LearningProgress[]
+}
+
+model LearningProgress {
+  id          String         @id @default(uuid())
+  workerId    String
+  moduleId    String
+  status      String         @default("NOT_STARTED") // 'NOT_STARTED', 'IN_PROGRESS', 'COMPLETED'
+  completedAt DateTime?
+  worker      Worker         @relation(fields: [workerId], references: [id])
+  module      LearningModule @relation(fields: [moduleId], references: [id])
+  updatedAt   DateTime       @updatedAt
+
+  @@unique([workerId, moduleId]) // A worker can only have one progress record per module
+}
+
+model Message {
+  id           String  @id @default(uuid())
+  content      String
+  senderId     String // Could be Admin or Worker
+  receiverId   String // Could be Admin or Worker
+  senderType   String // 'ADMIN' or 'WORKER'
+  receiverType String // 'ADMIN' or 'WORKER'
+  isRead       Boolean @default(false)
+
+  // Optional relations (Prisma requires specific fields, we'll map them loosely)
+  workerSender   Worker? @relation("SentMessages", fields: [senderId], references: [id], map: "Message_WorkerSender_fkey")
+  workerReceiver Worker? @relation("ReceivedMessages", fields: [receiverId], references: [id], map: "Message_WorkerReceiver_fkey")
+
+  createdAt DateTime @default(now())
 }
 
 model Task {
@@ -41,7 +117,7 @@ model Task {
   title       String
   description String?
   status      String   @default("PENDING") // 'PENDING', 'IN_PROGRESS', 'COMPLETED'
-  priority    String   @default("MEDIUM")  // 'HIGH', 'MEDIUM', 'LOW'
+  priority    String   @default("MEDIUM") // 'HIGH', 'MEDIUM', 'LOW'
   dueDate     DateTime
   workerId    String
   worker      Worker   @relation(fields: [workerId], references: [id])
@@ -50,11 +126,26 @@ model Task {
 }
 
 model VisitHistory {
-  id        String   @id @default(uuid())
-  workerId  String
-  patientId String
-  visitDate DateTime @default(now())
-  outcome   String
-  worker    Worker   @relation(fields: [workerId], references: [id])
-  patient   Patient  @relation(fields: [patientId], references: [id])
+  id            String   @id @default(uuid())
+  workerId      String
+  patientId     String
+  visitDate     DateTime @default(now())
+  outcome       String
+  bloodPressure String?
+  weight        Float?
+  bloodSugar    Float?
+  temperature   Float?
+  notes         String?
+  worker        Worker   @relation(fields: [workerId], references: [id])
+  patient       Patient  @relation(fields: [patientId], references: [id])
+}
+
+model InventoryItem {
+  id          String   @id @default(uuid())
+  name        String // e.g. Paracetamol, ORS, Iron Folic Acid
+  quantity    Int      @default(0)
+  unit        String // e.g. tablets, packets, kits
+  workerId    String
+  worker      Worker   @relation(fields: [workerId], references: [id])
+  lastUpdated DateTime @updatedAt
 }

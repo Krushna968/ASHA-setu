@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
+import '../services/api_service.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -11,6 +13,14 @@ class DashboardScreen extends StatefulWidget {
 
 class _DashboardScreenState extends State<DashboardScreen> {
   String _workerName = 'Loading...';
+  String _employeeId = '....';
+  String _village = 'Loading...';
+  String _lastSyncTime = 'JUST NOW';
+  String? _profileImageUrl;
+  int _patientsCount = 0;
+  int _tasksCount = 0;
+  int _visitsCount = 0;
+  bool _isLoadingStats = true;
 
   @override
   void initState() {
@@ -24,6 +34,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
       setState(() {
         _workerName = name ?? 'ASHA Worker';
       });
+    }
+
+    try {
+      final stats = await ApiService.get('/worker/stats');
+      if (mounted && !stats.containsKey('error')) {
+        setState(() {
+          _workerName = stats['name'] ?? _workerName;
+          _village = stats['village'] ?? 'Local Village';
+          _employeeId = stats['employeeId'] ?? 'Unknown ID';
+          _patientsCount = stats['patients'] ?? 0;
+          _tasksCount = stats['tasks'] ?? 0;
+          _visitsCount = stats['totalVisits'] ?? 0;
+          _profileImageUrl = stats['profileImage'];
+          _lastSyncTime = DateFormat('hh:mm a').format(DateTime.now());
+          _isLoadingStats = false;
+        });
+      } else {
+        setState(() => _isLoadingStats = false);
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoadingStats = false);
     }
   }
 
@@ -64,31 +95,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              _buildQuickAction(context, Icons.person_add, 'Add New Household', '/visit-form'),
-              _buildQuickAction(context, Icons.inventory, 'Inventory Status', '/inventory'),
-              _buildQuickAction(context, Icons.book, 'Learning Materials', '/learning'),
-              _buildQuickAction(context, Icons.help_outline, 'Help & Support', '/help'),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                child: Row(
+                  children: [
+                    _buildQuickActionPill(context, Icons.person_add, 'Add Household', '/visit-form'),
+                    const SizedBox(width: 12),
+                    _buildQuickActionPill(context, Icons.people, 'Patient Directory', '/patients'),
+                    const SizedBox(width: 12),
+                    _buildQuickActionPill(context, Icons.inventory_2, 'Inventory', '/inventory'),
+                    const SizedBox(width: 12),
+                    _buildQuickActionPill(context, Icons.book, 'Learning', '/learning'),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: MyTheme.primaryBlue,
-        unselectedItemColor: Colors.grey,
-        showUnselectedLabels: true,
-        currentIndex: 0,
-        onTap: (index) {
-          if (index == 1) Navigator.pushNamed(context, '/messenger');
-          if (index == 2) Navigator.pushNamed(context, '/calendar');
-          if (index == 3) Navigator.pushNamed(context, '/profile');
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
-          BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: 'Messages'),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: 'Calendar'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
-        ],
       ),
     );
   }
@@ -104,13 +128,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 color: Colors.blue.shade50,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: const Row(
+              child: Row(
                 children: [
-                  Icon(Icons.cloud_off, size: 16, color: MyTheme.primaryBlue),
-                  SizedBox(width: 8),
+                   const Icon(Icons.cloud_done, size: 16, color: MyTheme.primaryBlue),
+                  const SizedBox(width: 8),
                   Text(
-                    'OFFLINE MODE',
-                    style: TextStyle(
+                    'SYNCED: $_lastSyncTime',
+                    style: const TextStyle(
                       color: MyTheme.primaryBlue,
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
@@ -122,19 +146,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
              const SizedBox(height: 16),
              Row(
                children: [
-                 const CircleAvatar(
-                  radius: 28,
-                  backgroundImage: NetworkImage('https://i.pravatar.cc/150?img=5'), // Placeholder
-                  child: Align(
-                    alignment: Alignment.bottomRight,
-                    child: CircleAvatar(
-                      radius: 8,
-                      backgroundColor: Colors.white,
-                      child: CircleAvatar(radius: 6, backgroundColor: Colors.green),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
+                 Container(
+                   width: 56,
+                   height: 56,
+                   decoration: BoxDecoration(
+                     shape: BoxShape.circle,
+                     color: const Color(0xFF77B5D9),
+                     border: Border.all(color: Colors.white, width: 2),
+                   ),
+                   child: Stack(
+                     children: [
+                       ClipOval(
+                         child: _profileImageUrl != null
+                             ? Image.network(_profileImageUrl!, fit: BoxFit.cover, width: 56, height: 56,
+                                 errorBuilder: (context, error, stackTrace) => const Icon(Icons.person, size: 32, color: Colors.white))
+                             : const Icon(Icons.person, size: 32, color: Colors.white),
+                       ),
+                       const Align(
+                         alignment: Alignment.bottomRight,
+                         child: CircleAvatar(
+                           radius: 8,
+                           backgroundColor: Colors.white,
+                           child: CircleAvatar(radius: 6, backgroundColor: Colors.green),
+                         ),
+                       ),
+                     ],
+                   ),
+                 ),
+                 const SizedBox(width: 16),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -145,12 +184,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                       ),
                     ),
                     Text(
-                      'ASHA ID: 98765-432',
+                      'ASHA ID: $_employeeId',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     Text(
-                      'LAST SYNCED: 2H AGO',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 10),
+                      'AREA: ${_village.toUpperCase()}',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 11, color: Colors.grey[700], fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -172,34 +211,34 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Column(
       children: [
         _buildCard(
-          icon: Icons.home_work,
+          icon: Icons.people,
           iconColor: MyTheme.primaryBlue,
-          title: "Today's Visits",
-          count: '12',
-          progress: 0.6,
-          progressLabel: '8/12 DONE',
+          title: "Total Registered Patients",
+          count: _isLoadingStats ? '-' : '$_patientsCount',
+          progress: _patientsCount > 0 ? 1.0 : 0.0,
+          progressLabel: 'Active',
         ),
         const SizedBox(height: 12),
         GestureDetector(
-          onTap: () => Navigator.pushNamed(context, '/emergency'),
+          onTap: () => Navigator.pushNamed(context, '/messenger'),
           child: _buildCard(
-            icon: Icons.warning_amber_rounded, // Use warning icon for emergency
-            iconColor: Colors.red,
-            bgColor: Colors.red.shade50,
-            title: "Emergency Alerts",
-            subtitle: "Immediate attention required",
-            count: '3', // Badge count
+            icon: Icons.assignment_turned_in,
+            iconColor: MyTheme.successGreen,
+            bgColor: Colors.green.shade50,
+            title: "Open Tasks",
+            subtitle: "Assigned follow-ups & duties",
+            count: _isLoadingStats ? '-' : '$_tasksCount',
             isAlert: true,
           ),
         ),
         const SizedBox(height: 12),
         _buildCard(
-          icon: Icons.calendar_today,
+          icon: Icons.map,
           iconColor: Colors.orange,
           bgColor: Colors.orange.shade50,
-          title: "Follow-ups",
-          count: '04',
-          trailingLabel: "PENDING",
+          title: "Total Career Visits",
+          count: _isLoadingStats ? '-' : '$_visitsCount',
+          trailingLabel: "ALL TIME",
         ),
       ],
     );
@@ -378,43 +417,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildQuickAction(BuildContext context, IconData icon, String label, String? route) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: GestureDetector(
-        onTap: () {
-          if (route != null) Navigator.pushNamed(context, route);
-        },
-        child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-             border: Border.all(color: Colors.grey.shade200),
-          ),
-          child: Row(
-            children: [
-              Container(
-                 padding: const EdgeInsets.all(10),
-                 decoration: BoxDecoration(
-                   color: Colors.blue.shade50,
-                   borderRadius: BorderRadius.circular(12),
-                 ),
-                 child: Icon(icon, color: MyTheme.primaryBlue),
+  Widget _buildQuickActionPill(BuildContext context, IconData icon, String label, String? route) {
+    return GestureDetector(
+      onTap: () {
+        if (route != null) Navigator.pushNamed(context, route);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        decoration: BoxDecoration(
+          color: MyTheme.primaryBlue.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(30), // Pill Shape
+          border: Border.all(color: MyTheme.primaryBlue.withOpacity(0.3), width: 1.5),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: MyTheme.primaryBlue, size: 20),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
+                color: MyTheme.primaryBlue,
               ),
-              const SizedBox(width: 16),
-              Text(
-                label,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: MyTheme.textDark,
-                ),
-              ),
-              const Spacer(),
-              const Icon(Icons.chevron_right, color: Colors.grey),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
