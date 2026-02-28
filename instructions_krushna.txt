@@ -1,6 +1,7 @@
 ================================================================================
   ASHA-SETU APP — INSTRUCTIONS FOR KRUSHNA (Lead Developer — 80% of work)
   Branch: main-krushna
+  Deadline for Rudra & Raj: 3rd March 2026
 ================================================================================
 
 Hey Krushna! You are the lead developer and owner of the project.
@@ -55,12 +56,12 @@ YOUR WORKFLOW
 ================================================================================
 
 1. Work on `main-krushna` branch
-2. When Member 2 and Member 3 finish their work, they will push to their 
-   branches (dev-ui-polish, dev-testing-docs)
+2. When Rudra and Raj finish their work, they will push to their 
+   branches (dev-rudra, dev-raj)
 3. YOU will review their code and merge into main:
    git checkout main
-   git merge dev-ui-polish
-   git merge dev-testing-docs
+   git merge dev-rudra
+   git merge dev-raj
 
 ================================================================================
 WHAT TO SHARE WITH YOUR TEAM (via WhatsApp)
@@ -68,11 +69,13 @@ WHAT TO SHARE WITH YOUR TEAM (via WhatsApp)
 
 Share the following with BOTH team members:
 
-1. GitHub Repo Link: (your ASHA-Setuapp repo URL)
-   - Member 2 works on branch: dev-ui-polish
-   - Member 3 works on branch: dev-testing-docs
+1. GitHub Repo Link: https://github.com/Krushna968/ASHA-setu
+   - Rudra works on branch: dev-rudra
+   - Raj works on branch: dev-raj
 
-2. Their specific instructions.txt file (attached below or shared separately)
+2. Their specific instructions file:
+   - Send instructions_rudra.txt to Rudra
+   - Send instructions_raj.txt to Raj
 
 3. DO NOT SHARE these sensitive files:
    ❌ .env file (contains AWS keys, DB password, JWT secret)
@@ -87,42 +90,42 @@ Share the following with BOTH team members:
    ✅ A brief WhatsApp message explaining their task
 
 ================================================================================
-SAMPLE WHATSAPP MESSAGE FOR MEMBER 2
+SAMPLE WHATSAPP MESSAGE FOR RUDRA
 ================================================================================
 
-"Hey! Here's the GitHub repo for ASHA-Setu: [REPO LINK]
-Your branch is: dev-ui-polish
-I've attached your instructions.txt — read it carefully.
+"Hey Rudra! Here's the GitHub repo for ASHA-Setu: https://github.com/Krushna968/ASHA-setu
+Your branch is: dev-rudra
+I've attached your instructions_rudra.txt — read it TOP TO BOTTOM carefully.
 Your job is to polish the UI of 3 screens: help_support, learning, and emergency.
 Just make them look beautiful — colors, animations, icons.
 Don't touch the backend or any other files.
-Deadline: March 5th. Push to your branch when done."
+Deadline: 3rd March. Push to your branch when done."
 
 ================================================================================
-SAMPLE WHATSAPP MESSAGE FOR MEMBER 3
+SAMPLE WHATSAPP MESSAGE FOR RAJ
 ================================================================================
 
-"Hey! Here's the GitHub repo for ASHA-Setu: [REPO LINK]
-Your branch is: dev-testing-docs
-I've attached your instructions.txt — read it carefully.
-Your job is to improve the messenger screen UI and write project documentation.
+"Hey Raj! Here's the GitHub repo for ASHA-Setu: https://github.com/Krushna968/ASHA-setu
+Your branch is: dev-raj
+I've attached your instructions_raj.txt — read it TOP TO BOTTOM carefully.
+Your job is to improve the messenger screen UI and write project documentation (README + FEATURES).
 Don't touch the backend or any other files.
-Deadline: March 5th. Push to your branch when done."
+Deadline: 3rd March. Push to your branch when done."
 
 ================================================================================
 WHAT TO EXPECT FROM THEM
 ================================================================================
 
-Member 2 (UI Polish — dev-ui-polish):
+Rudra (UI Polish — dev-rudra) — Deadline 3rd March:
 - Better looking help_support_screen.dart
 - Better looking learning_screen.dart  
 - Better looking emergency_screen.dart
 - Only visual changes, no logic changes
 
-Member 3 (Messenger + Docs — dev-testing-docs):
-- Improved messenger_screen.dart UI
+Raj (Messenger + Docs — dev-raj) — Deadline 3rd March:
+- Improved messenger_screen.dart UI (WhatsApp-style chat bubbles)
 - A README.md file for the project
-- A FEATURES.md documenting all features
+- A FEATURES.md documenting all 11 features
 - Only visual changes to messenger, rest is documentation
 
 ================================================================================

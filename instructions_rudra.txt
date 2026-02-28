@@ -1,0 +1,399 @@
+================================================================================
+================================================================================
+  ASHA-SETU APP — COMPLETE INSTRUCTIONS FOR RUDRA
+  Your Git Branch: dev-rudra
+  Your Role: UI/UX Polish Developer (10% of project)
+  Deadline: 3rd March 2026
+================================================================================
+================================================================================
+
+
+Hi Rudra! Welcome aboard the ASHA-Setu project. This file contains EVERYTHING
+you need to know. Read it top to bottom before you start coding.
+
+
+================================================================================
+PART 1: WHAT IS THIS PROJECT?
+================================================================================
+
+ASHA-Setu is a mobile app built for ASHA (Accredited Social Health Activist) 
+workers in India. These are community health workers who go door-to-door in 
+rural areas to track pregnancies, infant health, immunizations, etc.
+
+This app helps them:
+- Log in with OTP (SMS verification)
+- See their daily dashboard with pending tasks
+- Manage their assigned patients
+- Log patient visits with health vitals (BP, weight, etc.)
+- View their visit calendar
+- Track medical supply inventory (medicines, kits)
+- Learn new health modules (training videos/articles)
+- Send messages to their district officer
+- Access emergency contacts for quick dial
+- Get help & FAQs
+- Manage their own profile
+
+The app has TWO parts:
+1. "App frontend" folder = Flutter mobile app (Dart language)
+2. "App backend" folder = Node.js server (JavaScript) — YOU WILL NOT TOUCH THIS
+
+You will ONLY work inside the "App frontend" folder.
+
+
+================================================================================
+PART 2: TECH STACK (so you understand the project)
+================================================================================
+
+Frontend (YOUR area):
+- Flutter 3.x (Dart programming language)
+- Material Design widgets
+- Custom dark theme (defined in lib/theme/app_theme.dart)
+
+Backend (DO NOT TOUCH):
+- Node.js + Express.js
+- Prisma ORM
+- PostgreSQL database (hosted on Supabase)
+- AWS SNS for OTP SMS
+- JWT for authentication
+
+
+================================================================================
+PART 3: HOW TO SET UP THE PROJECT ON YOUR MACHINE
+================================================================================
+
+STEP 1: Make sure you have these installed:
+  - Git (https://git-scm.com/)
+  - Flutter SDK (https://docs.flutter.dev/get-started/install)
+  - Android Studio (for Android emulator) OR a physical Android phone
+  - VS Code with Flutter + Dart extensions (recommended)
+
+STEP 2: Clone the repository
+  Open your terminal/command prompt and run:
+  
+  git clone https://github.com/Krushna968/ASHA-setu.git
+  cd ASHA-setu
+
+STEP 3: Switch to YOUR branch
+  IMPORTANT: Do NOT work on the main branch. Switch to your branch:
+  
+  git checkout dev-rudra
+
+STEP 4: Install Flutter dependencies
+  cd "App frontend"
+  flutter pub get
+
+STEP 5: Run the app to see the current state
+  flutter run
+  
+  NOTE: The app will show a login screen. Since you don't have the backend 
+  running, you can't actually log in. That's fine — you only need to see 
+  and edit the UI of your 3 assigned screens.
+
+  TIP: To preview a specific screen without logging in, you can temporarily 
+  change the home route in lib/main.dart to point directly to the screen 
+  you're working on. For example:
+  
+  // Change this line temporarily:
+  home: LoginScreen(),
+  // To this:
+  home: HelpSupportScreen(),
+
+  Remember to change it BACK before committing!
+
+
+================================================================================
+PART 4: YOUR 3 TASKS — WHAT EXACTLY TO DO
+================================================================================
+
+You are responsible for making 3 specific Flutter screens look modern, 
+beautiful, and professional. These screens currently work but look basic.
+Your job is to make them STUNNING.
+
+The app uses a DARK THEME. All colors, text styles, and design tokens are 
+defined in this file — READ IT FIRST:
+
+  File: App frontend/lib/theme/app_theme.dart
+
+Use the colors and styles from AppTheme in all your work. Do NOT use random 
+colors. Stay consistent with the rest of the app.
+
+────────────────────────────────────────────────────────────────────────────────
+TASK 1: Redesign help_support_screen.dart
+────────────────────────────────────────────────────────────────────────────────
+
+File Location: App frontend/lib/screens/help_support_screen.dart
+Lines of Code: ~340 lines
+
+WHAT THIS SCREEN DOES:
+This screen shows FAQs (Frequently Asked Questions), help articles, and 
+support contact information for ASHA workers who need guidance.
+
+CURRENT STATE:
+The screen exists and has content, but looks plain and basic.
+
+WHAT YOU NEED TO IMPROVE — CHECKLIST:
+
+  □ Add a SEARCH BAR at the very top of the screen
+    - Allow users to type and filter FAQs
+    - Use a rounded TextField with a search icon
+    - Filtering logic is optional — just the UI is fine
+
+  □ Make FAQ items EXPANDABLE with smooth animation
+    - Use ExpansionTile or custom AnimatedContainer
+    - When a user taps a question, the answer slides open smoothly
+    - Add a rotating arrow icon to indicate expand/collapse
+
+  □ Replace plain white cards with GRADIENT CARDS
+    - Use subtle dark gradients (not bright colors)
+    - Example: LinearGradient from AppTheme.cardColor to a slightly lighter shade
+    - Add rounded corners (BorderRadius.circular(16))
+
+  □ Add ICONS next to each FAQ question
+    - Use relevant Material Icons (e.g., Icons.help_outline, Icons.phone, etc.)
+    - Place them on the left side of each question
+
+  □ Make the "Contact Support" section PROMINENT
+    - Use a larger card with a gradient background
+    - Add a phone icon and a "Call Now" button
+    - Make the phone number large and tappable
+
+  □ Add MICRO-ANIMATIONS
+    - Fade-in animation when the screen loads (use AnimatedOpacity or FadeTransition)
+    - Slide-in animation for each card (staggered, one after another)
+    - You can use the 'animate_do' package if needed (add to pubspec.yaml)
+
+DESIGN INSPIRATION:
+Think of a modern FAQ page from any premium app. Clean, organized, with subtle 
+animations that make it feel alive.
+
+────────────────────────────────────────────────────────────────────────────────
+TASK 2: Redesign learning_screen.dart
+────────────────────────────────────────────────────────────────────────────────
+
+File Location: App frontend/lib/screens/learning_screen.dart
+Lines of Code: ~340 lines
+
+WHAT THIS SCREEN DOES:
+This screen shows training/learning modules for ASHA workers. Each module 
+can be a video, article, or quiz on health topics like Nutrition, Maternal 
+Health, Infant Care, etc.
+
+CURRENT STATE:
+The screen has a list of modules but looks basic and list-like.
+
+WHAT YOU NEED TO IMPROVE — CHECKLIST:
+
+  □ Add CATEGORY FILTER CHIPS at the top
+    - Horizontal scrollable row of chips: "All", "Nutrition", "Maternal Health", 
+      "Infant Care", "Immunization", "General"
+    - Use Chip or ChoiceChip widgets
+    - Highlight the selected chip with AppTheme.accentColor
+    - Filtering logic is optional — just the UI is fine
+
+  □ Add a "CONTINUE LEARNING" section
+    - Show the last module the user was working on
+    - Display it as a large highlighted card at the top
+    - Show a progress bar (e.g., "60% complete")
+    - Add a "Continue" button
+
+  □ Make each module a CARD with:
+    - A thumbnail area on the left (use a colored Container with an icon as placeholder)
+    - Module title (bold)
+    - Module description (smaller text, 1-2 lines max)
+    - Duration label (e.g., "15 min")
+    - A progress indicator:
+      * Not Started = grey outline
+      * In Progress = partially filled bar with percentage
+      * Completed = green checkmark
+
+  □ Add SMOOTH TRANSITIONS between module states
+    - When a module changes from "Not Started" to "In Progress", animate it
+    - Use AnimatedContainer or Hero animations
+
+  □ Add STAGGERED ANIMATIONS when the list loads
+    - Each card should slide in from the bottom one after another
+    - Use a small delay between each card (100ms stagger)
+
+DESIGN INSPIRATION:
+Think of Coursera, Udemy, or Duolingo's module list. Clean cards with progress 
+indicators and category filters.
+
+────────────────────────────────────────────────────────────────────────────────
+TASK 3: Redesign emergency_screen.dart
+────────────────────────────────────────────────────────────────────────────────
+
+File Location: App frontend/lib/screens/emergency_screen.dart
+Lines of Code: ~300 lines
+
+WHAT THIS SCREEN DOES:
+This screen shows emergency contact numbers (hospitals, ambulance, poison 
+control, etc.) that ASHA workers can tap to quickly call during emergencies.
+
+CURRENT STATE:
+The screen has a list of numbers but doesn't feel "urgent" enough.
+
+WHAT YOU NEED TO IMPROVE — CHECKLIST:
+
+  □ Add a BOLD SOS-STYLE HEADER
+    - Large "EMERGENCY" text with a warning icon
+    - Use red/orange colors to convey urgency
+    - Maybe a subtle pulsing or glowing effect on the header
+
+  □ Make the PRIMARY EMERGENCY NUMBER (112 or Ambulance) HUGE
+    - A large red circular button in the center
+    - Add a PULSING ANIMATION (the button grows and shrinks gently)
+    - Use AnimatedContainer or AnimationController for the pulse
+    - Label it "TAP TO CALL" below the number
+
+  □ GROUP contacts by category
+    - Use section headers: "🏥 Hospital", "🚑 Ambulance", "☎️ Helpline", etc.
+    - Each category should be a separate card/section
+
+  □ Make each contact number a LARGE TAPPABLE CARD
+    - Show the contact name, number, and a big phone icon
+    - Use red/orange gradient backgrounds
+    - The entire card should be tappable (use InkWell or GestureDetector)
+    - Optionally use url_launcher package to actually dial the number
+
+  □ Use RED/ORANGE COLOR SCHEME
+    - This screen should feel DIFFERENT from the rest of the app
+    - Use warm, urgent colors: reds, oranges, deep crimsons
+    - The background can have a subtle red gradient
+
+  □ Ensure ACCESSIBILITY
+    - Text should be LARGE and readable (minimum 18sp for numbers)
+    - Buttons should be big enough for panicked tapping
+    - Test on both small (5-inch) and large (6.5-inch) screens
+
+DESIGN INSPIRATION:
+Think of an emergency SOS app. Big buttons, red colors, pulsing animations, 
+zero confusion — the user should be able to call help in 2 seconds flat.
+
+
+================================================================================
+PART 5: STRICT RULES — READ CAREFULLY
+================================================================================
+
+✅ YOU MAY:
+  - Edit ONLY these 3 files:
+    1. App frontend/lib/screens/help_support_screen.dart
+    2. App frontend/lib/screens/learning_screen.dart
+    3. App frontend/lib/screens/emergency_screen.dart
+  - Use colors and styles from lib/theme/app_theme.dart
+  - Add visual Flutter packages to pubspec.yaml ONLY if needed 
+    (e.g., shimmer, animate_do, url_launcher)
+    → But TELL KRUSHNA first before adding any package
+  - Use Flutter's built-in animation widgets
+  - Test your changes on an emulator or physical device
+
+❌ YOU MAY NOT:
+  - Touch ANY file in "App backend/" folder — DO NOT EVEN OPEN IT
+  - Edit login_screen.dart, otp_screen.dart, dashboard_screen.dart, 
+    patients_screen.dart, add_patient_screen.dart, visit_form_screen.dart,
+    calendar_screen.dart, inventory_screen.dart, profile_screen.dart, 
+    messenger_screen.dart, or main_screen.dart
+  - Edit api_service.dart or auth_service.dart
+  - Edit main.dart (except temporarily to preview your screen)
+  - Push to main branch — ONLY push to dev-rudra
+  - Change any backend logic, API calls, or database code
+
+
+================================================================================
+PART 6: HOW TO USE ANTIGRAVITY (AI Coding Assistant)
+================================================================================
+
+If you have access to Antigravity (Gemini Code Assist in your IDE), you can 
+use it to help you code these UI improvements. Here are EXACT prompts you 
+can copy-paste into Antigravity:
+
+─── PROMPT FOR TASK 1 (Help & Support Screen) ───
+
+"I am working on a Flutter app called ASHA-Setu. My Git branch is dev-rudra.
+I need to redesign the file: lib/screens/help_support_screen.dart
+
+The app uses a dark theme defined in lib/theme/app_theme.dart — please use 
+those colors and styles.
+
+Please make these improvements:
+1. Add a search bar at the top to filter FAQs (rounded, with search icon)
+2. Make FAQ items expandable with smooth slide animation
+3. Replace plain cards with subtle dark gradient cards (rounded corners 16px)
+4. Add Material Icons next to each FAQ question
+5. Make the Contact Support section prominent with a gradient card and call button
+6. Add fade-in and slide-in micro-animations when the screen loads
+
+Keep the dark theme. Make it look premium and modern. Do NOT change any other 
+files. Do NOT touch backend code."
+
+─── PROMPT FOR TASK 2 (Learning Screen) ───
+
+"I am working on a Flutter app called ASHA-Setu. My Git branch is dev-rudra.
+I need to redesign the file: lib/screens/learning_screen.dart
+
+The app uses a dark theme defined in lib/theme/app_theme.dart — please use 
+those colors and styles.
+
+Please make these improvements:
+1. Add horizontal scrollable category filter chips at top (All, Nutrition, 
+   Maternal Health, Infant Care, Immunization, General)
+2. Add a 'Continue Learning' highlighted card at the top showing last module 
+   with progress bar and Continue button
+3. Make each module a card with thumbnail area, title, description, duration, 
+   and a circular/linear progress indicator
+4. Add staggered slide-in animations when cards load (100ms delay between each)
+5. Smooth transitions for module state changes
+
+Keep the dark theme. Make it look like Coursera or Duolingo module list. 
+Do NOT change any other files. Do NOT touch backend code."
+
+─── PROMPT FOR TASK 3 (Emergency Screen) ───
+
+"I am working on a Flutter app called ASHA-Setu. My Git branch is dev-rudra.
+I need to redesign the file: lib/screens/emergency_screen.dart
+
+The app uses a dark theme defined in lib/theme/app_theme.dart — but this 
+screen should use RED/ORANGE urgent colors instead of the normal dark theme.
+
+Please make these improvements:
+1. Add a bold SOS-style header with 'EMERGENCY' text and warning icon
+2. Make the primary emergency number (112/Ambulance) a LARGE red circular 
+   button with a pulsing/breathing animation
+3. Group contacts by category (Hospital, Ambulance, Helpline) with section headers
+4. Make each contact a large tappable card with red/orange gradient background
+5. Use large text (min 18sp for numbers) for accessibility
+6. Add subtle red gradient to the screen background
+
+Make it feel URGENT — big buttons, red colors, pulsing animations. The user 
+should be able to call for help in 2 seconds. Do NOT change any other files. 
+Do NOT touch backend code."
+
+
+================================================================================
+PART 7: HOW TO SUBMIT YOUR WORK
+================================================================================
+
+When you've finished all 3 tasks:
+
+STEP 1: Test all 3 screens on an emulator or physical device
+  - Make sure they look good on different screen sizes
+  - Check that animations are smooth (no stuttering)
+  - Verify the dark theme is consistent
+
+STEP 2: Stage and commit your changes
+  Open terminal in the ASHA-Setuapp folder and run:
+  
+  git add -A
+  git commit -m "feat(rudra): Polish help, learning, and emergency screen UIs with animations"
+
+STEP 3: Push to YOUR branch
+  git push origin dev-rudra
+
+STEP 4: Notify Krushna on WhatsApp
+  "Hey Krushna, I've pushed my UI changes to dev-rudra. 
+   All 3 screens (help, learning, emergency) are done. Please review and merge."
+
+================================================================================
+  DEADLINE: 3rd MARCH 2026
+  YOUR BRANCH: dev-rudra
+  YOUR FILES: help_support_screen.dart, learning_screen.dart, emergency_screen.dart
+================================================================================
