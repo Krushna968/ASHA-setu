@@ -80,6 +80,19 @@ app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'ASHA-Setu Mobile Backend is running' });
 });
 
+// Database connectivity check
+app.get('/api/db-check', async (req, res) => {
+    try {
+        const { PrismaClient } = require('@prisma/client');
+        const prisma = new PrismaClient();
+        const count = await prisma.worker.count();
+        await prisma.$disconnect();
+        res.json({ status: 'ok', workerCount: count });
+    } catch (error) {
+        res.status(500).json({ status: 'error', message: error.message });
+    }
+});
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, '0.0.0.0', () => {

@@ -17,21 +17,29 @@ const snsClient = new SNSClient({
 const loginWorker = async (req, res) => {
     try {
         let { mobileNumber } = req.body;
+        console.log(`[DEBUG] Login attempt for: "${mobileNumber}"`);
+
         if (!mobileNumber) {
             return res.status(400).json({ error: 'Mobile number is required' });
         }
 
-        // Ensure it has +91 for SNS but store it without +91 in our DB
+        // Clean and normalize the number
+        mobileNumber = mobileNumber.toString().trim();
         const fullNumber = mobileNumber.startsWith('+91') ? mobileNumber : '+91' + mobileNumber;
         const dbNumber = fullNumber.substring(3);
+
+        console.log(`[DEBUG] Searching DB for number: "${dbNumber}"`);
 
         const worker = await prisma.worker.findUnique({
             where: { mobileNumber: dbNumber }
         });
 
         if (!worker) {
+            console.log(`[DEBUG] Worker ${dbNumber} NOT found in database.`);
             return res.status(403).json({ error: 'Unauthorized: No ASHA worker registered with this number' });
         }
+
+        console.log(`[DEBUG] Worker found: ${worker.name} (ID: ${worker.id})`);
 
         // Generate OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
