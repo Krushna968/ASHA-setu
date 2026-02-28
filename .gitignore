@@ -5,3 +5,6 @@ build/
 *.env
 .env
 *.log
+serviceAccountKey.json
+google-services.json
+uploads/

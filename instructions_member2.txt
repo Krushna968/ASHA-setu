@@ -1,0 +1,162 @@
+================================================================================
+  ASHA-SETU APP — INSTRUCTIONS FOR MEMBER 2 (UI Polish — 10% of work)
+  Branch: dev-ui-polish
+================================================================================
+
+Welcome to the ASHA-Setu project! You are responsible for making 3 specific 
+Flutter screens look beautiful and polished. Read everything below carefully.
+
+================================================================================
+PROJECT OVERVIEW
+================================================================================
+
+ASHA-Setu is a mobile app for ASHA (community health) workers in India.
+It helps them manage patients, track visits, manage inventory, and learn 
+new health modules. The app is built with:
+
+- Frontend: Flutter (Dart) — this is what you will work on
+- Backend:  Node.js + Express (DO NOT TOUCH)
+- Database: PostgreSQL via Supabase (DO NOT TOUCH)
+
+================================================================================
+SETUP INSTRUCTIONS
+================================================================================
+
+1. Clone the repo:
+   git clone <REPO_URL>
+   cd ASHA-Setuapp
+
+2. Switch to YOUR branch:
+   git checkout dev-ui-polish
+
+3. Open the Flutter project:
+   cd "App frontend"
+   flutter pub get
+
+4. You do NOT need the backend running for your work. 
+   You are only making UI/visual changes.
+
+5. To preview your changes, use an Android emulator or physical device:
+   flutter run
+
+================================================================================
+YOUR 3 TASKS
+================================================================================
+
+TASK 1: Polish help_support_screen.dart
+---------------------------------------
+File: App frontend/lib/screens/help_support_screen.dart
+
+This screen shows help articles, FAQs, and support contact info for ASHA workers.
+
+What to improve:
+- Add smooth scroll animations when sections expand/collapse
+- Use gradient cards instead of plain white cards
+- Add subtle icons next to each FAQ question
+- Make the "Contact Support" section more prominent with a colored card
+- Add a search bar at the top to filter FAQs (just UI, filtering logic optional)
+- Use the app's theme colors from: lib/theme/app_theme.dart
+
+Design Reference:
+- Use colors from AppTheme class (primaryColor, accentColor, etc.)
+- Keep the dark theme consistent with the rest of the app
+- Add micro-animations (fade-in, slide-in) for professional feel
+
+
+TASK 2: Polish learning_screen.dart
+------------------------------------
+File: App frontend/lib/screens/learning_screen.dart
+
+This screen shows training modules for ASHA workers (videos, articles, quizzes).
+
+What to improve:
+- Add progress indicators (circular or linear) for each module
+- Use card-based layout with thumbnail placeholders for each module
+- Add category chips/tags at the top (e.g., "Nutrition", "Maternal Health")
+- Add a "Continue Learning" section at the top showing the last module
+- Smooth transitions between different module states (Not Started → In Progress → Completed)
+- Add subtle animations when module cards appear
+
+Design Reference:
+- Follow the existing dark theme from app_theme.dart
+- Use ListTile or custom cards with rounded corners
+- Icons should use Material Icons or Cupertino Icons
+
+
+TASK 3: Polish emergency_screen.dart
+--------------------------------------
+File: App frontend/lib/screens/emergency_screen.dart
+
+This screen shows emergency contacts and quick-dial options for health emergencies.
+
+What to improve:
+- Make emergency numbers LARGE and easy to tap (big red call buttons)
+- Add a pulsing animation on the primary emergency button
+- Group contacts by category (Hospital, Ambulance, Poison Control, etc.)
+- Use red/orange gradient backgrounds to convey urgency
+- Add an SOS-style header with bold typography
+- Ensure the "Call" buttons are accessible and prominent
+
+Design Reference:
+- Emergency screens should feel urgent — use red tones
+- Keep text large and readable
+- Test on both small and large phone screens
+
+================================================================================
+RULES — VERY IMPORTANT
+================================================================================
+
+✅ DO:
+- Only edit the 3 files listed above
+- Follow the existing app theme (lib/theme/app_theme.dart)
+- Use Flutter's built-in widgets and animations
+- Test your UI on an emulator before pushing
+- Commit and push to YOUR branch: dev-ui-polish
+
+❌ DO NOT:
+- Touch any backend files (App backend/ folder)
+- Touch login_screen.dart, otp_screen.dart, dashboard_screen.dart, etc.
+- Change api_service.dart or auth_service.dart
+- Change pubspec.yaml unless adding a visual package (like shimmer, animate_do)
+  — if you do, tell Krushna first
+- Push to main branch — only push to dev-ui-polish
+
+================================================================================
+HOW TO USE ANTIGRAVITY (AI Assistant)
+================================================================================
+
+If you have access to Antigravity (Gemini Code Assist), you can ask it to help 
+you with your specific tasks. Here's how to prompt it effectively:
+
+Example prompts you can use:
+
+1. "I'm working on the ASHA-Setu Flutter app. My branch is dev-ui-polish.
+    I need to polish the help_support_screen.dart file. Currently it looks 
+    basic. Add gradient cards, smooth animations, better icons, and a search 
+    bar. Follow the dark theme from lib/theme/app_theme.dart."
+
+2. "Polish the learning_screen.dart in the ASHA-Setu Flutter app. Add progress 
+    indicators for each learning module, category filter chips at the top, 
+    and a 'Continue Learning' section. Use the existing dark theme."
+
+3. "Redesign emergency_screen.dart to look urgent and professional. Add large 
+    red call buttons with pulsing animation, group contacts by category, 
+    and use red/orange gradients. Follow the app's dark theme."
+
+Important: Tell Antigravity that you are ONLY working on UI changes on your 
+specific branch (dev-ui-polish) and should NOT touch backend code.
+
+================================================================================
+WHEN YOU'RE DONE
+================================================================================
+
+1. Test all 3 screens on an emulator
+2. Commit your changes:
+   git add -A
+   git commit -m "feat: Polish help, learning, and emergency screen UIs"
+3. Push to your branch:
+   git push origin dev-ui-polish
+4. Tell Krushna on WhatsApp that you're done
+
+DEADLINE: March 5th, 2026
+================================================================================

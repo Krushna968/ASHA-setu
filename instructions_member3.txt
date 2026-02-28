@@ -1,0 +1,249 @@
+================================================================================
+  ASHA-SETU APP — INSTRUCTIONS FOR MEMBER 3 (Messenger UI + Docs — 10% of work)
+  Branch: dev-testing-docs
+================================================================================
+
+Welcome to the ASHA-Setu project! You are responsible for improving the 
+Messenger screen UI and writing project documentation. Read everything carefully.
+
+================================================================================
+PROJECT OVERVIEW
+================================================================================
+
+ASHA-Setu is a mobile app for ASHA (community health) workers in India.
+It helps them manage patients, track visits, manage inventory, and learn 
+new health modules. The app is built with:
+
+- Frontend: Flutter (Dart) — you will work on 1 screen here
+- Backend:  Node.js + Express (DO NOT TOUCH)
+- Database: PostgreSQL via Supabase (DO NOT TOUCH)
+
+Tech Stack Summary (for your documentation):
+- Flutter 3.x for cross-platform mobile app
+- Node.js + Express.js for REST API backend
+- Prisma ORM for database access
+- PostgreSQL (Supabase) for database
+- AWS SNS for SMS OTP authentication
+- JWT tokens for session management
+
+================================================================================
+SETUP INSTRUCTIONS
+================================================================================
+
+1. Clone the repo:
+   git clone <REPO_URL>
+   cd ASHA-Setuapp
+
+2. Switch to YOUR branch:
+   git checkout dev-testing-docs
+
+3. Open the Flutter project:
+   cd "App frontend"
+   flutter pub get
+
+4. You do NOT need the backend running for your work.
+   You are making UI changes to 1 screen + writing documentation files.
+
+================================================================================
+YOUR 3 TASKS
+================================================================================
+
+TASK 1: Polish messenger_screen.dart
+--------------------------------------
+File: App frontend/lib/screens/messenger_screen.dart
+
+This screen is the messaging/chat interface where ASHA workers can communicate 
+with their district officers (admins) and other workers.
+
+What to improve:
+- Add chat bubble styling (sent messages on right in blue, received on left in grey)
+- Add timestamp display below each message
+- Add a typing indicator animation
+- Add user avatar circles next to messages  
+- Improve the message input bar (rounded corners, send button with icon)
+- Add a "No messages yet" empty state with an illustration/icon
+- Smooth scroll-to-bottom when new messages appear
+- Use the dark theme from lib/theme/app_theme.dart
+
+Design Reference:
+- Look at WhatsApp or Telegram for chat UI inspiration
+- Keep the dark theme consistent
+- Messages should feel natural and easy to read
+
+
+TASK 2: Create README.md
+--------------------------
+File: README.md (in the root ASHA-Setuapp/ folder)
+
+Write a professional README.md for the GitHub repository. Include:
+
+1. Project Title: ASHA-Setu — Digital Health Assistant for ASHA Workers
+2. Project Description (2-3 paragraphs):
+   - What the app does
+   - Who it is for (ASHA workers in rural India)
+   - What problem it solves (manual record-keeping, lack of communication)
+3. Features List:
+   - OTP-based phone login (AWS SNS)
+   - Patient management (add, view, categorize by ANC/PNC/Infant/General)
+   - Visit tracking with health vitals (BP, weight, temperature, blood sugar)
+   - Task management (assigned by district officers)
+   - Medical inventory tracking
+   - Learning modules for continuous training
+   - In-app messaging with district officers
+   - Emergency contacts quick-dial
+   - Calendar view for scheduled visits
+   - Worker profile management
+4. Tech Stack:
+   - Frontend: Flutter (Dart)
+   - Backend: Node.js, Express.js
+   - Database: PostgreSQL (Supabase)
+   - ORM: Prisma
+   - Authentication: AWS SNS OTP + JWT
+   - Cloud: AWS (SNS for SMS)
+5. Project Structure:
+   ASHA-Setuapp/
+   ├── App backend/          # Node.js REST API
+   │   ├── src/
+   │   │   ├── controllers/  # Business logic
+   │   │   ├── routes/       # API endpoints
+   │   │   └── middleware/   # Auth middleware
+   │   ├── prisma/           # Database schema
+   │   └── index.js          # Server entry point
+   ├── App frontend/         # Flutter mobile app
+   │   └── lib/
+   │       ├── screens/      # All app screens
+   │       ├── services/     # API & Auth services
+   │       ├── theme/        # App theming
+   │       └── main.dart     # App entry point
+   └── README.md
+6. How to Run:
+   - Backend: cd "App backend" → npm install → node index.js
+   - Frontend: cd "App frontend" → flutter pub get → flutter run
+7. Team:
+   - Developer 1 (Krushna) — Lead Developer
+   - Developer 2 — UI/UX Polish
+   - Developer 3 (You) — Documentation & Messenger UI
+8. License: MIT (or whatever Krushna prefers)
+
+
+TASK 3: Create FEATURES.md
+-----------------------------
+File: FEATURES.md (in the root ASHA-Setuapp/ folder)
+
+Write a detailed document describing every feature of the app. For each feature:
+- Feature name
+- Description (1-2 sentences)
+- Which screen implements it
+- Key functionality
+
+Features to document:
+
+1. OTP Authentication
+   - Phone number login with SMS OTP verification
+   - Screens: login_screen.dart, otp_screen.dart
+
+2. Dashboard
+   - Overview of worker stats, pending tasks, recent visits
+   - Screen: dashboard_screen.dart
+
+3. Patient Management
+   - Add new patients, categorize (ANC, PNC, Infant, General)
+   - Screens: patients_screen.dart, add_patient_screen.dart
+
+4. Visit Tracking
+   - Log patient visits with health vitals
+   - Screen: visit_form_screen.dart
+
+5. Calendar
+   - View scheduled visits on a calendar
+   - Screen: calendar_screen.dart
+
+6. Inventory Management
+   - Track medical supplies (medicines, kits)
+   - Screen: inventory_screen.dart
+
+7. Learning Modules
+   - Training content for ASHA workers
+   - Screen: learning_screen.dart
+
+8. Messaging
+   - Communication with district officers
+   - Screen: messenger_screen.dart
+
+9. Emergency Contacts
+   - Quick-dial emergency numbers
+   - Screen: emergency_screen.dart
+
+10. Help & Support
+    - FAQs and support contact info
+    - Screen: help_support_screen.dart
+
+11. Worker Profile
+    - View/edit profile, upload photo, view stats
+    - Screen: profile_screen.dart
+
+================================================================================
+RULES — VERY IMPORTANT
+================================================================================
+
+✅ DO:
+- Only edit messenger_screen.dart for UI changes
+- Create README.md and FEATURES.md in the root folder
+- Follow the existing app theme (lib/theme/app_theme.dart)
+- Write documentation in proper Markdown format
+- Commit and push to YOUR branch: dev-testing-docs
+
+❌ DO NOT:
+- Touch any backend files (App backend/ folder)
+- Touch login_screen.dart, otp_screen.dart, dashboard_screen.dart, etc.
+- Change api_service.dart or auth_service.dart
+- Change pubspec.yaml unless absolutely necessary — tell Krushna first
+- Push to main branch — only push to dev-testing-docs
+
+================================================================================
+HOW TO USE ANTIGRAVITY (AI Assistant)
+================================================================================
+
+If you have access to Antigravity (Gemini Code Assist), here are prompts you 
+can copy-paste to get help:
+
+1. For Messenger UI:
+   "I'm working on the ASHA-Setu Flutter app on branch dev-testing-docs.
+    Polish the messenger_screen.dart to look like a modern chat app. 
+    Add chat bubbles (sent on right in blue, received on left in grey), 
+    timestamps, avatar circles, typing indicator animation, and a polished 
+    message input bar. Follow the dark theme from lib/theme/app_theme.dart."
+
+2. For README:
+   "Create a professional README.md for the ASHA-Setu project. It's a Flutter + 
+    Node.js mobile app for ASHA health workers in India. Features include: OTP 
+    login via AWS SNS, patient management, visit tracking with vitals, task 
+    management, inventory tracking, learning modules, messaging, emergency 
+    contacts, and calendar. Tech stack: Flutter, Node.js, Express, Prisma, 
+    PostgreSQL (Supabase), AWS SNS, JWT."
+
+3. For FEATURES.md:
+   "Create a detailed FEATURES.md documenting all 11 features of the ASHA-Setu 
+    app. For each feature, describe what it does, which Flutter screen implements 
+    it, and the key functionality. Features: OTP Auth, Dashboard, Patient Mgmt, 
+    Visit Tracking, Calendar, Inventory, Learning, Messaging, Emergency, Help, 
+    Profile."
+
+Important: Tell Antigravity you are ONLY working on messenger_screen.dart UI 
+and documentation files on your branch (dev-testing-docs). Do NOT touch backend.
+
+================================================================================
+WHEN YOU'RE DONE
+================================================================================
+
+1. Test messenger_screen.dart on an emulator
+2. Proofread README.md and FEATURES.md
+3. Commit your changes:
+   git add -A
+   git commit -m "feat: Polish messenger UI and add project documentation"
+4. Push to your branch:
+   git push origin dev-testing-docs
+5. Tell Krushna on WhatsApp that you're done
+
+DEADLINE: March 5th, 2026
+================================================================================
