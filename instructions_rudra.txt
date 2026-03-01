@@ -85,13 +85,12 @@ STEP 4: Install Flutter dependencies
 STEP 5: Run the app to see the current state
   flutter run
   
-  NOTE: The app will show a login screen. Since you don't have the backend 
-  running, you can't actually log in. That's fine — you only need to see 
-  and edit the UI of your 3 assigned screens.
+  NOTE: The app is now connected to a LIVE production backend on Render! 🚀
+  You can now actually log in and test everything without running a local backend.
+  Simply use your registered phone number (8652075823) and you will receive a real OTP.
 
-  TIP: To preview a specific screen without logging in, you can temporarily 
-  change the home route in lib/main.dart to point directly to the screen 
-  you're working on. For example:
+  TIP: To preview a specific screen without navigating, you can temporarily 
+  change the home route in lib/main.dart...
   
   // Change this line temporarily:
   home: LoginScreen(),
@@ -148,10 +147,14 @@ STEP 5: Start the backend server
   You should see: "Server running on port 5000"
   The backend is now running at http://localhost:5000
 
-STEP 6: Update the Flutter app to point to YOUR backend
+STEP 6: Update the Flutter app (Already Done on main)
   Open: App frontend/lib/services/api_service.dart
   
-  Find the line that says "baseUrl" and change IT to YOUR computer's IP:
+  The `baseUrl` is already set to the live Render backend:
+  `static const String baseUrl = 'https://asha-setu-backend.onrender.com/api';`
+
+  You can use this live backend for testing, or if you want to run your own 
+  local backend, change it to your IP as shown below:
   
   If testing on EMULATOR (Android Studio emulator):
     static const String baseUrl = 'http://10.0.2.2:5000/api';

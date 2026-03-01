@@ -6,7 +6,8 @@
 
 Hey Krushna! You are the lead developer and owner of the project.
 You handle ALL the core logic, authentication, backend, database, and primary 
-Flutter screens. Below is your exact scope of work.
+Flutter screens. The project is now LIVE on Render and connected to Supabase! 🚀
+Below is your exact scope of work.
 
 ================================================================================
 YOUR RESPONSIBILITIES (80%)
