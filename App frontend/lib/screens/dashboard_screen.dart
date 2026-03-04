@@ -634,7 +634,18 @@ class _DashboardScreenState extends State<DashboardScreen>
   Widget _buildQuickActionCard(QuickAction action) {
     return GestureDetector(
       onTap: () {
-        if (action.route != null) {
+        if (action.route == '/map_action') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AreaTaskMapScreen()),
+          );
+        } else if (action.route == '/calendar_action') {
+          // Navigate to the Calendar tab
+          final appState = Provider.of<AppStateProvider>(context, listen: false);
+          appState.setCurrentIndex(1);
+        } else if (action.route == '/high-risk') {
+          Navigator.pushNamed(context, '/high-risk');
+        } else if (action.route != null) {
           Navigator.pushNamed(context, action.route!);
         }
       },
