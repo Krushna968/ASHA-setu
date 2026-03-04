@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
+import '../services/notification_service.dart';
 
 class OtpScreen extends StatefulWidget {
   final String mobileNumber;
@@ -61,6 +62,9 @@ class _OtpScreenState extends State<OtpScreen> {
       } else if (result.containsKey('token') && result.containsKey('worker')) {
         // Save auth data locally (our custom Node.js JWT)
         await AuthService.saveAuthData(result['token'], result['worker']);
+        
+        // Send FCM token now that user is logged in
+        await NotificationService.sendCurrentToken();
         
         if (mounted) {
           Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (route) => false);

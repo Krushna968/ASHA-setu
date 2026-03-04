@@ -2,14 +2,14 @@
 ================================================================================
   ASHA-SETU APP — COMPLETE INSTRUCTIONS FOR RUDRA
   Your Git Branch: dev-rudra
-  Your Role: UI/UX Polish Developer (10% of project)
-  Deadline: 3rd March 2026
+  Your Role: High Risk Section + Profile Rebuild (10% of project)
+  Deadline: 7th March 2026
 ================================================================================
 ================================================================================
 
 
-Hi Rudra! Welcome aboard the ASHA-Setu project. This file contains EVERYTHING
-you need to know. Read it top to bottom before you start coding.
+Hi Rudra! Welcome to ASHA-Setu Phase 2. This file contains EVERYTHING
+you need to know. Read it TOP TO BOTTOM before you start coding.
 
 
 ================================================================================
@@ -20,19 +20,6 @@ ASHA-Setu is a mobile app built for ASHA (Accredited Social Health Activist)
 workers in India. These are community health workers who go door-to-door in 
 rural areas to track pregnancies, infant health, immunizations, etc.
 
-This app helps them:
-- Log in with OTP (SMS verification)
-- See their daily dashboard with pending tasks
-- Manage their assigned patients
-- Log patient visits with health vitals (BP, weight, etc.)
-- View their visit calendar
-- Track medical supply inventory (medicines, kits)
-- Learn new health modules (training videos/articles)
-- Send messages to their district officer
-- Access emergency contacts for quick dial
-- Get help & FAQs
-- Manage their own profile
-
 The app has TWO parts:
 1. "App frontend" folder = Flutter mobile app (Dart language)
 2. "App backend" folder = Node.js server (JavaScript) — YOU WILL NOT TOUCH THIS
@@ -41,13 +28,16 @@ You will ONLY work inside the "App frontend" folder.
 
 
 ================================================================================
-PART 2: TECH STACK (so you understand the project)
+PART 2: TECH STACK
 ================================================================================
 
 Frontend (YOUR area):
 - Flutter 3.x (Dart programming language)
 - Material Design widgets
-- Custom dark theme (defined in lib/theme/app_theme.dart)
+- Light theme (defined in lib/theme/app_theme.dart)
+- Provider package for state management
+- HTTP package for API calls
+- image_picker for profile photo
 
 Backend (DO NOT TOUCH):
 - Node.js + Express.js
@@ -68,13 +58,11 @@ STEP 1: Make sure you have these installed:
   - VS Code with Flutter + Dart extensions (recommended)
 
 STEP 2: Clone the repository
-  Open your terminal/command prompt and run:
-  
   git clone https://github.com/Krushna968/ASHA-setu.git
   cd ASHA-setu
 
 STEP 3: Switch to YOUR branch
-  IMPORTANT: Do NOT work on the main branch. Switch to your branch:
+  IMPORTANT: Do NOT work on the main branch!
   
   git checkout dev-rudra
 
@@ -82,276 +70,325 @@ STEP 4: Install Flutter dependencies
   cd "App frontend"
   flutter pub get
 
-STEP 5: Run the app to see the current state
+STEP 5: Run the app
   flutter run
   
-  NOTE: The app is now connected to a LIVE production backend on Render! 🚀
-  You can now actually log in and test everything without running a local backend.
-  Simply use your registered phone number (8652075823) and you will receive a real OTP.
+  NOTE: The app is connected to a LIVE production backend on Render! 🚀
+  Simply use your registered phone number (8652075823) and you will receive 
+  a real OTP.
 
-  TIP: To preview a specific screen without navigating, you can temporarily 
-  change the home route in lib/main.dart...
-  
-  // Change this line temporarily:
-  home: LoginScreen(),
-  // To this:
-  home: HelpSupportScreen(),
+  Your profile: Name = "Rudra", Area = "Panvel"
 
-  Remember to change it BACK before committing!
-
-  ALTERNATIVELY: You can run the backend too and test the FULL app flow 
-  (login with OTP, navigate to screens, etc.). See PART 3B below.
+  IMPORTANT: Firebase API keys (google-services.json) are in .gitignore.
+  ❌ Do NOT commit google-services.json
+  ❌ Do NOT put any API keys in your code
+  ❌ Do NOT share any keys with anyone
 
 
 ================================================================================
-PART 3B: HOW TO RUN THE BACKEND (Optional — For Full Testing)
+PART 4: YOUR 2 TASKS — WHAT EXACTLY TO DO
 ================================================================================
 
-If you want to test the full app (with login, OTP, etc.), you need to run 
-the backend server on your machine. Here's how:
-
-STEP 1: Install Node.js
-  - Download from https://nodejs.org/ (use the LTS version)
-  - Verify: Open terminal and run: node --version
-
-STEP 2: Install backend dependencies
-  cd "App backend"
-  npm install
-
-STEP 3: Create the .env file
-  Create a file called ".env" (just .env, no other name) inside the 
-  "App backend" folder. Paste this EXACT content:
-
-  ⚠️ ASK KRUSHNA on WhatsApp — he will send you the .env file contents.
-  He cannot put it on GitHub because it contains secret keys (AWS, Database).
-  
-  The .env file should have these 6 variables:
-    DATABASE_URL="..."     (Supabase PostgreSQL connection string)
-    JWT_SECRET="..."       (Secret key for authentication tokens)
-    AWS_ACCESS_KEY_ID="..."  (AWS credentials for OTP SMS)
-    AWS_SECRET_ACCESS_KEY="..."  (AWS credentials for OTP SMS)
-    AWS_REGION="ap-south-1"
-    PORT=5000
-
-  Krushna will WhatsApp you the exact values to paste.
-
-  ⚠️ IMPORTANT: Do NOT share this .env file with anyone outside the team.
-  ⚠️ IMPORTANT: Do NOT commit this file to Git (it's already in .gitignore).
-
-STEP 4: Generate Prisma Client
-  npx prisma generate
-
-STEP 5: Start the backend server
-  node index.js
-
-  You should see: "Server running on port 5000"
-  The backend is now running at http://localhost:5000
-
-STEP 6: Update the Flutter app (Already Done on main)
-  Open: App frontend/lib/services/api_service.dart
-  
-  The `baseUrl` is already set to the live Render backend:
-  `static const String baseUrl = 'https://asha-setu-backend.onrender.com/api';`
-
-  You can use this live backend for testing, or if you want to run your own 
-  local backend, change it to your IP as shown below:
-  
-  If testing on EMULATOR (Android Studio emulator):
-    static const String baseUrl = 'http://10.0.2.2:5000/api';
-  
-  If testing on PHYSICAL PHONE (connected to same WiFi as your PC):
-    Step A: Find your PC's IP address:
-      - Windows: Open cmd → type: ipconfig → look for "IPv4 Address" 
-        (usually something like 192.168.x.x)
-      - Mac: System Preferences → Network → look for IP
-    Step B: Use that IP in baseUrl:
-      static const String baseUrl = 'http://YOUR_PC_IP:5000/api';
-      Example: static const String baseUrl = 'http://192.168.1.5:5000/api';
-  
-  ⚠️ IMPORTANT: Change this BACK to the original before committing!
-  ⚠️ DO NOT commit your local IP address.
-
-STEP 7: Test login with YOUR number
-  - Run the Flutter app: flutter run
-  - Enter YOUR phone number: 8652075823
-  - You will receive an OTP via SMS to your phone
-  - Enter the OTP and you'll be logged in to the dashboard
-  - Your profile: Name = "Rudra", Area = "Panvel"
-  - From there you can navigate to any screen to test your UI changes
-
-  NOTE: Registered phone numbers in the system:
-  - Your number: 8652075823 (Worker: Rudra, Area: Panvel)
-  - Raj's number: 9137113650 (Worker: Raj, Area: Kalyan)
-  - Krushna's number (already registered)
-
-
-================================================================================
-PART 4: YOUR 3 TASKS — WHAT EXACTLY TO DO
-================================================================================
-
-You are responsible for making 3 specific Flutter screens look modern, 
-beautiful, and professional. These screens currently work but look basic.
-Your job is to make them STUNNING.
-
-The app uses a DARK THEME. All colors, text styles, and design tokens are 
-defined in this file — READ IT FIRST:
-
-  File: App frontend/lib/theme/app_theme.dart
-
-Use the colors and styles from AppTheme in all your work. Do NOT use random 
-colors. Stay consistent with the rest of the app.
+You have 2 tasks:
 
 ────────────────────────────────────────────────────────────────────────────────
-TASK 1: Redesign help_support_screen.dart
+TASK 1: Create high_risk_screen.dart  (NEW SCREEN)
 ────────────────────────────────────────────────────────────────────────────────
 
-File Location: App frontend/lib/screens/help_support_screen.dart
-Lines of Code: ~340 lines
+File to CREATE: App frontend/lib/screens/high_risk_screen.dart
 
 WHAT THIS SCREEN DOES:
-This screen shows FAQs (Frequently Asked Questions), help articles, and 
-support contact information for ASHA workers who need guidance.
+This is a dedicated full-page screen listing ALL high-risk patients/households.
+Currently, there's only a small card on the dashboard showing the high-risk count.
+Your job is to build a FULL PAGE dedicated to managing high-risk cases with
+urgency, color-coding, and actionable items.
 
-CURRENT STATE:
-The screen exists and has content, but looks plain and basic.
+───── WHERE THE DATA COMES FROM ─────
 
-WHAT YOU NEED TO IMPROVE — CHECKLIST:
+The app has a Provider called AreaMapProvider at: lib/providers/area_map_provider.dart
 
-  □ Add a SEARCH BAR at the very top of the screen
-    - Allow users to type and filter FAQs
-    - Use a rounded TextField with a search icon
-    - Filtering logic is optional — just the UI is fine
+Here are the EXACT fields you can use:
 
-  □ Make FAQ items EXPANDABLE with smooth animation
-    - Use ExpansionTile or custom AnimatedContainer
-    - When a user taps a question, the answer slides open smoothly
-    - Add a rotating arrow icon to indicate expand/collapse
+  From AreaMapProvider:
+    provider.highRiskCount     → int (total high-risk patients)
+    provider.households        → List<Household> (all households)
+    provider.dueTodayCount     → int 
+    provider.hasOverdue        → bool
+    provider.isLoading         → bool (true while data is loading)
+    provider.error             → String? (error message if any)
 
-  □ Replace plain white cards with GRADIENT CARDS
-    - Use subtle dark gradients (not bright colors)
-    - Example: LinearGradient from AppTheme.cardColor to a slightly lighter shade
-    - Add rounded corners (BorderRadius.circular(16))
+  To get ONLY high-risk households, filter:
+    final highRiskHouseholds = provider.households
+        .where((h) => h.status == 'high-risk')
+        .toList();
 
-  □ Add ICONS next to each FAQ question
-    - Use relevant Material Icons (e.g., Icons.help_outline, Icons.phone, etc.)
-    - Place them on the left side of each question
+  Each Household object has:
+    household.householdId      → String (unique ID)
+    household.displayId        → String (e.g., "H001", "H003")
+    household.headName         → String (head of household, e.g., "Radha Kumari")
+    household.address          → String (e.g., "Ward 3, House 23")
+    household.pendingTasksCount → int (pending tasks for this household)
+    household.status           → String ("pending", "completed", "high-risk", "closed")
+    household.isClosed         → bool
+    household.badges           → List<String> (e.g., ["antenatal", "bp-check"])
+    household.memberCount      → int
 
-  □ Make the "Contact Support" section PROMINENT
-    - Use a larger card with a gradient background
-    - Add a phone icon and a "Call Now" button
-    - Make the phone number large and tappable
+  To get DETAILED info for a high-risk household (members, visits, tasks):
+    await provider.loadHouseholdDetails(householdId);
+    final detail = provider.getCachedDetail(householdId);
 
-  □ Add MICRO-ANIMATIONS
-    - Fade-in animation when the screen loads (use AnimatedOpacity or FadeTransition)
-    - Slide-in animation for each card (staggered, one after another)
-    - You can use the 'animate_do' package if needed (add to pubspec.yaml)
+  HouseholdDetail has:
+    detail.members        → List<Map<String, dynamic>>
+      Each member: {'name': 'Radha Kumari', 'age': 24, 'id': 'p_301', 'relation': 'Head (Mother)'}
+    detail.latestVisits   → List<Map<String, dynamic>>
+      Each visit: {'type': 'ANC Visit', 'date': '2026-02-25', 'status': 'done'}
+    detail.pendingTasks   → List<Map<String, dynamic>>
+      Each task: {'taskId': 't3_1', 'type': 'ANC Visit', 'dueDate': '2026-03-08', 'notes': '3rd trimester check-up'}
+    detail.notes          → String (e.g., "HIGH RISK: Hypertension (145/95).")
 
-DESIGN INSPIRATION:
-Think of a modern FAQ page from any premium app. Clean, organized, with subtle 
-animations that make it feel alive.
+  There's also a worker stats endpoint:
+    GET /api/worker/stats → Returns { highRiskCount, dueTodayCount, ... }
+    
+    Call using: final stats = await ApiService.get('/worker/stats');
+
+───── HOW TO ACCESS THE PROVIDER ─────
+
+  import 'package:provider/provider.dart';
+  import '../providers/area_map_provider.dart';
+
+  // In your build method:
+  Consumer<AreaMapProvider>(
+    builder: (context, provider, child) {
+      final highRiskList = provider.households
+          .where((h) => h.status == 'high-risk')
+          .toList();
+      // Build your UI with highRiskList
+    },
+  );
+
+  // To refresh data:
+  await context.read<AreaMapProvider>().refreshArea();
+
+───── WHAT THE SCREEN SHOULD HAVE — DETAILED CHECKLIST ─────
+
+  □ URGENT HEADER
+    - Big bold "⚠️ High Risk Patients" title
+    - Show total count as a large number badge (e.g., "3 Critical Cases")
+    - Use RED color scheme — this screen should feel URGENT
+    - Use MyTheme.criticalRed = Color(0xFFDC3545) as the primary accent
+    - Optional: subtle pulsing animation on the count badge
+
+  □ RISK LEVEL SUMMARY (top section)
+    - Show categorized counts:
+      * "Critical" — overdue tasks + high-risk status (deep red)
+      * "Needs Attention" — pending tasks today (orange)  
+      * "Monitored" — high-risk but visited recently (yellow/green)
+    - You can derive these from the data:
+      * Critical = high-risk AND pendingTasksCount > 0 AND has overdue tasks
+      * Needs Attention = high-risk AND pendingTasksCount > 0
+      * Monitored = high-risk AND pendingTasksCount == 0
+
+  □ PATIENT LIST (main section)
+    For each high-risk household, show a detailed card:
+    
+    - Patient/Head name (large, bold)
+    - Household ID as a chip (e.g., "H003")
+    - Address (smaller text below)
+    - Risk reason from detail.notes (if available, load detail)
+    - Pending tasks count with icon
+    - Badges as colored chips:
+      * "antenatal" → purple chip with baby icon
+      * "bp-check" → red chip with heart icon
+      * "vaccination" → blue chip with syringe icon
+      * "postnatal" → pink chip
+    - Last visit date (from detail.latestVisits)
+    - Days since last visit (calculated from date)
+    - Color-coded left border:
+      * RED for overdue/critical
+      * ORANGE for pending today
+      * GREEN for recently visited
+
+  □ TAP ACTION
+    - Tapping a card should show a bottom sheet or navigate to detail
+    - Show the household members (from detail.members)
+    - Show pending tasks for this household (from detail.pendingTasks)
+    - Each task should have a "Mark Visited" button
+    - Use: provider.completeTask(householdId: id, taskId: taskId, context: context)
+
+  □ QUICK ACTIONS per card
+    - "Log Visit" button → Navigate to '/visit-form'
+    - "Call Patient" button (if phone number available)
+    - "View History" → show latestVisits in a dialog
+
+  □ EMPTY STATE (when no high-risk patients)
+    - Show a positive message: "No high-risk cases right now! 💚"
+    - Use Icons.health_and_safety with green color
+    - Sub-text: "All patients are in stable condition."
+
+  □ PULL TO REFRESH
+    - Wrap in RefreshIndicator
+    - On refresh: await provider.refreshArea();
+
+  □ LOADING STATE
+    - Show shimmer/skeleton while data loads
+    - Use provider.isLoading to check
+
+  □ ERROR STATE
+    - If provider.error is not null, show error with retry
+    - "Failed to load data — Tap to retry"
+
+  □ ANIMATIONS
+    - Red/orange color scheme throughout
+    - Subtle pulse animation on critical items
+    - Staggered card animations when list loads
+    - Smooth expansion when tapping for details
+
+───── THEME COLORS TO USE ─────
+
+  import '../theme/app_theme.dart';
+
+  MyTheme.criticalRed      = Color(0xFFDC3545)  — MAIN accent for this screen
+  MyTheme.warningOrange    = Color(0xFFFFC107)  — needs attention items
+  MyTheme.successGreen     = Color(0xFF28A745)  — recently visited/stable
+  MyTheme.primaryBlue      = Color(0xFF0056D2)  — links and actions
+  MyTheme.textDark         = Color(0xFF212121)  — main text
+  MyTheme.textLight        = Color(0xFF757575)  — secondary text
+  MyTheme.backgroundWhite  = Color(0xFFF5F7FA)  — background
+
+  Additional colors to use for urgency:
+  const Color deepCrimson = Color(0xFF8B0000);
+  const Color urgentOrange = Color(0xFFFF5722);
+  
+───── REGISTERING YOUR NEW SCREEN ─────
+
+  In lib/main.dart, add this import at the top:
+    import 'screens/high_risk_screen.dart';
+
+  And add this route inside the routes: {} map:
+    '/high-risk': (context) => const HighRiskScreen(),
+
+  ⚠️ IMPORTANT: Do NOT change any other routes in main.dart!
+
 
 ────────────────────────────────────────────────────────────────────────────────
-TASK 2: Redesign learning_screen.dart
+TASK 2: Rebuild profile_screen.dart UI (Premium Redesign with Stitch)
 ────────────────────────────────────────────────────────────────────────────────
 
-File Location: App frontend/lib/screens/learning_screen.dart
-Lines of Code: ~340 lines
+File to EDIT: App frontend/lib/screens/profile_screen.dart
+Current Lines: ~429 lines
 
-WHAT THIS SCREEN DOES:
-This screen shows training/learning modules for ASHA workers. Each module 
-can be a video, article, or quiz on health topics like Nutrition, Maternal 
-Health, Infant Care, etc.
+WHAT THIS SCREEN CURRENTLY DOES:
+Shows the ASHA worker's profile with:
+- Profile picture (with upload/change functionality via image_picker)
+- Name, Employee ID, sync status
+- Area of coverage card
+- Account settings (Language Change, Offline Settings)
+- Support section (Help & Support, About App)
+- Logout button
 
-CURRENT STATE:
-The screen has a list of modules but looks basic and list-like.
+YOUR JOB:
+Rebuild the UI to make it look PREMIUM and MODERN. 
+Use Google's Stitch tool to generate design ideas, then implement them.
 
-WHAT YOU NEED TO IMPROVE — CHECKLIST:
+⚠️ CRITICAL: Keep ALL existing FUNCTIONALITY working! ⚠️
+  - Profile image upload (via _pickAndUploadImage method) MUST still work
+  - Logout functionality MUST still work
+  - Profile data loading (via _loadProfileData) MUST still work
+  - All API calls MUST remain the same
 
-  □ Add CATEGORY FILTER CHIPS at the top
-    - Horizontal scrollable row of chips: "All", "Nutrition", "Maternal Health", 
-      "Infant Care", "Immunization", "General"
-    - Use Chip or ChoiceChip widgets
-    - Highlight the selected chip with AppTheme.accentColor
-    - Filtering logic is optional — just the UI is fine
+You are ONLY changing the UI/visual design, NOT the logic.
 
-  □ Add a "CONTINUE LEARNING" section
-    - Show the last module the user was working on
-    - Display it as a large highlighted card at the top
-    - Show a progress bar (e.g., "60% complete")
-    - Add a "Continue" button
+───── EXISTING FUNCTIONALITY TO PRESERVE (DO NOT BREAK) ─────
 
-  □ Make each module a CARD with:
-    - A thumbnail area on the left (use a colored Container with an icon as placeholder)
-    - Module title (bold)
-    - Module description (smaller text, 1-2 lines max)
-    - Duration label (e.g., "15 min")
-    - A progress indicator:
-      * Not Started = grey outline
-      * In Progress = partially filled bar with percentage
-      * Completed = green checkmark
+  1. _loadProfileData() — fetches from ApiService.get('/worker/stats')
+     Returns: name, employeeId, village, profileImage
+  
+  2. _pickAndUploadImage() — uses image_picker + ApiService.postMultipart
+     Uploads to: '/worker/update-profile' with field 'profileImage'
+  
+  3. Logout — calls AuthService.logout() then navigates to '/login'
+  
+  4. State variables (KEEP ALL OF THESE):
+     - _workerName, _employeeId, _village, _lastSyncTime
+     - _profileImageUrl, _isUploadingImage
 
-  □ Add SMOOTH TRANSITIONS between module states
-    - When a module changes from "Not Started" to "In Progress", animate it
-    - Use AnimatedContainer or Hero animations
+───── WHAT TO REDESIGN — DETAILED CHECKLIST ─────
 
-  □ Add STAGGERED ANIMATIONS when the list loads
-    - Each card should slide in from the bottom one after another
-    - Use a small delay between each card (100ms stagger)
+  □ PROFILE HEADER — Make it STUNNING
+    - Large profile picture with gradient border (not plain border)
+    - Name in large bold text with subtle shadow
+    - Employee ID as a styled badge/chip (not plain text)
+    - Sync status badge with green glow effect
+    - Consider a gradient background header section
+    - Keep the edit/camera button for photo upload
 
-DESIGN INSPIRATION:
-Think of Coursera, Udemy, or Duolingo's module list. Clean cards with progress 
-indicators and category filters.
+  □ STATS SECTION — Add worker statistics
+    - Show "Total Visits", "Patients Assigned", "Days Active" in a row
+    - Use attractive stat cards with icons
+    - You can get these from ApiService.get('/worker/stats'):
+      stats['name'], stats['village'], stats['employeeId'], stats['profileImage']
+      stats['completedToday'], stats['targetToday'], stats['highRiskCount']
 
-────────────────────────────────────────────────────────────────────────────────
-TASK 3: Redesign emergency_screen.dart
-────────────────────────────────────────────────────────────────────────────────
+  □ AREA COVERAGE CARD — More visual
+    - Keep location icon and area name
+    - Add a subtle map-like background or gradient
+    - Make it more visually interesting than plain blue card
 
-File Location: App frontend/lib/screens/emergency_screen.dart
-Lines of Code: ~300 lines
+  □ SETTINGS SECTIONS — Modern card design
+    - Use rounded cards with proper shadows
+    - Add smooth ripple effects on tap
+    - Consider using a SliverList or grouped sections
+    - Icons should have colored backgrounds (already partially done)
+    - Add subtle dividers between items
 
-WHAT THIS SCREEN DOES:
-This screen shows emergency contact numbers (hospitals, ambulance, poison 
-control, etc.) that ASHA workers can tap to quickly call during emergencies.
+  □ LOGOUT BUTTON — Premium look
+    - Keep red theme for logout
+    - Add a confirmation dialog (already exists, keep it)
+    - Maybe floating at bottom with proper spacing
 
-CURRENT STATE:
-The screen has a list of numbers but doesn't feel "urgent" enough.
+  □ ANIMATIONS
+    - Fade-in when screen loads
+    - Profile picture should have a subtle scale animation
+    - Settings items should stagger in from the right/bottom
+    - Use AnimationController + CurvedAnimation
 
-WHAT YOU NEED TO IMPROVE — CHECKLIST:
+  □ OVERALL POLISH
+    - Consistent rounded corners (16px for cards)
+    - Proper spacing and padding throughout
+    - Use the light theme colors from MyTheme
+    - The screen should feel like a premium banking/health app profile
 
-  □ Add a BOLD SOS-STYLE HEADER
-    - Large "EMERGENCY" text with a warning icon
-    - Use red/orange colors to convey urgency
-    - Maybe a subtle pulsing or glowing effect on the header
+───── HOW TO USE STITCH FOR DESIGN ─────
 
-  □ Make the PRIMARY EMERGENCY NUMBER (112 or Ambulance) HUGE
-    - A large red circular button in the center
-    - Add a PULSING ANIMATION (the button grows and shrinks gently)
-    - Use AnimatedContainer or AnimationController for the pulse
-    - Label it "TAP TO CALL" below the number
+  Google Stitch (stitch.google.com) can help you generate UI designs.
+  
+  1. Go to stitch.google.com
+  2. Describe the screen: "ASHA health worker profile page, light theme,
+     premium design, shows profile photo, name, employee ID, area coverage,
+     settings list, logout button, Flutter mobile app"
+  3. Use the generated design as INSPIRATION for your implementation
+  4. You don't need to match it exactly — use it as a reference
 
-  □ GROUP contacts by category
-    - Use section headers: "🏥 Hospital", "🚑 Ambulance", "☎️ Helpline", etc.
-    - Each category should be a separate card/section
+  If you have Antigravity with Stitch access, you can use it directly 
+  in your IDE to generate components.
 
-  □ Make each contact number a LARGE TAPPABLE CARD
-    - Show the contact name, number, and a big phone icon
-    - Use red/orange gradient backgrounds
-    - The entire card should be tappable (use InkWell or GestureDetector)
-    - Optionally use url_launcher package to actually dial the number
+───── EXISTING CODE STRUCTURE (for reference) ─────
 
-  □ Use RED/ORANGE COLOR SCHEME
-    - This screen should feel DIFFERENT from the rest of the app
-    - Use warm, urgent colors: reds, oranges, deep crimsons
-    - The background can have a subtle red gradient
+  The current profile_screen.dart has these methods:
+  
+  _loadProfileData()     → Fetches worker stats from API
+  _pickAndUploadImage()  → Image picker + upload
+  build()                → Main scaffold with scrollable content
+  _buildAvatarSection()  → Profile picture + name + ID + sync badge
+  _buildCoverageCard()   → Area of coverage card
+  _buildSectionLabel()   → Section header text
+  _buildSettingsGroup()  → List of settings items
+  _buildLogoutButton()   → Red outlined logout button
 
-  □ Ensure ACCESSIBILITY
-    - Text should be LARGE and readable (minimum 18sp for numbers)
-    - Buttons should be big enough for panicked tapping
-    - Test on both small (5-inch) and large (6.5-inch) screens
+  _SettingItem class     → Data model for settings list items
 
-DESIGN INSPIRATION:
-Think of an emergency SOS app. Big buttons, red colors, pulsing animations, 
-zero confusion — the user should be able to call help in 2 seconds flat.
+  You should restructure these methods as needed but keep the same 
+  functionality and API calls.
 
 
 ================================================================================
@@ -359,125 +396,130 @@ PART 5: STRICT RULES — READ CAREFULLY
 ================================================================================
 
 ✅ YOU MAY:
-  - Edit ONLY these 3 files:
-    1. App frontend/lib/screens/help_support_screen.dart
-    2. App frontend/lib/screens/learning_screen.dart
-    3. App frontend/lib/screens/emergency_screen.dart
+  - CREATE this new file:
+    1. App frontend/lib/screens/high_risk_screen.dart
+  - EDIT this existing file:
+    2. App frontend/lib/screens/profile_screen.dart (UI only, keep all logic)
+  - EDIT lib/main.dart ONLY to add your new screen's route
   - Use colors and styles from lib/theme/app_theme.dart
-  - Add visual Flutter packages to pubspec.yaml ONLY if needed 
-    (e.g., shimmer, animate_do, url_launcher)
+  - Use AreaMapProvider (lib/providers/area_map_provider.dart)
+  - Use ApiService (lib/services/api_service.dart)
+  - Add visual Flutter packages to pubspec.yaml ONLY if needed
     → But TELL KRUSHNA first before adding any package
-  - Use Flutter's built-in animation widgets
-  - Test your changes on an emulator or physical device
 
 ❌ YOU MAY NOT:
   - Touch ANY file in "App backend/" folder — DO NOT EVEN OPEN IT
-  - Edit login_screen.dart, otp_screen.dart, dashboard_screen.dart, 
+  - Edit login_screen.dart, otp_screen.dart, dashboard_screen.dart,
     patients_screen.dart, add_patient_screen.dart, visit_form_screen.dart,
-    calendar_screen.dart, inventory_screen.dart, profile_screen.dart, 
-    messenger_screen.dart, or main_screen.dart
+    calendar_screen.dart, inventory_screen.dart, messenger_screen.dart,
+    help_support_screen.dart, learning_screen.dart, emergency_screen.dart,
+    or main_screen.dart (EXCEPT main.dart for routing)
+  - BREAK existing profile_screen.dart functionality (image upload, logout, etc.)
   - Edit api_service.dart or auth_service.dart
-  - Edit main.dart (except temporarily to preview your screen)
   - Push to main branch — ONLY push to dev-rudra
   - Change any backend logic, API calls, or database code
+  - Commit google-services.json or any Firebase/API keys
+  - Modify .env, .gitignore, or any configuration files
 
 
 ================================================================================
 PART 6: HOW TO USE ANTIGRAVITY (AI Coding Assistant)
 ================================================================================
 
-If you have access to Antigravity (Gemini Code Assist in your IDE), you can 
-use it to help you code these UI improvements. Here are EXACT prompts you 
-can copy-paste into Antigravity:
-
-─── PROMPT FOR TASK 1 (Help & Support Screen) ───
+─── PROMPT FOR TASK 1 (High Risk Screen) ───
 
 "I am working on a Flutter app called ASHA-Setu. My Git branch is dev-rudra.
-I need to redesign the file: lib/screens/help_support_screen.dart
+I need to CREATE a new file: lib/screens/high_risk_screen.dart
 
-The app uses a dark theme defined in lib/theme/app_theme.dart — please use 
-those colors and styles.
+The app uses a light theme in lib/theme/app_theme.dart, but this screen should 
+use RED/URGENT colors (MyTheme.criticalRed = Color(0xFFDC3545)) as the primary accent.
 
-Please make these improvements:
-1. Add a search bar at the top to filter FAQs (rounded, with search icon)
-2. Make FAQ items expandable with smooth slide animation
-3. Replace plain cards with subtle dark gradient cards (rounded corners 16px)
-4. Add Material Icons next to each FAQ question
-5. Make the Contact Support section prominent with a gradient card and call button
-6. Add fade-in and slide-in micro-animations when the screen loads
+This screen shows ALL high-risk patients for the ASHA health worker.
 
-Keep the dark theme. Make it look premium and modern. Do NOT change any other 
-files. Do NOT touch backend code."
+Data comes from AreaMapProvider (available via Provider):
+- provider.highRiskCount → total count
+- provider.households → List<Household> (filter by h.status == 'high-risk')
+- Each Household has: householdId, displayId, headName, address, pendingTasksCount, status, badges, memberCount
+- provider.loadHouseholdDetails(id) then provider.getCachedDetail(id) for:
+  detail.members, detail.latestVisits, detail.pendingTasks, detail.notes
+- provider.completeTask(householdId, taskId, context) to mark tasks done
 
-─── PROMPT FOR TASK 2 (Learning Screen) ───
+Please build this screen with:
+1. URGENT red header with '⚠️ High Risk Patients' and count badge with pulse animation
+2. Risk level summary: Critical (deep red), Needs Attention (orange), Monitored (green)
+3. Filterable list of high-risk household cards, each showing:
+   - Patient name (bold), household ID chip, address
+   - Risk reason from notes, pending tasks count
+   - Badges as colored chips (antenatal=purple, bp-check=red, vaccination=blue)
+   - Color-coded left border (red=overdue, orange=today, green=visited)
+   - Last visit date and days since last visit
+4. Tap card → bottom sheet with members, pending tasks, 'Mark Visited' button
+5. Quick action buttons: 'Log Visit' (→ /visit-form), 'View History'
+6. Empty state: 'No high-risk cases! 💚' with green health icon
+7. Pull-to-refresh, loading shimmer, error state with retry
+8. Staggered animations and pulse effects on critical items
 
-"I am working on a Flutter app called ASHA-Setu. My Git branch is dev-rudra.
-I need to redesign the file: lib/screens/learning_screen.dart
+After creating, add route in main.dart: '/high-risk': (context) => const HighRiskScreen()
 
-The app uses a dark theme defined in lib/theme/app_theme.dart — please use 
-those colors and styles.
-
-Please make these improvements:
-1. Add horizontal scrollable category filter chips at top (All, Nutrition, 
-   Maternal Health, Infant Care, Immunization, General)
-2. Add a 'Continue Learning' highlighted card at the top showing last module 
-   with progress bar and Continue button
-3. Make each module a card with thumbnail area, title, description, duration, 
-   and a circular/linear progress indicator
-4. Add staggered slide-in animations when cards load (100ms delay between each)
-5. Smooth transitions for module state changes
-
-Keep the dark theme. Make it look like Coursera or Duolingo module list. 
 Do NOT change any other files. Do NOT touch backend code."
 
-─── PROMPT FOR TASK 3 (Emergency Screen) ───
+
+─── PROMPT FOR TASK 2 (Profile Redesign) ───
 
 "I am working on a Flutter app called ASHA-Setu. My Git branch is dev-rudra.
-I need to redesign the file: lib/screens/emergency_screen.dart
+I need to REDESIGN the UI of: lib/screens/profile_screen.dart
 
-The app uses a dark theme defined in lib/theme/app_theme.dart — but this 
-screen should use RED/ORANGE urgent colors instead of the normal dark theme.
+⚠️ CRITICAL: Keep ALL existing functionality working! The following methods 
+must NOT change their logic:
+- _loadProfileData() → ApiService.get('/worker/stats')
+- _pickAndUploadImage() → ImagePicker + ApiService.postMultipart('/worker/update-profile', path, 'profileImage')
+- Logout → AuthService.logout() then Navigator to '/login'
+- All state variables must remain: _workerName, _employeeId, _village, _lastSyncTime, _profileImageUrl, _isUploadingImage
 
-Please make these improvements:
-1. Add a bold SOS-style header with 'EMERGENCY' text and warning icon
-2. Make the primary emergency number (112/Ambulance) a LARGE red circular 
-   button with a pulsing/breathing animation
-3. Group contacts by category (Hospital, Ambulance, Helpline) with section headers
-4. Make each contact a large tappable card with red/orange gradient background
-5. Use large text (min 18sp for numbers) for accessibility
-6. Add subtle red gradient to the screen background
+Only REDESIGN the visual UI to look premium:
+1. Gradient header background with large profile photo (gradient border, not plain)
+2. Name as large bold text, employee ID as styled badge
+3. Add stats row: Total Visits, Patients, Days Active (from /worker/stats API)
+4. Area coverage card with gradient/map-like background
+5. Modern settings groups with shadows, ripple effects, colored icon backgrounds
+6. Premium logout button with red theme
+7. Fade-in and stagger animations throughout
+8. Consistent 16px rounded corners, proper spacing
+9. Should feel like a premium banking/health app profile
 
-Make it feel URGENT — big buttons, red colors, pulsing animations. The user 
-should be able to call for help in 2 seconds. Do NOT change any other files. 
-Do NOT touch backend code."
+Keep the light theme colors from MyTheme. Keep all imports.
+Do NOT change any other files. Do NOT touch backend code."
 
 
 ================================================================================
 PART 7: HOW TO SUBMIT YOUR WORK
 ================================================================================
 
-When you've finished all 3 tasks:
+When you've finished both tasks:
 
-STEP 1: Test all 3 screens on an emulator or physical device
-  - Make sure they look good on different screen sizes
-  - Check that animations are smooth (no stuttering)
-  - Verify the dark theme is consistent
+STEP 1: Test both screens
+  - Ensure high_risk_screen.dart shows high-risk patients (or empty state)
+  - Ensure profile_screen.dart looks premium AND all features still work:
+    * Profile photo upload works
+    * Logout works
+    * Data loads correctly
+  - Test on different screen sizes if possible
 
-STEP 2: Stage and commit your changes
-  Open terminal in the ASHA-Setuapp folder and run:
-  
+STEP 2: Stage and commit
   git add -A
-  git commit -m "feat(rudra): Polish help, learning, and emergency screen UIs with animations"
+  git commit -m "feat(rudra): Add High Risk screen and rebuild Profile UI"
 
 STEP 3: Push to YOUR branch
   git push origin dev-rudra
 
 STEP 4: Notify Krushna on WhatsApp
-  "Hey Krushna, I've pushed my UI changes to dev-rudra. 
-   All 3 screens (help, learning, emergency) are done. Please review and merge."
+  "Hey Krushna, I've pushed my changes to dev-rudra.
+   Created high_risk_screen.dart and redesigned profile_screen.dart.
+   Please review and merge."
 
 ================================================================================
-  DEADLINE: 3rd MARCH 2026
+  DEADLINE: 7th MARCH 2026
   YOUR BRANCH: dev-rudra
-  YOUR FILES: help_support_screen.dart, learning_screen.dart, emergency_screen.dart
+  YOUR FILES: high_risk_screen.dart (new), profile_screen.dart (redesign),
+              main.dart (add route only)
 ================================================================================

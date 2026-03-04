@@ -1,0 +1,14 @@
+{
+  "appTitle": "ASHA Setu",
+  "loginGreetings": "Greetings, ASHA Worker",
+  "loginSubtext": "Sign in to manage your daily healthcare tasks",
+  "mobileNumber": "Mobile Number",
+  "sendOtp": "Send OTP",
+  "dashboard": "Dashboard",
+  "patients": "Patients",
+  "visits": "Visits",
+  "inventory": "Inventory",
+  "tasks": "Tasks",
+  "logVisit": "Log Visit",
+  "addPatient": "Add Patient"
+}

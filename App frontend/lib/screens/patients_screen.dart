@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/api_service.dart';
 import 'add_patient_screen.dart';
+import 'package:provider/provider.dart';
+import '../providers/app_state_provider.dart';
 
 class PatientsScreen extends StatefulWidget {
   const PatientsScreen({super.key});
@@ -13,9 +15,6 @@ class PatientsScreen extends StatefulWidget {
 class _PatientsScreenState extends State<PatientsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  List<dynamic> _allPatients = [];
-  bool _isLoading = true;
-  String? _errorMsg;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
@@ -31,7 +30,9 @@ class _PatientsScreenState extends State<PatientsScreen>
   void initState() {
     super.initState();
     _tabController = TabController(length: _categories.length, vsync: this);
-    _fetchPatients();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<AppStateProvider>(context, listen: false).fetchPatients();
+    });
   }
 
   @override
@@ -42,37 +43,12 @@ class _PatientsScreenState extends State<PatientsScreen>
   }
 
   Future<void> _fetchPatients() async {
-    setState(() {
-      _isLoading = true;
-      _errorMsg = null;
-    });
-
-    try {
-      final response = await ApiService.get('/patients');
-      if (response != null && response['patients'] != null) {
-        setState(() {
-          _allPatients = response['patients'];
-          _isLoading = false;
-        });
-      } else if (response != null && response['error'] != null) {
-        setState(() {
-          _errorMsg = response['error'];
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMsg = "Failed to load patients. Check your connection.";
-          _isLoading = false;
-        });
-      }
-    }
+    await Provider.of<AppStateProvider>(context, listen: false).fetchPatients();
   }
 
-  List<dynamic> _filterPatients(String category) {
+  List<dynamic> _filterPatients(String category, List<dynamic> allPatients) {
     List<dynamic> filtered =
-        category == 'All' ? _allPatients : _allPatients.where((p) => p['category'] == category).toList();
+        category == 'All' ? allPatients : allPatients.where((p) => p['category'] == category).toList();
 
     if (_searchQuery.isNotEmpty) {
       filtered = filtered.where((p) {
@@ -86,9 +62,9 @@ class _PatientsScreenState extends State<PatientsScreen>
     return filtered;
   }
 
-  Map<String, int> get _categoryCounts {
-    final counts = <String, int>{'All': _allPatients.length};
-    for (final p in _allPatients) {
+  Map<String, int> _getCategoryCounts(List<dynamic> allPatients) {
+    final counts = <String, int>{'All': allPatients.length};
+    for (final p in allPatients) {
       final cat = p['category'] ?? 'General';
       counts[cat] = (counts[cat] ?? 0) + 1;
     }
@@ -97,25 +73,30 @@ class _PatientsScreenState extends State<PatientsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<AppStateProvider>(context);
+    final _allPatients = provider.patients;
+    final _isLoading = provider.isLoading;
+    final _errorMsg = provider.error;
+
     return Scaffold(
       backgroundColor: MyTheme.backgroundWhite,
       body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(),
+            _buildHeader(_isLoading, _allPatients.length),
             _buildSearchBar(),
-            _buildCategoryTabs(),
+            _buildCategoryTabs(_allPatients, _isLoading),
             Expanded(
               child: _isLoading
                   ? const Center(
                       child: CircularProgressIndicator(color: MyTheme.primaryBlue),
                     )
                   : _errorMsg != null
-                      ? _buildErrorState()
+                      ? _buildErrorState(_errorMsg)
                       : TabBarView(
                           controller: _tabController,
                           children: _categories.map((cat) {
-                            return _buildPatientList(_filterPatients(cat.name));
+                            return _buildPatientList(_filterPatients(cat.name, _allPatients));
                           }).toList(),
                         ),
             ),
@@ -146,7 +127,7 @@ class _PatientsScreenState extends State<PatientsScreen>
   // ─────────────────────────────────────────────────────────
   // HEADER
   // ─────────────────────────────────────────────────────────
-  Widget _buildHeader() {
+  Widget _buildHeader(bool isLoading, int totalPatients) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       child: Row(
@@ -164,9 +145,9 @@ class _PatientsScreenState extends State<PatientsScreen>
               ),
               const SizedBox(height: 2),
               Text(
-                _isLoading
+                isLoading
                     ? 'Loading...'
-                    : '${_allPatients.length} registered patients',
+                    : '$totalPatients registered patients',
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.grey[500],
@@ -238,8 +219,8 @@ class _PatientsScreenState extends State<PatientsScreen>
   // ─────────────────────────────────────────────────────────
   // CATEGORY TABS
   // ─────────────────────────────────────────────────────────
-  Widget _buildCategoryTabs() {
-    final counts = _categoryCounts;
+  Widget _buildCategoryTabs(List<dynamic> allPatients, bool isLoading) {
+    final counts = _getCategoryCounts(allPatients);
     return Container(
       margin: const EdgeInsets.only(top: 8),
       child: TabBar(
@@ -267,7 +248,7 @@ class _PatientsScreenState extends State<PatientsScreen>
                     : cat.name == 'PNC'
                         ? 'PNC'
                         : cat.name),
-                if (!_isLoading) ...[
+                if (!isLoading) ...[
                   const SizedBox(width: 4),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
@@ -292,7 +273,7 @@ class _PatientsScreenState extends State<PatientsScreen>
   // ─────────────────────────────────────────────────────────
   // ERROR STATE
   // ─────────────────────────────────────────────────────────
-  Widget _buildErrorState() {
+  Widget _buildErrorState(String errorMsg) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(32),
@@ -309,7 +290,7 @@ class _PatientsScreenState extends State<PatientsScreen>
             ),
             const SizedBox(height: 16),
             Text(
-              _errorMsg!,
+              errorMsg,
               textAlign: TextAlign.center,
               style: TextStyle(color: Colors.grey[600], fontSize: 14),
             ),

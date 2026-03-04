@@ -1,0 +1,14 @@
+{
+  "appTitle": "आशा सेतु",
+  "loginGreetings": "नमस्ते, आशा दीदी",
+  "loginSubtext": "अपने दैनिक स्वास्थ्य कार्यों को प्रबंधित करने के लिए साइन इन करें",
+  "mobileNumber": "मोबाइल नंबर",
+  "sendOtp": "OTP भेजें",
+  "dashboard": "डैशबोर्ड",
+  "patients": "मरीज़",
+  "visits": "मुलाकातें",
+  "inventory": "भंडार",
+  "tasks": "कार्य",
+  "logVisit": "मुलाकात दर्ज करें",
+  "addPatient": "मरीज़ जोड़ें"
+}

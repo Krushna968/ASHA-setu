@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/api_service.dart';
+import 'package:provider/provider.dart';
+import '../providers/app_state_provider.dart';
 
 class InventoryScreen extends StatefulWidget {
   const InventoryScreen({super.key});
@@ -10,10 +12,6 @@ class InventoryScreen extends StatefulWidget {
 }
 
 class _InventoryScreenState extends State<InventoryScreen> {
-  List<dynamic> _inventory = [];
-  List<dynamic> _filteredInventory = [];
-  bool _isLoading = true;
-  String? _errorMsg;
   String _searchQuery = '';
   
   // Summary Stats
@@ -23,39 +21,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
   @override
   void initState() {
     super.initState();
-    _fetchInventory();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<AppStateProvider>(context, listen: false).fetchInventory();
+    });
   }
 
   Future<void> _fetchInventory() async {
-    setState(() {
-      _isLoading = true;
-      _errorMsg = null;
-    });
-
-    try {
-      final response = await ApiService.get('/inventory');
-      if (response != null && response['inventory'] != null) {
-        final List<dynamic> items = response['inventory'];
-        setState(() {
-          _inventory = items;
-          _calculateStats(items);
-          _applySearch();
-          _isLoading = false;
-        });
-      } else if (response != null && response['error'] != null) {
-        setState(() {
-          _errorMsg = response['error'];
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMsg = "Failed to load inventory. Check your connection.";
-          _isLoading = false;
-        });
-      }
-    }
+    await Provider.of<AppStateProvider>(context, listen: false).fetchInventory();
   }
 
   void _calculateStats(List<dynamic> items) {
@@ -63,11 +35,11 @@ class _InventoryScreenState extends State<InventoryScreen> {
     _lowStockCount = items.where((item) => (item['quantity'] ?? 0) < 10).length;
   }
 
-  void _applySearch() {
+  List<dynamic> _getFilteredInventory(List<dynamic> inventory) {
     if (_searchQuery.isEmpty) {
-      _filteredInventory = List.from(_inventory);
+      return List.from(inventory);
     } else {
-      _filteredInventory = _inventory.where((item) {
+      return inventory.where((item) {
         final name = (item['name'] ?? '').toString().toLowerCase();
         return name.contains(_searchQuery.toLowerCase());
       }).toList();
@@ -78,31 +50,13 @@ class _InventoryScreenState extends State<InventoryScreen> {
     final newQuantity = currentQuantity + change;
     if (newQuantity < 0) return;
 
-    // Optimistic UI update
-    setState(() {
-      final index = _inventory.indexWhere((item) => item['id'] == itemId);
-      if (index != -1) {
-        _inventory[index]['quantity'] = newQuantity;
-        _calculateStats(_inventory);
-        _applySearch();
-      }
-    });
-
     try {
       final response = await ApiService.put('/inventory/$itemId', {'quantity': newQuantity});
       if (response != null && response['error'] != null) {
         throw Exception(response['error']);
       }
+      _fetchInventory();
     } catch (e) {
-      // Revert on failure
-      setState(() {
-        final index = _inventory.indexWhere((item) => item['id'] == itemId);
-        if (index != -1) {
-          _inventory[index]['quantity'] = currentQuantity;
-          _calculateStats(_inventory);
-          _applySearch();
-        }
-      });
       if (mounted) {
         if (!context.mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
@@ -300,6 +254,14 @@ class _InventoryScreenState extends State<InventoryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final provider = Provider.of<AppStateProvider>(context);
+    final _inventory = provider.inventory;
+    final _isLoading = provider.isLoading;
+    final _errorMsg = provider.error;
+
+    _calculateStats(_inventory);
+    final _filteredInventory = _getFilteredInventory(_inventory);
+
     return Scaffold(
       backgroundColor: MyTheme.backgroundWhite,
       extendBodyBehindAppBar: false,
@@ -321,7 +283,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _errorMsg != null
-              ? _buildErrorState()
+              ? _buildErrorState(_errorMsg)
               : Column(
                   children: [
                     _buildSummarySection(),
@@ -433,7 +395,6 @@ class _InventoryScreenState extends State<InventoryScreen> {
         onChanged: (val) {
           setState(() {
             _searchQuery = val;
-            _applySearch();
           });
         },
         decoration: InputDecoration(
@@ -599,7 +560,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
     );
   }
 
-  Widget _buildErrorState() {
+  Widget _buildErrorState(String errorMsg) {
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -608,7 +569,7 @@ class _InventoryScreenState extends State<InventoryScreen> {
           children: [
             const Icon(Icons.error_outline_rounded, size: 48, color: MyTheme.criticalRed),
             const SizedBox(height: 16),
-            Text(_errorMsg!, textAlign: TextAlign.center, style: const TextStyle(color: MyTheme.textDark)),
+            Text(errorMsg, textAlign: TextAlign.center, style: const TextStyle(color: MyTheme.textDark)),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: _fetchInventory,

@@ -1,5 +1,6 @@
 const express = require('express');
-const { getWorkerStats, updateProfileImage } = require('../controllers/workerController');
+const { getWorkerStats, updateProfileImage, updateFcmToken, sendTestNotification } = require('../controllers/workerController');
+const { generateMonthlyReportPdf } = require('../controllers/reportController');
 const authMiddleware = require('../middleware/authMiddleware');
 const multer = require('multer');
 const path = require('path');
@@ -24,5 +25,8 @@ const router = express.Router();
 
 router.get('/stats', authMiddleware, getWorkerStats);
 router.post('/update-profile', authMiddleware, upload.single('profileImage'), updateProfileImage);
+router.post('/fcm-token', authMiddleware, updateFcmToken);
+router.post('/test-notification', authMiddleware, sendTestNotification);
+router.get('/report/pdf', authMiddleware, generateMonthlyReportPdf);
 
 module.exports = router;
