@@ -117,7 +117,9 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
 
     try {
       final provider = Provider.of<AppStateProvider>(context, listen: false);
-      bool synced = await provider.logVisitOfflineSupport({
+        if (!mounted) return;
+        final mapProvider = Provider.of<AreaMapProvider>(context, listen: false);
+        bool synced = await provider.logVisitOfflineSupport({
         'patientId': _selectedPatientId,
         'visitDate': _visitDate.toIso8601String(),
         'outcome': outcome,
@@ -128,7 +130,6 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
       });
 
         // Update Map Provider if house is closed or task completed
-        final mapProvider = Provider.of<AreaMapProvider>(context, listen: false);
         if (_markHouseClosed) {
           mapProvider.closeHousehold(_selectedHouseholdId!);
         }

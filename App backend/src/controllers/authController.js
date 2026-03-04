@@ -17,6 +17,8 @@ const snsClient = new SNSClient({
 const loginWorker = async (req, res) => {
     try {
         let { mobileNumber } = req.body;
+        // Normalize: remove whitespace and +91 prefix
+        mobileNumber = mobileNumber.replace(/\s+/g, '').replace(/^\+91/, '');
         console.log(`[DEBUG] Login attempt for: "${mobileNumber}"`);
 
         if (!mobileNumber) {
@@ -42,13 +44,25 @@ const loginWorker = async (req, res) => {
         console.log(`[DEBUG] Worker found: ${worker.name} (ID: ${worker.id})`);
 
         // Generate OTP
-        const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        const otpExpiry = new Date(Date.now() + 10 * 60000); // 10 minutes
+        let otp = Math.floor(100000 + Math.random() * 900000).toString();
+        let otpExpiry = new Date(Date.now() + 10 * 60000); // 10 minutes
+
+        // HACKATHON DEMO BYPASS
+        const isDemoUser = dbNumber === '9321609760';
+        if (isDemoUser) {
+            otp = '050228';
+            otpExpiry = new Date(Date.now() + 24 * 60 * 60000); // 24 hours for demo
+            console.log(`[DEMO] Bypassing SNS for demo user. OTP set to: ${otp}`);
+        }
 
         await prisma.worker.update({
             where: { id: worker.id },
             data: { otp, otpExpiry }
         });
+
+        if (isDemoUser) {
+            return res.json({ message: 'OTP sent successfully (Demo Mode)' });
+        }
 
         // Send OTP via AWS SNS
         console.log(`Sending OTP to ${fullNumber}`);
@@ -69,6 +83,9 @@ const loginWorker = async (req, res) => {
 const verifyOtp = async (req, res) => {
     try {
         let { mobileNumber, otp } = req.body;
+
+        // Normalize: remove whitespace and +91 prefix
+        mobileNumber = mobileNumber.replace(/\s+/g, '').replace(/^\+91/, '');
         if (!mobileNumber || !otp) {
             return res.status(400).json({ error: 'Mobile number and OTP are required' });
         }

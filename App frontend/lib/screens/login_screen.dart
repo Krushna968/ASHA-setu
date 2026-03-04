@@ -82,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   color: Colors.blue.shade50,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.favorite, // ASHA-like heart/care icon
                   size: 56,
                   color: MyTheme.primaryBlue,
@@ -111,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.language, size: 20, color: MyTheme.primaryBlue),
+                  Icon(Icons.language, size: 20, color: MyTheme.primaryBlue),
                   const SizedBox(width: 8),
                   Text(
                     _selectedLanguage == 'हिंदी' ? 'भाषा चुनें' : 'SELECT LANGUAGE',
@@ -159,8 +159,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
                 style: const TextStyle(fontSize: 18, letterSpacing: 1.2, fontWeight: FontWeight.bold, color: Colors.grey),
                 decoration: InputDecoration(
-                  prefixIcon: const Padding(
-                    padding: EdgeInsets.all(16.0),
+                  prefixIcon: Padding(
+                    padding: const EdgeInsets.all(16.0),
                     child: Text('+91', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: MyTheme.textDark)),
                   ),
                   hintText: '0000000000',

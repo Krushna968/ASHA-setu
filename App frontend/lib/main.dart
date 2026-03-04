@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'package:asha_setu/l10n/app_localizations.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
+import 'package:provider/provider.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:flutter/foundation.dart';
 import 'theme/app_theme.dart';
 import 'screens/login_screen.dart';
 import 'screens/main_screen.dart';
@@ -17,27 +18,20 @@ import 'screens/profile_screen.dart';
 import 'screens/help_support_screen.dart';
 import 'screens/add_patient_screen.dart';
 import 'services/auth_service.dart';
-import 'package:provider/provider.dart';
-import 'package:hive_flutter/hive_flutter.dart';
-import 'package:flutter/foundation.dart';
 import 'providers/app_state_provider.dart';
 import 'services/notification_service.dart';
 import 'providers/area_map_provider.dart';
+import 'l10n/app_localizations.dart';
+import 'widgets/loading_transition_overlay.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   try {
     if (kIsWeb) {
-      // For Web, if firebase_options.dart is missing, we might need manual initialization
-      // but usually we skip it or use existing config if available.
-      // Since we don't have DefaultFirebaseOptions, we'll try a safe catch.
       debugPrint('Firebase Web initialization skipped or needs manual config');
     } else {
       await Firebase.initializeApp();
-      
-      // Explicitly activate Firebase App Check in Debug mode
-      // This is required for Phone Authentication on Emulators which fail Play Integrity checks.
       await FirebaseAppCheck.instance.activate(
         androidProvider: AndroidProvider.debug,
       );
@@ -46,11 +40,8 @@ void main() async {
     debugPrint('Firebase initialization error: $e');
   }
 
-  // Initialize Hive
   await Hive.initFlutter();
   await Hive.openBox('appData');
-
-  // Initialize notifications
   await NotificationService.initialize();
 
   runApp(
@@ -78,21 +69,14 @@ class AshaSetuApp extends StatelessWidget {
         future: AuthService.isLoggedIn(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            // Show a simple loading splash while checking token
             return const Scaffold(
               body: Center(
                 child: CircularProgressIndicator(),
               ),
             );
           }
-          
           final isLoggedIn = snapshot.data ?? false;
-          
-          if (isLoggedIn) {
-            return const MainScreen();
-          } else {
-            return const LoginScreen();
-          }
+          return isLoggedIn ? const MainScreen() : const LoginScreen();
         },
       ),
       routes: {
@@ -109,7 +93,23 @@ class AshaSetuApp extends StatelessWidget {
         '/add-patient': (context) => const AddPatientScreen(),
         '/login': (context) => const LoginScreen(),
       },
+      builder: (context, child) {
+        return Stack(
+          children: [
+            if (child != null) child,
+            Consumer<AppStateProvider>(
+              builder: (context, appState, _) {
+                if (appState.isTransitioning) {
+                  return const LoadingTransitionScreen(message: 'Loading ASHA-Setu...');
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ],
+        );
+      },
       debugShowCheckedModeBanner: false,
     );
   }
 }
+

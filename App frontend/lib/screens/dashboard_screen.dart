@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
+import '../providers/app_state_provider.dart';
 import '../providers/area_map_provider.dart';
 import 'area_task_map_screen.dart';
 
@@ -17,8 +18,8 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen>
     with TickerProviderStateMixin {
   String _workerName = 'ASHA Worker';
-  String _employeeId = '....';
-  String _village = 'Loading...';
+  String _employeeId = 'A010';
+  String _village = 'Airoli';
   String _lastSyncTime = 'JUST NOW';
   String? _profileImageUrl;
 
@@ -77,17 +78,14 @@ class _DashboardScreenState extends State<DashboardScreen>
       if (mounted && !stats.containsKey('error')) {
         setState(() {
           _workerName = stats['name'] ?? _workerName;
-          _village = stats['village'] ?? 'Local Village';
-          _employeeId = stats['employeeId'] ?? 'Unknown ID';
+          _village = stats['village'] ?? 'Airoli';
+          _employeeId = stats['employeeId'] ?? 'A010';
           _profileImageUrl = stats['profileImage'];
           _lastSyncTime = DateFormat('hh:mm a').format(DateTime.now());
-          _isLoadingStats = false;
         });
-      } else {
-        if (mounted) setState(() => _isLoadingStats = false);
       }
     } catch (e) {
-      if (mounted) setState(() => _isLoadingStats = false);
+      // Use defaults
     }
   }
 
@@ -173,8 +171,8 @@ class _DashboardScreenState extends State<DashboardScreen>
   Widget _buildCircularCenterpiece() {
     return Consumer<AreaMapProvider>(
       builder: (context, provider, child) {
-        final int completed = provider.completedToday;
-        final int target = provider.targetToday > 0 ? provider.targetToday : 8;
+        final int completed = provider.totalCompleted;
+        final int target = provider.households.length > 0 ? provider.households.length : 1;
         final double progress = (completed / target).clamp(0.0, 1.0);
         final bool isTargetMet = completed >= target;
         
@@ -236,7 +234,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                           ),
                         ),
                         Text(
-                          'VISITS DONE',
+                          'HOUSES DONE',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -252,7 +250,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            'Goal: $target',
+                            'Total: $target Houses',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -523,10 +521,10 @@ class _DashboardScreenState extends State<DashboardScreen>
   Widget _buildActionRequiredCard() {
     return Consumer<AreaMapProvider>(
       builder: (context, provider, child) {
-        final pendingTasks = provider.dueTodayCount;
-        final completed = provider.completedToday;
-        final totalToday = pendingTasks + completed;
-        final progress = totalToday > 0 ? (completed / totalToday).clamp(0.0, 1.0) : 1.0;
+        final pendingHouses = provider.households.where((h) => h.status == 'pending' || h.status == 'high-risk').length;
+        final completedHouses = provider.totalCompleted;
+        final totalHouses = provider.households.length;
+        final progress = totalHouses > 0 ? (completedHouses / totalHouses).clamp(0.0, 1.0) : 1.0;
 
         return AnimatedBuilder(
           animation: _slideController,
@@ -543,10 +541,14 @@ class _DashboardScreenState extends State<DashboardScreen>
             );
           },
           child: GestureDetector(
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const AreaTaskMapScreen()),
-            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const AreaTaskMapScreen(filterMode: 'all'),
+                ),
+              );
+            },
             child: Container(
               width: double.infinity,
               padding: const EdgeInsets.all(20),
@@ -589,7 +591,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          pendingTasks > 0 ? '$pendingTasks Due Today' : 'All clear today! 🎉',
+                          pendingHouses > 0 ? '$pendingHouses Pending Houses' : 'All houses visited! 🎉',
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
@@ -631,8 +633,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          pendingTasks > 0
-                              ? '• Keep going! Tap to view tasks on map.'
+                          pendingHouses > 0
+                              ? '• Tap to view your task calendar.'
                               : '• Great job staying on top of your work.',
                           style: const TextStyle(
                             color: Colors.white70,
@@ -715,9 +717,9 @@ class _DashboardScreenState extends State<DashboardScreen>
         final defaultActions = [
           QuickAction(Icons.assignment_rounded, 'Log Visit', const Color(0xFFE53935), '/visit-form'),
           QuickAction(Icons.map_rounded, 'Household Map', const Color(0xFF00897B), '/map_action'),
-          QuickAction(Icons.rule_rounded, 'Today\'s Tasks', const Color(0xFFF57C00), '/map_action'),
-          QuickAction(Icons.person_add_rounded, 'Add Patient', const Color(0xFF0056D2), '/add-patient'),
-          QuickAction(Icons.warning_rounded, 'High Risk', MyTheme.criticalRed, '/map_action'),
+          QuickAction(Icons.rule_rounded, 'Today\'s Tasks', const Color(0xFFF57C00), '/calendar_action'),
+          QuickAction(Icons.person_add_rounded, 'Register Member', const Color(0xFF0056D2), '/add-patient'),
+          QuickAction(Icons.warning_rounded, 'High Risk', MyTheme.criticalRed, '/high-risk'),
           QuickAction(Icons.school_rounded, 'Learning', const Color(0xFF7B1FA2), '/learning'),
         ];
 
@@ -771,6 +773,15 @@ class _DashboardScreenState extends State<DashboardScreen>
             context,
             MaterialPageRoute(builder: (_) => const AreaTaskMapScreen()),
           );
+        } else if (action.route == '/calendar_action') {
+          // Navigate to the Calendar tab
+          final appState = Provider.of<AppStateProvider>(context, listen: false);
+          appState.setCurrentIndex(1);
+        } else if (action.route == '/high-risk') {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const AreaTaskMapScreen(filterMode: 'highRisk')),
+          );
         } else if (action.route != null) {
           Navigator.pushNamed(context, action.route!);
         }
@@ -818,12 +829,34 @@ class _DashboardScreenState extends State<DashboardScreen>
   // RECENT ACTIVITY — Latest patient interactions
   // ─────────────────────────────────────────────────────────
   Widget _buildRecentActivity() {
-    // Placeholder recent activity data
-    final recentItems = [
-      RecentItem('Priya Sharma', 'Prenatal Checkup', '2h ago', MyTheme.successGreen),
-      RecentItem('Rahul Kumar', 'Vaccination', '4h ago', MyTheme.primaryBlue),
-      RecentItem('Anjali Singh', 'Iron Supplements Delivered', 'Yesterday', MyTheme.warningOrange),
-    ];
+    final appProvider = Provider.of<AppStateProvider>(context);
+    final visits = appProvider.visits;
+    
+    // Convert visits to RecentItems
+    final recentItems = visits.take(3).map((v) {
+      final String name = v['patientName'] ?? v['headName'] ?? 'Unknown';
+      final String type = v['visitType'] ?? v['outcome'] ?? 'Visit';
+      final String timeAgo = _formatVisitTime(v['visitDate'] ?? v['createdAt']);
+      
+      // Determine color based on type
+      Color color = MyTheme.primaryBlue;
+      if (type.toLowerCase().contains('prenatal') || type.toLowerCase().contains('anc')) {
+        color = MyTheme.successGreen;
+      } else if (type.toLowerCase().contains('urgent') || type.toLowerCase().contains('risk')) {
+        color = MyTheme.warningOrange;
+      }
+      
+      return RecentItem(name, type, timeAgo, color);
+    }).toList();
+
+    if (recentItems.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: Text('No recent activity', style: TextStyle(color: Colors.grey)),
+        ),
+      );
+    }
 
     return AnimatedBuilder(
       animation: _slideController,
@@ -929,6 +962,24 @@ class _DashboardScreenState extends State<DashboardScreen>
         ),
       ),
     );
+  }
+
+  String _formatVisitTime(dynamic date) {
+    if (date == null) return 'N/A';
+    try {
+      DateTime dt = date is DateTime ? date : DateTime.parse(date.toString());
+      final now = DateTime.now();
+      final diff = now.difference(dt);
+      
+      if (diff.inMinutes < 1) return 'Just now';
+      if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+      if (diff.inHours < 24) return '${diff.inHours}h ago';
+      if (diff.inDays == 1) return 'Yesterday';
+      if (diff.inDays < 7) return '${diff.inDays}d ago';
+      return DateFormat('dd MMM').format(dt);
+    } catch (e) {
+      return 'Recent';
+    }
   }
 }
 

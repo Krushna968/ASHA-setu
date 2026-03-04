@@ -51,7 +51,7 @@ class Household {
         householdId: json['householdId']?.toString() ?? json['id']?.toString() ?? '',
         headName: json['headName']?.toString() ?? 'Unknown Head',
         address: json['address']?.toString() ?? 'No Address',
-        displayId: json['house_number']?.toString() ?? json['householdId']?.toString() ?? 'H-000',
+        displayId: json['displayId']?.toString() ?? json['houseNumber']?.toString() ?? json['house_number']?.toString() ?? 'H-000',
         status: statusVal,
         isClosed: isClosedVal,
         pendingTasksCount: int.tryParse(json['pendingTasksCount']?.toString() ?? '0') ?? 0,

@@ -108,7 +108,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                 children: const [
                   Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
                   SizedBox(width: 8),
-                  Expanded(child: Text('Patient registered & linked to house!')),
+                  Expanded(child: Text('Family member registered & linked to house!')),
                 ],
               ),
               backgroundColor: MyTheme.successGreen,
@@ -144,7 +144,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
     return Scaffold(
       backgroundColor: MyTheme.backgroundWhite,
       appBar: AppBar(
-        title: const Text('Register Patient'),
+        title: const Text('Register Family Member'),
         backgroundColor: Colors.white,
         elevation: 0,
         surfaceTintColor: Colors.transparent,

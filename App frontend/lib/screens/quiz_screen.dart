@@ -3,8 +3,9 @@ import '../theme/app_theme.dart';
 
 class QuizScreen extends StatefulWidget {
   final String title;
+  final List<dynamic>? questions; // Allow passing questions
 
-  const QuizScreen({super.key, required this.title});
+  const QuizScreen({super.key, required this.title, this.questions});
 
   @override
   State<QuizScreen> createState() => _QuizScreenState();
@@ -16,23 +17,29 @@ class _QuizScreenState extends State<QuizScreen> {
   bool _hasAnswered = false;
   int? _selectedAnswerIndex;
 
-  final List<Map<String, dynamic>> _questions = [
-    {
-      'question': 'When should complementary feeding for infants begin?',
-      'options': ['After 3 months', 'After 6 months', 'After 9 months', 'After 1 year'],
-      'correctAnswer': 1, // After 6 months
-    },
-    {
-      'question': 'Which vaccine is given immediately after birth?',
-      'options': ['BCG, OPV-0, Hep-B', 'DPT, Polio', 'Measles, Rubella', 'Rotavirus'],
-      'correctAnswer': 0,
-    },
-    {
-      'question': 'How many minimum ANC check-ups are recommended during pregnancy?',
-      'options': ['2', '3', '4', '6'],
-      'correctAnswer': 2, // 4
-    }
-  ];
+  late final List<Map<String, dynamic>> _questions;
+
+  @override
+  void initState() {
+    super.initState();
+    _questions = widget.questions?.cast<Map<String, dynamic>>() ?? [
+      {
+        'question': 'When should complementary feeding for infants begin?',
+        'options': ['After 3 months', 'After 6 months', 'After 9 months', 'After 1 year'],
+        'correctAnswer': 1, // After 6 months
+      },
+      {
+        'question': 'Which vaccine is given immediately after birth?',
+        'options': ['BCG, OPV-0, Hep-B', 'DPT, Polio', 'Measles, Rubella', 'Rotavirus'],
+        'correctAnswer': 0,
+      },
+      {
+        'question': 'How many minimum ANC check-ups are recommended during pregnancy?',
+        'options': ['2', '3', '4', '6'],
+        'correctAnswer': 2, // 4
+      }
+    ];
+  }
 
   void _checkAnswer(int index) {
     if (_hasAnswered) return;

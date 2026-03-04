@@ -17,8 +17,15 @@ class AppStateProvider extends ChangeNotifier {
 
   // Offline pending requests
   List<Map<String, dynamic>> _pendingRequests = [];
+  
+  bool _isTransitioning = false;
+  
+  // Tab navigation (used by MainScreen)
+  int _currentIndex = 0;
 
   bool get isLoading => _isLoading;
+  bool get isTransitioning => _isTransitioning;
+  int get currentIndex => _currentIndex;
   String? get error => _error;
   List<dynamic> get patients => _patients;
   List<dynamic> get visits => _visits;
@@ -29,6 +36,16 @@ class AppStateProvider extends ChangeNotifier {
   // Set Loading
   void setLoading(bool val) {
     _isLoading = val;
+    notifyListeners();
+  }
+
+  void setTransitioning(bool val) {
+    _isTransitioning = val;
+    notifyListeners();
+  }
+
+  void setCurrentIndex(int index) {
+    _currentIndex = index;
     notifyListeners();
   }
 
