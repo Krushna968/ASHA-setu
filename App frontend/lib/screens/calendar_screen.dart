@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import '../providers/app_state_provider.dart';
+import '../theme/app_theme.dart';
 
 class CalendarScreen extends StatefulWidget {
   const CalendarScreen({super.key});
@@ -13,40 +15,34 @@ class _CalendarScreenState extends State<CalendarScreen> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
 
-  // Mock data for visits
-  final Map<DateTime, List<Map<String, dynamic>>> _events = {};
+  // Data will be fetched from AppStateProvider
 
   @override
   void initState() {
     super.initState();
     _selectedDay = DateTime.now();
-    _initMockEvents();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<AppStateProvider>(context, listen: false).fetchVisits();
+    });
   }
 
-  void _initMockEvents() {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    _events[today] = [
-      {'title': 'Visit: Sharma Family', 'time': '10:00 AM', 'status': 'Pending', 'type': 'visit'},
-      {'title': 'Follow-up: Anita Devi', 'time': '02:00 PM', 'status': 'Completed', 'type': 'followup'},
-    ];
-    _events[today.add(const Duration(days: 1))] = [
-      {'title': 'Vaccination Drive', 'time': '09:00 AM', 'status': 'Scheduled', 'type': 'vaccination'},
-    ];
-    _events[today.add(const Duration(days: 2))] = [
-      {'title': 'Visit: Verma Household', 'time': '11:00 AM', 'status': 'Scheduled', 'type': 'visit'},
-    ];
-    _events[today.add(const Duration(days: 5))] = [
-      {'title': 'ANC Checkup: Priya', 'time': '10:30 AM', 'status': 'Scheduled', 'type': 'anc'},
-    ];
-  }
-
-  List<Map<String, dynamic>> _getEventsForDay(DateTime day) {
+  List<Map<String, dynamic>> _getEventsForDay(DateTime day, List<dynamic> visits) {
     final normalized = DateTime(day.year, day.month, day.day);
-    return _events.entries
-        .where((e) => _isSameDay(e.key, normalized))
-        .expand((e) => e.value)
-        .toList();
+    
+    return visits.where((v) {
+      final vDate = DateTime.parse(v['visitDate']);
+      return _isSameDay(vDate, normalized);
+    }).map((v) {
+      final patient = v['patient'] ?? {};
+      final time = DateFormat('hh:mm a').format(DateTime.parse(v['visitDate']));
+      
+      return {
+        'title': 'Visit: ${patient['name'] ?? 'Unknown'}',
+        'time': time,
+        'status': v['outcome'] ?? 'Pending',
+        'type': (v['visitType'] ?? 'visit').toString().toLowerCase(),
+      };
+    }).toList();
   }
 
   bool _isSameDay(DateTime? a, DateTime? b) {
@@ -56,7 +52,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final selectedEvents = _getEventsForDay(_selectedDay ?? _focusedDay);
+    final provider = Provider.of<AppStateProvider>(context);
+    final visits = provider.visits;
+    final selectedEvents = _getEventsForDay(_selectedDay ?? _focusedDay, visits);
 
     return Scaffold(
       backgroundColor: MyTheme.backgroundWhite,
@@ -207,7 +205,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
               final currentDay = DateTime(_focusedDay.year, _focusedDay.month, dayNumber);
               final isToday = _isSameDay(currentDay, DateTime.now());
               final isSelected = _isSameDay(currentDay, _selectedDay);
-              final hasEvents = _getEventsForDay(currentDay).isNotEmpty;
+              final provider = Provider.of<AppStateProvider>(context, listen: false);
+              final hasEvents = _getEventsForDay(currentDay, provider.visits).isNotEmpty;
 
               return GestureDetector(
                 onTap: () => setState(() {

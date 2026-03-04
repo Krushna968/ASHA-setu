@@ -151,6 +151,19 @@ Here are the EXACT fields you can use:
     
     Call using: final stats = await ApiService.get('/worker/stats');
 
+───── NEW BACKEND UPDATES (MARCH 4) ─────
+
+I have implemented several new backend features and provider methods that you can use:
+
+1. AppStateProvider (lib/providers/app_state_provider.dart)
+   - has been updated to include fetching methods for various data.
+   - Use `provider.fetchLearningModules()` to get latest educational content.
+   - `provider.learningModules` returns the list of modules.
+
+2. AreaMapProvider (lib/providers/area_map_provider.dart)
+   - `refreshArea()` now automatically syncs dashboard stats (highRiskCount, etc.) from the server.
+   - `completeTask()` now points to the correct backend endpoint: `PUT /tasks/:taskId/status`.
+
 ───── HOW TO ACCESS THE PROVIDER ─────
 
   import 'package:provider/provider.dart';

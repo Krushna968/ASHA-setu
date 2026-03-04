@@ -21,10 +21,6 @@ class _DashboardScreenState extends State<DashboardScreen>
   String _village = 'Loading...';
   String _lastSyncTime = 'JUST NOW';
   String? _profileImageUrl;
-  int _patientsCount = 0;
-  int _tasksCount = 0;
-  int _visitsCount = 0;
-  bool _isLoadingStats = true;
 
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
@@ -148,9 +144,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildHeader(),
-                  const SizedBox(height: 24),
-                  _buildStatsRow(),
+                  _buildCircularCenterpiece(),
                   const SizedBox(height: 20),
+                  _buildCondensedStatsRow(),
+                  const SizedBox(height: 24),
                   _buildActionRequiredCard(),
                   const SizedBox(height: 24),
                   _buildSectionTitle('Quick Actions'),
@@ -169,6 +166,220 @@ class _DashboardScreenState extends State<DashboardScreen>
       ),
     );
   }
+
+  // ─────────────────────────────────────────────────────────
+  // CENTERPIECE — Google Fit-style circular progress
+  // ─────────────────────────────────────────────────────────
+  Widget _buildCircularCenterpiece() {
+    return Consumer<AreaMapProvider>(
+      builder: (context, provider, child) {
+        final int completed = provider.completedToday;
+        final int target = provider.targetToday > 0 ? provider.targetToday : 8;
+        final double progress = (completed / target).clamp(0.0, 1.0);
+        final bool isTargetMet = completed >= target;
+        
+        final Color progressColor = isTargetMet ? MyTheme.successGreen : MyTheme.primaryBlue;
+
+        return Center(
+          child: Column(
+            children: [
+              SizedBox(
+                height: 240,
+                width: 240,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Background Glow/Shadow
+                    Container(
+                      width: 180,
+                      height: 180,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: progressColor.withValues(alpha: 0.1),
+                            blurRadius: 40,
+                            spreadRadius: 10,
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    // The Gauge
+                    TweenAnimationBuilder<double>(
+                      tween: Tween<double>(begin: 0, end: progress),
+                      duration: const Duration(milliseconds: 1500),
+                      curve: Curves.easeOutCubic,
+                      builder: (context, value, child) {
+                        return CustomPaint(
+                          size: const Size(220, 220),
+                          painter: _DailyProgressPainter(
+                            progress: value,
+                            color: progressColor,
+                            trackColor: progressColor.withValues(alpha: 0.1),
+                          ),
+                        );
+                      },
+                    ),
+                    
+                    // Inner Content
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '$completed',
+                          style: TextStyle(
+                            fontSize: 48,
+                            fontWeight: FontWeight.w900,
+                            color: MyTheme.textDark,
+                            letterSpacing: -1,
+                          ),
+                        ),
+                        Text(
+                          'VISITS DONE',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[500],
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: progressColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'Goal: $target',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: progressColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              if (isTargetMet)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.stars_rounded, color: MyTheme.successGreen, size: 18),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Daily Target Achieved!',
+                        style: TextStyle(
+                          color: MyTheme.successGreen,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // CONDENSED STATS ROW
+  // ─────────────────────────────────────────────────────────
+  Widget _buildCondensedStatsRow() {
+    return Consumer<AreaMapProvider>(
+      builder: (context, provider, child) {
+        return Row(
+          children: [
+            Expanded(
+              child: _buildSmallStatCard(
+                icon: Icons.warning_rounded,
+                label: 'High Risk',
+                value: '${provider.highRiskCount}',
+                color: provider.highRiskCount > 0 ? MyTheme.criticalRed : MyTheme.successGreen,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildSmallStatCard(
+                icon: Icons.pending_actions_rounded,
+                label: 'Due Today',
+                value: '${provider.dueTodayCount}',
+                color: provider.hasOverdue ? MyTheme.criticalRed : MyTheme.primaryBlue,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSmallStatCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: MyTheme.textDark,
+                ),
+              ),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey[500],
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Keep existing action cards but optimize spacing if needed...
+
 
   // ─────────────────────────────────────────────────────────
   // HEADER — Greeting + Avatar + Sync Badge
@@ -304,271 +515,11 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  // ─────────────────────────────────────────────────────────
-  // STATS ROW — Redesigned with action-oriented metrics
-  // ─────────────────────────────────────────────────────────
-  Widget _buildStatsRow() {
-    return Consumer<AreaMapProvider>(
-      builder: (context, AreaMapProvider provider, child) {
-        return AnimatedBuilder(
-          animation: _slideController,
-          builder: (context, child) {
-            return SlideTransition(
-              position: Tween<Offset>(
-                begin: const Offset(0, 0.3),
-                end: Offset.zero,
-              ).animate(CurvedAnimation(
-                parent: _slideController,
-                curve: const Interval(0.0, 0.5, curve: Curves.easeOutCubic),
-              )),
-              child: child,
-            );
-          },
-          child: Row(
-            children: [
-              // 1. Today's Target
-              Expanded(
-                child: _buildTargetCard(
-                  completed: provider.completedToday,
-                  target: provider.targetToday,
-                ),
-              ),
-              const SizedBox(width: 8),
-              // 2. High Risk Cases
-              Expanded(
-                child: _buildHighRiskCard(
-                  count: provider.highRiskCount,
-                ),
-              ),
-              const SizedBox(width: 8),
-              // 3. Due Today
-              Expanded(
-                child: _buildDueTodayCard(
-                  count: provider.dueTodayCount,
-                  hasOverdue: provider.hasOverdue,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildTargetCard({required int completed, required int target}) {
-    final bool isComplete = completed >= target && target > 0;
-    final double progress = (completed / (target > 0 ? target : 1)).clamp(0.0, 1.0);
-    
-    // Determine color based on status
-    Color cardColor = progress >= 0.5 ? MyTheme.primaryBlue : MyTheme.primaryBlue.withValues(alpha: 0.7);
-    if (isComplete) cardColor = MyTheme.successGreen;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-      decoration: BoxDecoration(
-        color: isComplete ? MyTheme.successGreen.withValues(alpha: 0.05) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: isComplete ? Border.all(color: MyTheme.successGreen.withValues(alpha: 0.3)) : null,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              SizedBox(
-                width: 42,
-                height: 42,
-                child: CircularProgressIndicator(
-                  value: progress,
-                  strokeWidth: 4,
-                  backgroundColor: cardColor.withValues(alpha: 0.1),
-                  valueColor: AlwaysStoppedAnimation<Color>(cardColor),
-                ),
-              ),
-              Icon(
-                isComplete ? Icons.task_alt_rounded : Icons.track_changes_rounded,
-                size: 20,
-                color: cardColor,
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            '$completed / $target',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: isComplete ? MyTheme.successGreen : MyTheme.textDark,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            "Today's Visits",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 10,
-              color: isComplete ? MyTheme.successGreen.withValues(alpha: 0.8) : Colors.grey,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          if (isComplete)
-            const Padding(
-              padding: EdgeInsets.only(top: 4),
-              child: Text(
-                "Target Achieved 🎉",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 9,
-                  color: MyTheme.successGreen,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            )
-          else 
-            const Padding(
-              padding: EdgeInsets.only(top: 4),
-              child: Text(
-                "Target Progress",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 9,
-                  color: Colors.grey,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHighRiskCard({required int count}) {
-    final bool hasHighRisk = count > 0;
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-      decoration: BoxDecoration(
-        color: hasHighRisk ? const Color(0xFFFFF1F1) : MyTheme.successGreen.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(20),
-        border: hasHighRisk 
-            ? Border.all(color: MyTheme.criticalRed.withValues(alpha: 0.3)) 
-            : Border.all(color: MyTheme.successGreen.withValues(alpha: 0.2)),
-        boxShadow: [
-          BoxShadow(
-            color: hasHighRisk ? MyTheme.criticalRed.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.02),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: hasHighRisk 
-                  ? MyTheme.criticalRed.withValues(alpha: 0.1) 
-                  : MyTheme.successGreen.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              hasHighRisk ? Icons.warning_rounded : Icons.health_and_safety_rounded, 
-              color: hasHighRisk ? MyTheme.criticalRed : MyTheme.successGreen, 
-              size: 20
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            hasHighRisk ? '$count' : '0',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: hasHighRisk ? MyTheme.criticalRed : MyTheme.successGreen,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            hasHighRisk ? "High Risk" : "No High Risk",
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 10,
-              color: hasHighRisk ? MyTheme.criticalRed.withValues(alpha: 0.7) : MyTheme.successGreen.withValues(alpha: 0.8),
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDueTodayCard({required int count, bool hasOverdue = false}) {
-    final bool isAllClear = count == 0;
-    final Color mainColor = isAllClear 
-        ? MyTheme.successGreen 
-        : (hasOverdue ? MyTheme.criticalRed : MyTheme.primaryBlue);
-        
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: mainColor.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              isAllClear ? Icons.check_circle_rounded : Icons.pending_actions_rounded, 
-              color: mainColor, 
-              size: 20
-            ),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            isAllClear ? 'All Clear' : '$count',
-            style: TextStyle(
-              fontSize: isAllClear ? 14 : 22,
-              fontWeight: FontWeight.bold,
-              color: mainColor,
-            ),
-          ),
-          if (!isAllClear) const SizedBox(height: 2),
-          if (!isAllClear)
-            Text(
-              "Due Today",
-              style: TextStyle(
-                fontSize: 10,
-                color: Colors.grey,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          if (isAllClear) const SizedBox(height: 8),
-        ],
-      ),
-    );
-  }
 
   // ─────────────────────────────────────────────────────────
   // ACTION REQUIRED — Pending follow-ups card
   // ─────────────────────────────────────────────────────────
+
   Widget _buildActionRequiredCard() {
     return Consumer<AreaMapProvider>(
       builder: (context, provider, child) {
@@ -1001,3 +952,75 @@ class RecentItem {
 
   RecentItem(this.name, this.type, this.timeAgo, this.dotColor);
 }
+
+// ─────────────────────────────────────────────────────────
+// CUSTOM PAINTERS
+// ─────────────────────────────────────────────────────────
+
+class _DailyProgressPainter extends CustomPainter {
+  final double progress;
+  final Color color;
+  final Color trackColor;
+
+  _DailyProgressPainter({
+    required this.progress,
+    required this.color,
+    required this.trackColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width / 2) - 12; // Leave space for stroke width
+    const strokeWidth = 24.0;
+
+    // 1. Draw Background Track
+    final trackPaint = Paint()
+      ..color = trackColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawCircle(center, radius, trackPaint);
+
+    // 2. Draw Progress Arc
+    if (progress > 0) {
+      final progressPaint = Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..strokeCap = StrokeCap.round;
+
+      // Draw the arc starting from top (-pi/2)
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        -1.5708, // -90 degrees in radians
+        6.28319 * progress, // 2*pi * progress
+        false,
+        progressPaint,
+      );
+      
+      // Add a subtle inner shadow/stroke for depth
+      final detailPaint = Paint()
+        ..color = Colors.white.withValues(alpha: 0.15)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.0;
+        
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius + (strokeWidth / 2) - 2),
+        -1.5708,
+        6.28319 * progress,
+        false,
+        detailPaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DailyProgressPainter oldDelegate) {
+    return oldDelegate.progress != progress || 
+           oldDelegate.color != color || 
+           oldDelegate.trackColor != trackColor;
+  }
+}
+

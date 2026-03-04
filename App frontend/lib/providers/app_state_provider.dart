@@ -12,6 +12,8 @@ class AppStateProvider extends ChangeNotifier {
   List<dynamic> _patients = [];
   List<dynamic> _visits = [];
   List<dynamic> _inventory = [];
+  List<dynamic> _learningModules = [];
+  List<dynamic> _messages = [];
 
   // Offline pending requests
   List<Map<String, dynamic>> _pendingRequests = [];
@@ -21,6 +23,8 @@ class AppStateProvider extends ChangeNotifier {
   List<dynamic> get patients => _patients;
   List<dynamic> get visits => _visits;
   List<dynamic> get inventory => _inventory;
+  List<dynamic> get learningModules => _learningModules;
+  List<dynamic> get messages => _messages;
 
   // Set Loading
   void setLoading(bool val) {
@@ -88,6 +92,36 @@ class AppStateProvider extends ChangeNotifier {
     }
   }
 
+  // Fetch Learning Modules
+  Future<void> fetchLearningModules() async {
+    setLoading(true);
+    _error = null;
+    try {
+      final response = await ApiService.get('/learning');
+      _learningModules = response as List<dynamic>? ?? [];
+      _box.put('learningModules', _learningModules);
+    } catch (e) {
+      _error = 'Failed to fetch learning modules: $e';
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Fetch Messages
+  Future<void> fetchMessages() async {
+    setLoading(true);
+    _error = null;
+    try {
+      final response = await ApiService.get('/messages');
+      _messages = response as List<dynamic>? ?? [];
+      _box.put('messages', _messages);
+    } catch (e) {
+      _error = 'Failed to fetch messages: $e';
+    } finally {
+      setLoading(false);
+    }
+  }
+
   // Fetch all main data
   Future<void> fetchAllData() async {
     setLoading(true);
@@ -97,6 +131,8 @@ class AppStateProvider extends ChangeNotifier {
         fetchPatients(),
         fetchVisits(),
         fetchInventory(),
+        fetchLearningModules(),
+        fetchMessages(),
       ]);
     } catch (e) {
       _error = 'Failed to fetch data: $e';

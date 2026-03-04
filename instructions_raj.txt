@@ -284,6 +284,21 @@ For actual messages, use the tasks endpoint creatively:
     task.status     → String ("PENDING", "IN_PROGRESS", "COMPLETED")
     task.workerId   → String
 
+───── NEW BACKEND UPDATES (MARCH 4) ─────
+
+I have implemented the actual Messaging backend and updated the Provider for you!
+
+1. AppStateProvider (lib/providers/app_state_provider.dart)
+   - `provider.fetchMessages()` → Fetches all messages for the worker.
+   - `provider.messages` → A List of message objects from the backend.
+   - Each message has: `id`, `senderId`, `receiverId`, `content`, `createdAt`.
+
+2. New Endpoints:
+   - `GET /api/messages` → Returns all messages.
+   - `POST /api/messages/send` → Body: `{"receiverId": "...", "content": "..."}`.
+   - `GET /api/learning` → Returns educational modules.
+   - `POST /api/learning/progress` → Body: `{"moduleId": "...", "status": "COMPLETED"}`.
+
 For the Messages tab, you should:
 
   □ Replace the hardcoded _buildMessageTile() calls with REAL data

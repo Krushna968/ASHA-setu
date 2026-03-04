@@ -320,8 +320,8 @@ class AreaMapProvider extends ChangeNotifier {
     }
 
     try {
-      await ApiService.post(
-          '/household/$householdId/task/complete', {'taskId': taskId});
+      await ApiService.put(
+          '/tasks/$taskId/status', {'status': 'COMPLETED'});
       return true;
     } catch (_) {
       // Rollback
@@ -348,9 +348,9 @@ class AreaMapProvider extends ChangeNotifier {
     final remaining = <Map<String, dynamic>>[];
     for (final item in _offlineQueue) {
       try {
-        await ApiService.post(
-            '/household/${item['householdId']}/task/complete',
-            {'taskId': item['taskId']});
+        await ApiService.put(
+            '/tasks/${item['taskId']}/status',
+            {'status': 'COMPLETED'});
       } catch (_) {
         remaining.add(item);
       }

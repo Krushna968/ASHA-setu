@@ -71,6 +71,8 @@ const visitRoutes = require('./src/routes/visitRoutes');
 const workerRoutes = require('./src/routes/workerRoutes');
 const inventoryRoutes = require('./src/routes/inventoryRoutes');
 const householdRoutes = require('./src/routes/householdRoutes');
+const learningRoutes = require('./src/routes/learningRoutes');
+const messageRoutes = require('./src/routes/messageRoutes');
 
 // Mount Routes
 app.use('/api/auth', authRoutes);
@@ -80,6 +82,8 @@ app.use('/api/visits', visitRoutes);
 app.use('/api/worker', workerRoutes);
 app.use('/api/inventory', inventoryRoutes);
 app.use('/api/households', householdRoutes);
+app.use('/api/learning', learningRoutes);
+app.use('/api/messages', messageRoutes);
 
 // Basic health check endpoint
 app.get('/api/health', (req, res) => {

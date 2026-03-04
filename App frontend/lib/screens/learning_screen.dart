@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
+import '../providers/app_state_provider.dart';
 import 'youtube_player_screen.dart';
 import 'quiz_screen.dart';
 
@@ -16,64 +17,15 @@ class _LearningScreenState extends State<LearningScreen> {
 
   final List<String> _categories = ['All', 'Maternal', 'Infant', 'Vaccine', 'Hygiene', 'Nutrition'];
 
-  final List<Map<String, dynamic>> _materials = [
-    {
-      'title': 'Pre-natal Care Basics',
-      'duration': '15 mins',
-      'category': 'Maternal',
-      'type': 'Videos',
-      'url': 'https://www.youtube.com/watch?v=jRYH9N5Qf2E',
-    },
-    {
-      'title': 'Maternal Health Quiz',
-      'duration': '5 mins',
-      'category': 'Maternal',
-      'type': 'Quizzes',
-      'image': 'https://images.unsplash.com/photo-1584036561566-baf8f5f1b144?q=80&w=400',
-    },
-    {
-      'title': 'Infant Nutrition 101',
-      'duration': '10 mins',
-      'category': 'Infant',
-      'type': 'Videos',
-      'url': 'https://www.youtube.com/watch?v=y7e-GC6NBts',
-    },
-    {
-      'title': 'Newborn Care Guide',
-      'duration': '12 mins',
-      'category': 'Infant',
-      'type': 'Videos',
-      'url': 'https://www.youtube.com/watch?v=R9KogJgInW4',
-    },
-    {
-      'title': 'Hygiene Practices',
-      'duration': '8 mins',
-      'category': 'Hygiene',
-      'type': 'Videos',
-      'url': 'https://www.youtube.com/watch?v=3-DChwJ4lHw',
-    },
-    {
-      'title': 'Vaccination Schedule',
-      'duration': '5 mins',
-      'category': 'Vaccine',
-      'type': 'Videos',
-      'url': 'https://www.youtube.com/watch?v=zW3vGTo_460',
-    },
-    {
-      'title': 'Nutrition for Mothers',
-      'duration': '20 mins',
-      'category': 'Nutrition',
-      'type': 'Videos',
-      'url': 'https://www.youtube.com/watch?v=gsSnyyAbeLw',
-    },
-    {
-      'title': 'General Health Trivia',
-      'duration': '5 mins',
-      'category': 'All',
-      'type': 'Quizzes',
-      'image': 'https://images.unsplash.com/photo-1548839140-29a749e1cf4d?q=80&w=400',
-    },
-  ];
+  List<dynamic> _materials = [];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<AppStateProvider>(context, listen: false).fetchLearningModules();
+    });
+  }
 
   String getYoutubeThumbnail(String url) {
     final id = url.contains('v=') ? url.split('v=')[1].split('&')[0] : '';
@@ -89,9 +41,12 @@ class _LearningScreenState extends State<LearningScreen> {
 
   @override
   Widget build(BuildContext context) {
-    List<Map<String, dynamic>> filteredMaterials = _materials.where((item) {
+    final provider = Provider.of<AppStateProvider>(context);
+    final materials = provider.learningModules;
+    
+    List<dynamic> filteredMaterials = materials.where((item) {
       bool matchesCategory = _selectedCategory == 'All' || item['category'] == _selectedCategory;
-      bool matchesSearch = item['title'].toLowerCase().contains(_searchController.text.toLowerCase());
+      bool matchesSearch = (item['title'] ?? '').toString().toLowerCase().contains(_searchController.text.toLowerCase());
       return matchesCategory && matchesSearch;
     }).toList();
 
@@ -212,8 +167,13 @@ class _LearningScreenState extends State<LearningScreen> {
   }
 
   Widget _buildFeaturedCard() {
-    final Map<String, dynamic> featured = _materials.firstWhere((m) => m['type'] == 'Videos');
-    final String thumbnailUrl = getYoutubeThumbnail(featured['url']);
+    final provider = Provider.of<AppStateProvider>(context, listen: false);
+    if (provider.learningModules.isEmpty) return const SizedBox.shrink();
+    
+    final featured = provider.learningModules.firstWhere((m) => m['type'] == 'Videos', orElse: () => null);
+    if (featured == null) return const SizedBox.shrink();
+    
+    final String thumbnailUrl = getYoutubeThumbnail(featured['url'] ?? '');
 
     return Container(
       margin: const EdgeInsets.all(20),
@@ -342,7 +302,7 @@ class _LearningScreenState extends State<LearningScreen> {
     );
   }
 
-  Widget _buildMaterialsGrid(List<Map<String, dynamic>> items) {
+  Widget _buildMaterialsGrid(List<dynamic> items) {
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -352,7 +312,7 @@ class _LearningScreenState extends State<LearningScreen> {
     );
   }
 
-  Widget _buildWideResourceCard(Map<String, dynamic> item) {
+  Widget _buildWideResourceCard(dynamic item) {
     final bool isVideo = item['type'] == 'Videos';
     final String imageUrl = isVideo ? getYoutubeThumbnail(item['url']) : item['image'];
 
