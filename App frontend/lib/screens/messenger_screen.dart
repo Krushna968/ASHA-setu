@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'chat_screen.dart';
 
 class MessengerScreen extends StatefulWidget {
   const MessengerScreen({super.key});
@@ -8,251 +9,211 @@ class MessengerScreen extends StatefulWidget {
   State<MessengerScreen> createState() => _MessengerScreenState();
 }
 
-class _Message {
-  final String text;
-  final bool isSentByMe;
-  final String time;
-
-  _Message({
-    required this.text,
-    required this.isSentByMe,
-    required this.time,
-  });
-}
-
-class _MessengerScreenState extends State<MessengerScreen>
-    with SingleTickerProviderStateMixin {
-  final TextEditingController _msgController = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
-  late AnimationController _typingController;
-  
-  // Dummy data for empty state testing.
-  // Set to empty list `[]` to test empty state.
-  List<_Message> messages = [];
-
-  bool _showScrollToBottom = false;
+class _MessengerScreenState extends State<MessengerScreen> with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    _typingController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 1200),
-    )..repeat();
-
-    _scrollController.addListener(() {
-      if (_scrollController.hasClients) {
-        // If we scroll up by more than 100 pixels, show the button
-        final offset = _scrollController.position.pixels;
-        final maxOffset = _scrollController.position.maxScrollExtent;
-        setState(() {
-          _showScrollToBottom = maxOffset - offset > 100;
-        });
-      }
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(() {
+      if (mounted) setState(() {});
     });
-
-    // Populate with some initial dummy data to show the UI
-    messages = [
-      _Message(
-        text: 'Hello Dr. Anjali. I visited the Sharma household today.',
-        isSentByMe: true,
-        time: '10:05 AM',
-      ),
-      _Message(
-        text: 'Hello Raj. How is the newborn baby doing?',
-        isSentByMe: false,
-        time: '10:12 AM',
-      ),
-      _Message(
-        text: 'The baby is healthy. Weight is normal and vaccinations are up to date.',
-        isSentByMe: true,
-        time: '10:15 AM',
-      ),
-      _Message(
-        text: 'Excellent. Please update the registry later today.',
-        isSentByMe: false,
-        time: '10:30 AM',
-      ),
-    ];
   }
 
   @override
   void dispose() {
-    _msgController.dispose();
-    _scrollController.dispose();
-    _typingController.dispose();
+    _tabController.dispose();
+    _searchController.dispose();
     super.dispose();
-  }
-
-  void _sendMessage() {
-    final text = _msgController.text.trim();
-    if (text.isEmpty) return;
-
-    final now = DateTime.now();
-    final timeStr =
-        '${now.hour == 0 ? 12 : (now.hour > 12 ? now.hour - 12 : now.hour)}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}';
-
-    setState(() {
-      messages.add(_Message(
-        text: text,
-        isSentByMe: true,
-        time: timeStr,
-      ));
-      _msgController.clear();
-    });
-
-    _scrollToBottom();
-  }
-
-  void _scrollToBottom() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (_scrollController.hasClients) {
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent + 100,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
-        );
-      }
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F2F5), // Light grey, similar to WhatsApp
-      appBar: _buildAppBar(),
-      body: Column(
-        children: [
-          Expanded(
-            child: Stack(
-              children: [
-                messages.isEmpty ? _buildEmptyState() : _buildMessageList(),
-                if (_showScrollToBottom)
-                  Positioned(
-                    right: 16,
-                    bottom: 16,
-                    child: FloatingActionButton(
-                      mini: true,
-                      onPressed: _scrollToBottom,
-                      backgroundColor: Colors.white,
-                      foregroundColor: MyTheme.primaryBlue,
-                      elevation: 2,
-                      child: const Icon(Icons.keyboard_arrow_down),
-                    ),
-                  ),
-              ],
-            ),
+      backgroundColor: const Color(0xFFF8FAFC),
+      appBar: AppBar(
+        title: const Text(
+          'Messenger Hub',
+          style: TextStyle(fontWeight: FontWeight.bold, color: MyTheme.textDark),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.more_vert_rounded, color: MyTheme.textDark),
+            onPressed: () {},
           ),
-          _buildTypingIndicator(),
-          _buildInputBar(),
         ],
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: MyTheme.primaryBlue,
+          unselectedLabelColor: Colors.grey,
+          indicatorColor: MyTheme.primaryBlue,
+          indicatorWeight: 3,
+          labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+          tabs: const [
+            Tab(text: 'Messages'),
+            Tab(text: 'Tasks'),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildMessagesTab(),
+          _buildTasksTab(),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {},
+        backgroundColor: MyTheme.primaryBlue,
+        child: Icon(
+          _tabController.index == 0 ? Icons.chat_bubble_rounded : Icons.add_task_rounded,
+          color: Colors.white,
+        ),
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: MyTheme.primaryBlue,
-      elevation: 1,
-      automaticallyImplyLeading: false, // For testing context
-      title: Row(
-        children: [
-          const CircleAvatar(
-            backgroundColor: Colors.white24,
-            radius: 20,
-            child: Text(
-              'DA',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Dr. Anjali',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              Row(
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: Colors.greenAccent,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  const Text(
-                    'Online',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.white70,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.videocam_rounded, color: Colors.white),
-          onPressed: () {},
+  // ─────────────────────────────────────────────────────────
+  // MESSAGES TAB
+  // ─────────────────────────────────────────────────────────
+  Widget _buildMessagesTab() {
+    return ListView(
+      padding: const EdgeInsets.symmetric(vertical: 16),
+      children: [
+        _buildSearchBar(),
+        const SizedBox(height: 16),
+        _buildCriticalAlert(),
+        const SizedBox(height: 8),
+        _buildMessageTile(
+          name: 'Dr. Anjali (Medical Officer)',
+          message: 'Please review the vaccination list for Ward 4.',
+          time: '10:30 AM',
+          unreadCount: 2,
+          isOnline: true,
+          initials: 'AJ',
+          avatarColor: Colors.purple.shade400,
         ),
-        IconButton(
-          icon: const Icon(Icons.call_rounded, color: Colors.white),
-          onPressed: () {},
+        _buildAudioMessageTile(
+          name: 'Rajesh Kumar (Supervisor)',
+          time: '9:15 AM',
+          duration: '1:45',
+          initials: 'RK',
+          avatarColor: Colors.teal.shade400,
+          isPlaying: false,
         ),
-        IconButton(
-          icon: const Icon(Icons.more_vert_rounded, color: Colors.white),
-          onPressed: () {},
+        _buildMessageTile(
+          name: 'Healthcare Dept',
+          message: 'New guidelines for iron supplement distribution.',
+          time: 'Yesterday',
+          isSeen: true,
+          initials: 'HD',
+          avatarColor: Colors.blue.shade400,
+        ),
+        _buildMessageTile(
+          name: 'Sarita Devi',
+          message: 'Thank you for the visit yesterday.',
+          time: 'Yesterday',
+          initials: 'SD',
+          avatarColor: Colors.orange.shade400,
         ),
       ],
     );
   }
 
-  Widget _buildEmptyState() {
-    return Center(
+  Widget _buildSearchBar() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: TextField(
+          controller: _searchController,
+          onChanged: (val) => setState(() {}),
+          decoration: InputDecoration(
+            hintText: 'Search chats or messages...',
+            hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+            prefixIcon: const Icon(Icons.search_rounded, color: MyTheme.primaryBlue, size: 22),
+            suffixIcon: IconButton(
+              icon: const Icon(Icons.tune_rounded, color: Colors.grey, size: 20),
+              onPressed: () {},
+            ),
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(vertical: 15),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCriticalAlert() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: MyTheme.criticalRed.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: MyTheme.criticalRed.withValues(alpha: 0.1)),
+      ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              color: MyTheme.primaryBlue.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(
-              Icons.forum_rounded,
-              size: 64,
-              color: MyTheme.primaryBlue.withValues(alpha: 0.5),
-            ),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: MyTheme.criticalRed,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Text(
+                  'URGENT',
+                  style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                ),
+              ),
+              const Spacer(),
+              const Text(
+                '8:45 AM',
+                style: TextStyle(color: Colors.grey, fontSize: 11),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          const Text(
+            'Health Dept',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: MyTheme.textDark),
+          ),
+          const SizedBox(height: 4),
+          const Text(
+            'Emergency pulse polio drive updated for Ward 4. Please confirm deployment immediately.',
+            style: TextStyle(color: MyTheme.textDark, height: 1.4, fontSize: 14),
           ),
           const SizedBox(height: 16),
-          const Text(
-            'No messages yet',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: MyTheme.textDark,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Start a conversation with your supervisor.',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade600,
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                backgroundColor: MyTheme.criticalRed,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                elevation: 0,
+              ),
+              child: const Text('Acknowledge Receipt', style: TextStyle(fontWeight: FontWeight.bold)),
             ),
           ),
         ],
@@ -260,234 +221,363 @@ class _MessengerScreenState extends State<MessengerScreen>
     );
   }
 
-  Widget _buildMessageList() {
-    return ListView.builder(
-      controller: _scrollController,
-      padding: const EdgeInsets.only(top: 16, bottom: 8),
-      itemCount: messages.length,
-      itemBuilder: (context, index) {
-        final msg = messages[index];
-        final bool showAvatar = !msg.isSentByMe && 
-            (index == messages.length - 1 || messages[index + 1].isSentByMe);
-
-        return _buildChatBubble(msg, showAvatar);
-      },
+  Widget _buildMessageTile({
+    required String name,
+    required String message,
+    required String time,
+    int? unreadCount,
+    bool isOnline = false,
+    bool isSeen = false,
+    required String initials,
+    required Color avatarColor,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChatScreen(
+                contactName: name,
+                initials: initials,
+                avatarColor: avatarColor,
+                isOnline: isOnline,
+              ),
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          child: Row(
+            children: [
+              Stack(
+                children: [
+                  CircleAvatar(
+                    radius: 26,
+                    backgroundColor: avatarColor.withValues(alpha: 0.1),
+                    child: Text(
+                      initials,
+                      style: TextStyle(color: avatarColor, fontWeight: FontWeight.bold, fontSize: 16),
+                    ),
+                  ),
+                  if (isOnline)
+                    Positioned(
+                      right: 0,
+                      bottom: 0,
+                      child: Container(
+                        width: 14,
+                        height: 14,
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white, width: 2),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          name,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: MyTheme.textDark),
+                        ),
+                        Text(time, style: TextStyle(color: Colors.grey.shade500, fontSize: 11)),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            message,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: unreadCount != null ? MyTheme.textDark : Colors.grey.shade600,
+                              fontSize: 13,
+                              fontWeight: unreadCount != null ? FontWeight.w600 : FontWeight.normal,
+                            ),
+                          ),
+                        ),
+                        if (isSeen)
+                          const Icon(Icons.done_all_rounded, size: 16, color: MyTheme.primaryBlue),
+                        if (unreadCount != null)
+                          Container(
+                            margin: const EdgeInsets.only(left: 8),
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: const BoxDecoration(
+                              color: MyTheme.primaryBlue,
+                              shape: BoxShape.circle,
+                            ),
+                            child: Text(
+                              '$unreadCount',
+                              style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
-  Widget _buildChatBubble(_Message msg, bool showAvatar) {
+  Widget _buildAudioMessageTile({
+    required String name,
+    required String time,
+    required String duration,
+    required String initials,
+    required Color avatarColor,
+    required bool isPlaying,
+  }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Row(
-        mainAxisAlignment:
-            msg.isSentByMe ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          if (!msg.isSentByMe) ...[
-            if (showAvatar)
-              const CircleAvatar(
-                radius: 16,
-                backgroundColor: Colors.purple,
-                child: Text('DA', style: TextStyle(color: Colors.white, fontSize: 12)),
-              )
-            else
-              const SizedBox(width: 32),
-            const SizedBox(width: 8),
-          ],
-          Flexible(
-            child: Container(
-              constraints: BoxConstraints(
-                  maxWidth: MediaQuery.of(context).size.width * 0.75),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-              decoration: BoxDecoration(
-                color: msg.isSentByMe ? MyTheme.primaryBlue : Colors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(16),
-                  topRight: const Radius.circular(16),
-                  bottomLeft: Radius.circular(msg.isSentByMe ? 16 : 4),
-                  bottomRight: Radius.circular(msg.isSentByMe ? 4 : 16),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      child: InkWell(
+        onTap: () {},
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              CircleAvatar(
+                radius: 26,
+                backgroundColor: avatarColor.withValues(alpha: 0.1),
+                child: Text(
+                  initials,
+                  style: TextStyle(color: avatarColor, fontWeight: FontWeight.bold, fontSize: 16),
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 2,
-                    offset: const Offset(0, 1),
-                  ),
-                ],
               ),
-              child: Column(
-                crossAxisAlignment: msg.isSentByMe
-                    ? CrossAxisAlignment.end
-                    : CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    msg.text,
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: msg.isSentByMe ? Colors.white : MyTheme.textDark,
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          name,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: MyTheme.textDark),
+                        ),
+                        Text(time, style: TextStyle(color: Colors.grey.shade500, fontSize: 11)),
+                      ],
                     ),
-                  ),
-                  const SizedBox(height: 4),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.grey.shade100),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.02),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            radius: 16,
+                            backgroundColor: MyTheme.primaryBlue,
+                            child: Icon(
+                              isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _buildAudioWaveform(),
+                          ),
+                          const SizedBox(width: 10),
+                          Text(
+                            duration,
+                            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: MyTheme.primaryBlue),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAudioWaveform() {
+    return Row(
+      children: List.generate(15, (index) {
+        return Container(
+          width: 3,
+          height: (index % 3 == 0 ? 12 : (index % 2 == 0 ? 18 : 10)),
+          margin: const EdgeInsets.symmetric(horizontal: 1),
+          decoration: BoxDecoration(
+            color: index < 5 ? MyTheme.primaryBlue : Colors.grey.shade300,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        );
+      }),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // TASKS TAB
+  // ─────────────────────────────────────────────────────────
+  Widget _buildTasksTab() {
+    return ListView(
+      padding: const EdgeInsets.all(20),
+      children: [
+        _buildTaskCard(
+          title: 'Newborn Vaccination Follow-up',
+          patient: 'Baby of Priya Sharma',
+          due: 'Today',
+          priority: 'High',
+          isCompleted: false,
+        ),
+        _buildTaskCard(
+          title: 'Monthly Nutrition Report',
+          patient: 'Village Center',
+          due: 'Tomorrow',
+          priority: 'Medium',
+          isCompleted: false,
+        ),
+        _buildTaskCard(
+          title: 'Update Pregnant Women Registry',
+          patient: 'All Wards',
+          due: 'Mar 5',
+          priority: 'Low',
+          isCompleted: false,
+        ),
+        _buildTaskCard(
+          title: 'ANC Checkup Coordination',
+          patient: 'Meera Bai',
+          due: 'Feb 26',
+          priority: 'Medium',
+          isCompleted: true,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTaskCard({
+    required String title,
+    required String patient,
+    required String due,
+    required String priority,
+    required bool isCompleted,
+  }) {
+    Color priorityColor;
+    switch (priority) {
+      case 'High': priorityColor = MyTheme.criticalRed; break;
+      case 'Medium': priorityColor = MyTheme.warningOrange; break;
+      default: priorityColor = Colors.blue;
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+        border: priority == 'High' && !isCompleted
+            ? Border(left: BorderSide(color: priorityColor, width: 4))
+            : null,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Theme(
+              data: Theme.of(context).copyWith(
+                unselectedWidgetColor: Colors.grey.shade300,
+              ),
+              child: Checkbox(
+                value: isCompleted,
+                activeColor: MyTheme.successGreen,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                onChanged: (val) {},
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   Row(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        msg.time,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: msg.isSentByMe
-                              ? Colors.white70
-                              : Colors.grey.shade500,
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: isCompleted ? Colors.grey : MyTheme.textDark,
+                            decoration: isCompleted ? TextDecoration.lineThrough : null,
+                          ),
                         ),
                       ),
-                      if (msg.isSentByMe) ...[
-                        const SizedBox(width: 4),
-                        const Icon(
-                          Icons.done_all_rounded,
-                          size: 14,
-                          color: Colors.white70,
+                    ],
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    patient,
+                    style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Icon(Icons.calendar_today_rounded, size: 12, color: Colors.grey.shade400),
+                      const SizedBox(width: 4),
+                      Text(
+                        due,
+                        style: TextStyle(color: Colors.grey.shade600, fontSize: 11, fontWeight: FontWeight.w500),
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        decoration: BoxDecoration(
+                          color: priorityColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6),
                         ),
-                      ],
+                        child: Text(
+                          priority,
+                          style: TextStyle(
+                            color: priorityColor,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // A static UI element indicating the other person is typing...
-  Widget _buildTypingIndicator() {
-    // We'll show it based on a dummy condition or just leave it hidden by default 
-    // unless simulating it. Here we make it static for demonstration as requested.
-    bool isTyping = false; // toggle to true to see the effect while testing
-    
-    // ignore: dead_code
-    if (!isTyping) return const SizedBox.shrink();
-
-    // ignore: dead_code
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(56, 0, 16, 8),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
-                bottomLeft: Radius.circular(4),
-                bottomRight: Radius.circular(16),
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildDot(0),
-                const SizedBox(width: 4),
-                _buildDot(1),
-                const SizedBox(width: 4),
-                _buildDot(2),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDot(int index) {
-    return AnimatedBuilder(
-      animation: _typingController,
-      builder: (context, child) {
-        // Create a staggered bounce effect
-        final offset = index * 0.2;
-        final progress = (_typingController.value - offset).clamp(0.0, 1.0);
-        final sineValue = progress > 0.0 && progress < 0.6
-            ? (progress * 3.14159 / 0.6) // Math.sin parameter
-            : 0.0;
-        
-        // Simple manual implementation of sine wave
-        double yPos = 0.0;
-        if (sineValue > 0) {
-           // Approximation of sine for the bounce
-           yPos = -4.0 * (1 - ((sineValue - 1.57).abs() / 1.57)); 
-        }
-
-        return Transform.translate(
-          offset: Offset(0, yPos < -4.0 ? -4.0 : yPos),
-          child: Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade400,
-              shape: BoxShape.circle,
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildInputBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 4,
-            offset: const Offset(0, -1),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            IconButton(
-              icon: Icon(Icons.attach_file_rounded, color: Colors.grey.shade600),
-              onPressed: () {},
-            ),
-            Expanded(
-              child: Container(
-                constraints: const BoxConstraints(minHeight: 40, maxHeight: 120),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF0F2F5),
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Scrollbar(
-                  child: TextField(
-                    controller: _msgController,
-                    maxLines: null,
-                    textInputAction: TextInputAction.send,
-                    onSubmitted: (_) => _sendMessage(),
-                    decoration: const InputDecoration(
-                      hintText: 'Type a message...',
-                      hintStyle: TextStyle(color: Colors.grey),
-                      border: InputBorder.none,
-                      contentPadding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 8),
-            Container(
-              margin: const EdgeInsets.only(bottom: 2),
-              decoration: const BoxDecoration(
-                color: MyTheme.primaryBlue,
-                shape: BoxShape.circle,
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
-                onPressed: _sendMessage,
               ),
             ),
           ],
