@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:animate_do/animate_do.dart';
 import '../theme/app_theme.dart';
-import '../providers/app_state_provider.dart';
-import 'youtube_player_screen.dart';
-import 'quiz_screen.dart';
 
 class LearningScreen extends StatefulWidget {
   const LearningScreen({super.key});
@@ -12,237 +9,485 @@ class LearningScreen extends StatefulWidget {
   State<LearningScreen> createState() => _LearningScreenState();
 }
 
-class _LearningScreenState extends State<LearningScreen> {
+class _LearningScreenState extends State<LearningScreen>
+    with SingleTickerProviderStateMixin {
   String _selectedCategory = 'All';
-  final TextEditingController _searchController = TextEditingController();
+  String _searchQuery = '';
 
-  final List<String> _categories = ['All', 'Maternal', 'Infant', 'Vaccine', 'Hygiene', 'Nutrition'];
+  final List<String> _categories = [
+    'All',
+    'Nutrition',
+    'Maternal Health',
+    'Infant Care',
+    'Immunization',
+    'General',
+  ];
 
-  List<dynamic> _materials = [];
+  final List<Map<String, dynamic>> _modules = [
+    {
+      'title': 'Infant Nutrition',
+      'description': 'Essential nutrients for healthy baby growth in the first year of life.',
+      'category': 'Nutrition',
+      'duration': '10 min',
+      'icon': Icons.child_care_rounded,
+      'color': const Color(0xFFFF7043),
+      'status': 'inProgress',
+      'progress': 0.60,
+    },
+    {
+      'title': 'Antenatal Care Guide',
+      'description': 'Step-by-step guidance for monitoring maternal health during pregnancy.',
+      'category': 'Maternal Health',
+      'duration': '18 min',
+      'icon': Icons.pregnant_woman_rounded,
+      'color': const Color(0xFF7C4DFF),
+      'status': 'completed',
+      'progress': 1.0,
+    },
+    {
+      'title': 'Safe Breastfeeding',
+      'description': 'Best practices for breastfeeding and infant nutrition support.',
+      'category': 'Infant Care',
+      'duration': '12 min',
+      'icon': Icons.favorite_rounded,
+      'color': const Color(0xFFE91E8C),
+      'status': 'notStarted',
+      'progress': 0.0,
+    },
+    {
+      'title': 'Immunization Schedule',
+      'description': 'Complete vaccination calendar for children aged 0–5 years.',
+      'category': 'Immunization',
+      'duration': '15 min',
+      'icon': Icons.vaccines_rounded,
+      'color': const Color(0xFF00BCD4),
+      'status': 'inProgress',
+      'progress': 0.35,
+    },
+    {
+      'title': 'Maternal Diet & Wellness',
+      'description': 'Nutrition recommendations and wellness tips for expectant mothers.',
+      'category': 'Nutrition',
+      'duration': '14 min',
+      'icon': Icons.restaurant_menu_rounded,
+      'color': const Color(0xFF4CAF50),
+      'status': 'notStarted',
+      'progress': 0.0,
+    },
+    {
+      'title': 'Postpartum Care',
+      'description': 'How to support mothers during the recovery period after delivery.',
+      'category': 'Maternal Health',
+      'duration': '20 min',
+      'icon': Icons.spa_rounded,
+      'color': const Color(0xFFFF9800),
+      'status': 'notStarted',
+      'progress': 0.0,
+    },
+    {
+      'title': 'First Aid Basics',
+      'description': 'Emergency first aid techniques every ASHA worker should know.',
+      'category': 'General',
+      'duration': '16 min',
+      'icon': Icons.medical_services_rounded,
+      'color': const Color(0xFFF44336),
+      'status': 'completed',
+      'progress': 1.0,
+    },
+    {
+      'title': 'Hygiene & Sanitation',
+      'description': 'Promoting cleanliness and safe water practices in rural communities.',
+      'category': 'General',
+      'duration': '8 min',
+      'icon': Icons.clean_hands_rounded,
+      'color': const Color(0xFF2196F3),
+      'status': 'notStarted',
+      'progress': 0.0,
+    },
+  ];
 
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<AppStateProvider>(context, listen: false).fetchLearningModules();
-    });
+  List<Map<String, dynamic>> get _filtered {
+    return _modules.where((m) {
+      final matchesCategory = _selectedCategory == 'All' || m['category'] == _selectedCategory;
+      final matchesSearch = m['title'].toString().toLowerCase().contains(_searchQuery.toLowerCase());
+      return matchesCategory && matchesSearch;
+    }).toList();
   }
 
-  String getYoutubeThumbnail(String url) {
-    final id = url.contains('v=') ? url.split('v=')[1].split('&')[0] : '';
-    if (id.isEmpty) return 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?q=80&w=400';
-    return 'https://img.youtube.com/vi/$id/maxresdefault.jpg';
-  }
-
-  @override
-  void dispose() {
-    _searchController.dispose();
-    super.dispose();
+  Map<String, dynamic>? get _continueModule {
+    try {
+      return _modules.firstWhere((m) => m['status'] == 'inProgress');
+    } catch (_) {
+      return null;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<AppStateProvider>(context);
-    final materials = provider.learningModules;
-    
-    List<dynamic> filteredMaterials = materials.where((item) {
-      bool matchesCategory = _selectedCategory == 'All' || item['category'] == _selectedCategory;
-      bool matchesSearch = (item['title'] ?? '').toString().toLowerCase().contains(_searchController.text.toLowerCase());
-      return matchesCategory && matchesSearch;
-    }).toList();
+    final filtered = _filtered;
+    final continueMod = _continueModule;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FE),
-      appBar: AppBar(
-        title: const Text('Training Hub', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: MyTheme.textDark)),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: const Icon(Icons.notifications_none_rounded, color: MyTheme.textDark),
-          ),
-          const SizedBox(width: 8),
-        ],
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: false,
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildSearchBar(),
-            _buildCategoryList(),
-            _buildFeaturedCard(),
-            _buildContinueLearning(),
-            _buildSectionHeader('All Resources', onSeeAll: () {}),
-            if (filteredMaterials.isEmpty)
-              _buildEmptyState()
-            else
-              _buildMaterialsGrid(filteredMaterials),
-            const SizedBox(height: 100),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 8.0),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              height: 55,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(12),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: TextField(
-                controller: _searchController,
-                onChanged: (_) => setState(() {}),
-                decoration: const InputDecoration(
-                  hintText: 'Search training modules...',
-                  hintStyle: TextStyle(color: Colors.grey, fontSize: 14),
-                  prefixIcon: Icon(Icons.search_rounded, color: MyTheme.primaryBlue),
-                  border: InputBorder.none,
-                  contentPadding: EdgeInsets.symmetric(vertical: 16),
+      backgroundColor: MyTheme.backgroundWhite,
+      body: CustomScrollView(
+        slivers: [
+          // ── App Bar ─────────────────────────────────────────
+          SliverAppBar(
+            floating: true,
+            backgroundColor: Colors.white,
+            elevation: 0,
+            scrolledUnderElevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_rounded, color: MyTheme.textDark),
+              onPressed: () => Navigator.pop(context),
+            ),
+            title: const Text(
+              'Learning Hub',
+              style: TextStyle(fontWeight: FontWeight.bold, color: MyTheme.textDark, fontSize: 20),
+            ),
+            actions: [
+              Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: IconButton(
+                  icon: const Icon(Icons.emoji_events_outlined, color: MyTheme.primaryBlue),
+                  onPressed: () {},
+                  tooltip: 'My Progress',
                 ),
               ),
-            ),
+            ],
           ),
-          const SizedBox(width: 12),
-          Container(
-            height: 55,
-            width: 55,
-            decoration: BoxDecoration(
-              color: MyTheme.primaryBlue,
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: const Icon(Icons.tune_rounded, color: Colors.white),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildCategoryList() {
-    return SizedBox(
-      height: 70,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        itemCount: _categories.length,
-        itemBuilder: (context, index) {
-          final category = _categories[index];
-          final isSelected = _selectedCategory == category;
-          return Padding(
-            padding: const EdgeInsets.only(right: 8.0),
-            child: FilterChip(
-              label: Text(category),
-              selected: isSelected,
-              onSelected: (selected) {
-                setState(() => _selectedCategory = category);
-              },
-              backgroundColor: Colors.white,
-              selectedColor: MyTheme.primaryBlue,
-              labelStyle: TextStyle(
-                color: isSelected ? Colors.white : MyTheme.textDark,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-              ),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              side: BorderSide(color: isSelected ? MyTheme.primaryBlue : Colors.grey[200]!),
-              showCheckmark: false,
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  Widget _buildFeaturedCard() {
-    final provider = Provider.of<AppStateProvider>(context, listen: false);
-    if (provider.learningModules.isEmpty) return const SizedBox.shrink();
-    
-    final featured = provider.learningModules.firstWhere((m) => m['type'] == 'Videos', orElse: () => null);
-    if (featured == null) return const SizedBox.shrink();
-    
-    final String thumbnailUrl = getYoutubeThumbnail(featured['url'] ?? '');
-
-    return Container(
-      margin: const EdgeInsets.all(20),
-      width: double.infinity,
-      height: 200,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(25),
-        image: DecorationImage(
-          image: NetworkImage(thumbnailUrl),
-          fit: BoxFit.cover,
-        ),
-      ),
-      child: Stack(
-        children: [
-          Container(
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(25),
-              gradient: LinearGradient(
-                begin: Alignment.bottomRight,
-                colors: [
-                  Colors.black.withAlpha(200),
-                  Colors.black.withAlpha(50),
-                ],
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(20.0),
+          SliverToBoxAdapter(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.orange,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Text('FEATURED', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  featured['title'],
-                  style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => VideoPlayerScreen(
-                          title: featured['title'], 
-                          videoUrl: featured['url']
-                        )));
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: MyTheme.primaryBlue,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                // ── Search Bar ──────────────────────────────
+                FadeInDown(
+                  duration: const Duration(milliseconds: 400),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 10, offset: const Offset(0, 4))],
                       ),
-                      child: const Text('Start Now'),
+                      child: TextField(
+                        onChanged: (v) => setState(() => _searchQuery = v),
+                        decoration: InputDecoration(
+                          hintText: 'Search modules…',
+                          hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                          prefixIcon: const Icon(Icons.search_rounded, color: MyTheme.primaryBlue),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(20),
+                            borderSide: BorderSide.none,
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                      ),
                     ),
-                    const SizedBox(width: 12),
-                    const Icon(Icons.timer_outlined, color: Colors.white70, size: 16),
-                    const SizedBox(width: 4),
-                    Text(featured['duration'], style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                  ),
+                ),
+
+                // ── Category Chips ──────────────────────────
+                FadeInDown(
+                  delay: const Duration(milliseconds: 80),
+                  duration: const Duration(milliseconds: 400),
+                  child: SizedBox(
+                    height: 52,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                      itemCount: _categories.length,
+                      itemBuilder: (context, i) {
+                        final cat = _categories[i];
+                        final bool sel = _selectedCategory == cat;
+                        return Padding(
+                          padding: const EdgeInsets.only(right: 8),
+                          child: ChoiceChip(
+                            label: Text(cat),
+                            selected: sel,
+                            onSelected: (v) { if (v) setState(() => _selectedCategory = cat); },
+                            backgroundColor: Colors.white,
+                            selectedColor: MyTheme.primaryBlue,
+                            labelStyle: TextStyle(
+                              color: sel ? Colors.white : MyTheme.textLight,
+                              fontWeight: sel ? FontWeight.bold : FontWeight.normal,
+                              fontSize: 13,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              side: BorderSide(color: sel ? MyTheme.primaryBlue : Colors.grey.shade200),
+                            ),
+                            showCheckmark: false,
+                            elevation: sel ? 2 : 0,
+                            padding: const EdgeInsets.symmetric(horizontal: 10),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+
+                // ── Continue Learning Card ──────────────────
+                if (continueMod != null)
+                  FadeInDown(
+                    delay: const Duration(milliseconds: 160),
+                    duration: const Duration(milliseconds: 450),
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                      child: _buildContinueLearningCard(continueMod),
+                    ),
+                  ),
+
+                // ── Section Title ────────────────────────────
+                FadeInDown(
+                  delay: const Duration(milliseconds: 240),
+                  duration: const Duration(milliseconds: 400),
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _selectedCategory == 'All' ? 'All Modules' : '$_selectedCategory Modules',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: MyTheme.textDark),
+                        ),
+                        Text('${filtered.length} available',
+                          style: TextStyle(color: Colors.grey.shade500, fontSize: 13)),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // ── Module List ────────────────────────────────────────────
+          filtered.isEmpty
+              ? SliverFillRemaining(child: _buildEmptyState())
+              : SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 80),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) => FadeInUp(
+                        delay: Duration(milliseconds: index * 100),
+                        duration: const Duration(milliseconds: 400),
+                        child: _buildModuleCard(filtered[index]),
+                      ),
+                      childCount: filtered.length,
+                    ),
+                  ),
+                ),
+        ],
+      ),
+    );
+  }
+
+  // ─────────────────── Continue Learning Card ───────────────────────────────
+  Widget _buildContinueLearningCard(Map<String, dynamic> mod) {
+    final double progress = (mod['progress'] as double);
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [MyTheme.primaryBlue, const Color(0xFF1565C0)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(color: MyTheme.primaryBlue.withValues(alpha: 0.3), blurRadius: 16, offset: const Offset(0, 6)),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Text('CONTINUE LEARNING',
+                  style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Icon(mod['icon'] as IconData, color: Colors.white, size: 28),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(mod['title'] as String,
+                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                    const SizedBox(height: 3),
+                    Text('${mod['category']} • ${mod['duration']}',
+                      style: TextStyle(color: Colors.white.withValues(alpha: 0.75), fontSize: 12)),
                   ],
                 ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          // Progress bar
+          Row(
+            children: [
+              Expanded(
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(6),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    minHeight: 8,
+                    backgroundColor: Colors.white.withValues(alpha: 0.25),
+                    valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Text(
+                '${(progress * 100).round()}%',
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: MyTheme.primaryBlue,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                textStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+              ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('Continue'),
+                  SizedBox(width: 6),
+                  Icon(Icons.arrow_forward_rounded, size: 18),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─────────────────────────── Module Card ─────────────────────────────────
+  Widget _buildModuleCard(Map<String, dynamic> mod) {
+    final String status = mod['status'] as String;
+    final double progress = (mod['progress'] as double);
+    final Color iconColor = mod['color'] as Color;
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 3))],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Thumbnail area
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(mod['icon'] as IconData, color: iconColor, size: 32),
+          ),
+          const SizedBox(width: 14),
+          // Content
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Category tag
+                Text(
+                  (mod['category'] as String).toUpperCase(),
+                  style: TextStyle(
+                    color: iconColor,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                // Title
+                Text(
+                  mod['title'] as String,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: MyTheme.textDark),
+                ),
+                const SizedBox(height: 4),
+                // Description
+                Text(
+                  mod['description'] as String,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 12, height: 1.4),
+                ),
+                const SizedBox(height: 8),
+                // Duration + Progress indicator row
+                Row(
+                  children: [
+                    Icon(Icons.access_time_rounded, size: 13, color: Colors.grey.shade400),
+                    const SizedBox(width: 4),
+                    Text(mod['duration'] as String,
+                      style: TextStyle(color: Colors.grey.shade500, fontSize: 12)),
+                    const Spacer(),
+                    _buildStatusBadge(status, progress, iconColor),
+                  ],
+                ),
+                // Progress bar (for inProgress modules)
+                if (status == 'inProgress') ...[
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: progress,
+                            minHeight: 5,
+                            backgroundColor: Colors.grey.shade200,
+                            valueColor: AlwaysStoppedAnimation<Color>(iconColor),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${(progress * 100).round()}%',
+                        style: TextStyle(color: iconColor, fontSize: 11, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ],
               ],
             ),
           ),
@@ -251,183 +496,48 @@ class _LearningScreenState extends State<LearningScreen> {
     );
   }
 
-  Widget _buildContinueLearning() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey[100]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('Continue Learning', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-              const Text('75%', style: TextStyle(color: MyTheme.primaryBlue, fontWeight: FontWeight.bold, fontSize: 14)),
-            ],
-          ),
-          const SizedBox(height: 12),
-          const Text('Immunization Tracking Guide', style: TextStyle(color: MyTheme.textLight, fontSize: 13)),
-          const SizedBox(height: 12),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: LinearProgressIndicator(
-              value: 0.75,
-              minHeight: 8,
-              backgroundColor: Colors.grey[100],
-              valueColor: const AlwaysStoppedAnimation<Color>(MyTheme.primaryBlue),
-            ),
-          ),
+  Widget _buildStatusBadge(String status, double progress, Color color) {
+    if (status == 'completed') {
+      return Row(
+        children: const [
+          Icon(Icons.check_circle_rounded, color: Color(0xFF28A745), size: 16),
+          SizedBox(width: 4),
+          Text('Done', style: TextStyle(color: Color(0xFF28A745), fontSize: 12, fontWeight: FontWeight.bold)),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(String title, {required VoidCallback onSeeAll}) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: MyTheme.textDark)),
-          TextButton(
-            onPressed: onSeeAll,
-            child: const Text('See All', style: TextStyle(color: MyTheme.primaryBlue)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMaterialsGrid(List<dynamic> items) {
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      itemCount: items.length,
-      itemBuilder: (context, index) => _buildWideResourceCard(items[index]),
-    );
-  }
-
-  Widget _buildWideResourceCard(dynamic item) {
-    final bool isVideo = item['type'] == 'Videos';
-    final String imageUrl = isVideo ? getYoutubeThumbnail(item['url']) : item['image'];
-
-    return InkWell(
-      onTap: () {
-        if (isVideo && item['url'] != null) {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => VideoPlayerScreen(
-            videoUrl: item['url'], 
-            title: item['title']
-          )));
-        } else if (item['type'] == 'Quizzes') {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => QuizScreen(
-            title: item['title']
-          )));
-        }
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
+      );
+    } else if (status == 'inProgress') {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
         decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withAlpha(12),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
-            ),
-          ],
+          color: color.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(8),
         ),
-        child: Column(
-          children: [
-            AspectRatio(
-              aspectRatio: 16 / 9,
-              child: Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                    child: Image.network(
-                      imageUrl,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        color: Colors.grey[200],
-                        child: const Icon(Icons.broken_image_rounded, color: Colors.grey),
-                      ),
-                    ),
-                  ),
-                  if (isVideo)
-                    Center(
-                      child: Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withAlpha(100),
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 32),
-                      ),
-                    ),
-                  Positioned(
-                    top: 12,
-                    right: 12,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withAlpha(150),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        item['duration'],
-                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item['title'],
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: MyTheme.textDark),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '${item['category']} • ${item['type']}',
-                          style: const TextStyle(color: MyTheme.textLight, fontSize: 13),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const Icon(Icons.more_vert_rounded, color: Colors.grey),
-                ],
-              ),
-            ),
-          ],
+        child: Text('In Progress', style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold)),
+      );
+    } else {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey.shade300),
         ),
-      ),
-    );
+        child: const Text('Start', style: TextStyle(color: Colors.grey, fontSize: 11, fontWeight: FontWeight.bold)),
+      );
+    }
   }
 
+  // ─────────────────────────── Empty State ─────────────────────────────────
   Widget _buildEmptyState() {
     return Center(
       child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(height: 40),
-          Icon(Icons.search_off_rounded, size: 64, color: Colors.grey[200]),
+          Icon(Icons.search_off_rounded, size: 64, color: Colors.grey.shade200),
           const SizedBox(height: 16),
-          const Text("No modules matching your filter", style: TextStyle(color: MyTheme.textLight, fontSize: 14)),
+          const Text('No modules found', style: TextStyle(color: MyTheme.textLight, fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          const Text('Try a different category or search term.', style: TextStyle(color: MyTheme.textLight, fontSize: 13)),
         ],
       ),
     );
