@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
+import 'firebase_options.dart';
 import 'theme/app_theme.dart';
 import 'screens/login_screen.dart';
 import 'screens/main_screen.dart';
@@ -18,13 +20,17 @@ import 'services/auth_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
-  
-  // Explicitly activate Firebase App Check in Debug mode
-  // This is required for Phone Authentication on Emulators which fail Play Integrity checks.
-  await FirebaseAppCheck.instance.activate(
-    androidProvider: AndroidProvider.debug,
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Activate Firebase App Check — only needed on Android (debug emulator).
+  // On web, AppCheck automatically uses debug tokens in debug mode.
+  if (!kIsWeb) {
+    await FirebaseAppCheck.instance.activate(
+      androidProvider: AndroidProvider.debug,
+    );
+  }
 
   runApp(const AshaSetuApp());
 }
@@ -52,9 +58,9 @@ class AshaSetuApp extends StatelessWidget {
           final isLoggedIn = snapshot.data ?? false;
           
           if (isLoggedIn) {
-            return const MainScreen();
+            return const MessengerScreen(); // Temporarily changed for testing
           } else {
-            return const LoginScreen();
+            return const MessengerScreen(); // Temporarily changed for testing
           }
         },
       ),
