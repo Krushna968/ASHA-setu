@@ -1,0 +1,14 @@
+{
+  "appTitle": "आशा सेतू",
+  "loginGreetings": "नमस्कार, आशा ताई",
+  "loginSubtext": "आपली दैनंदिन आरोग्य कार्ये व्यवस्थापित करण्यासाठी साइन इन करा",
+  "mobileNumber": "मोबाईल क्रमांक",
+  "sendOtp": "OTP पाठवा",
+  "dashboard": "डॅशबोर्ड",
+  "individuals": "व्यक्ती",
+  "visits": "भेटी",
+  "inventory": "भांडार",
+  "tasks": "कामे",
+  "logVisit": "भेट नोंदवा",
+  "addIndividual": "व्यक्ती जोडा"
+}

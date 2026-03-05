@@ -2,14 +2,14 @@
 ================================================================================
   ASHA-SETU APP — COMPLETE INSTRUCTIONS FOR RAJ
   Your Git Branch: dev-raj
-  Your Role: Messenger UI + Project Documentation (10% of project)
-  Deadline: 3rd March 2026
+  Your Role: Today's Tasks Page + Live Messages (10% of project)
+  Deadline: 7th March 2026
 ================================================================================
 ================================================================================
 
 
-Hi Raj! Welcome aboard the ASHA-Setu project. This file contains EVERYTHING
-you need to know. Read it top to bottom before you start coding.
+Hi Raj! Welcome to ASHA-Setu Phase 2. This file contains EVERYTHING
+you need to know. Read it TOP TO BOTTOM before you start coding.
 
 
 ================================================================================
@@ -20,48 +20,30 @@ ASHA-Setu is a mobile app built for ASHA (Accredited Social Health Activist)
 workers in India. These are community health workers who go door-to-door in 
 rural areas to track pregnancies, infant health, immunizations, etc.
 
-This app helps them:
-- Log in with OTP (SMS verification)
-- See their daily dashboard with pending tasks
-- Manage their assigned patients
-- Log patient visits with health vitals (BP, weight, etc.)
-- View their visit calendar
-- Track medical supply inventory (medicines, kits)
-- Learn new health modules (training videos/articles)
-- Send messages to their district officer
-- Access emergency contacts for quick dial
-- Get help & FAQs
-- Manage their own profile
-
 The app has TWO parts:
 1. "App frontend" folder = Flutter mobile app (Dart language)
 2. "App backend" folder = Node.js server (JavaScript) — YOU WILL NOT TOUCH THIS
 
-You will ONLY work inside the "App frontend" folder (for 1 screen) and the 
-root folder (for documentation files).
+You will ONLY work inside the "App frontend" folder.
 
 
 ================================================================================
-PART 2: TECH STACK (so you understand the project for documentation)
+PART 2: TECH STACK
 ================================================================================
 
-Frontend:
+Frontend (YOUR area):
 - Flutter 3.x (Dart programming language)
 - Material Design widgets
-- Custom dark theme (defined in lib/theme/app_theme.dart)
+- Light theme (defined in lib/theme/app_theme.dart)
+- Provider package for state management
+- HTTP package for API calls
 
-Backend:
-- Node.js + Express.js (REST API)
-- Prisma ORM (database query builder)
-- PostgreSQL database (hosted on Supabase cloud)
-- AWS SNS for OTP SMS delivery
-- JWT (JSON Web Tokens) for session authentication
-
-Infrastructure:
-- GitHub for version control
-- Supabase for database hosting
-- AWS for SMS delivery
-- Vercel for admin web portal hosting (separate project)
+Backend (DO NOT TOUCH):
+- Node.js + Express.js
+- Prisma ORM
+- PostgreSQL database (hosted on Supabase)
+- AWS SNS for OTP SMS
+- JWT for authentication
 
 
 ================================================================================
@@ -73,426 +55,359 @@ STEP 1: Make sure you have these installed:
   - Flutter SDK (https://docs.flutter.dev/get-started/install)
   - Android Studio (for Android emulator) OR a physical Android phone
   - VS Code with Flutter + Dart extensions (recommended)
-  - Any Markdown editor (VS Code works, or use https://stackedit.io/)
 
 STEP 2: Clone the repository
-  Open your terminal/command prompt and run:
-  
   git clone https://github.com/Krushna968/ASHA-setu.git
   cd ASHA-setu
 
 STEP 3: Switch to YOUR branch
-  IMPORTANT: Do NOT work on the main branch. Switch to your branch:
+  IMPORTANT: Do NOT work on the main branch!
   
   git checkout dev-raj
 
-STEP 4: Install Flutter dependencies (for the messenger screen task)
+STEP 4: Install Flutter dependencies
   cd "App frontend"
   flutter pub get
 
-STEP 5: Run the app to see the current state
+STEP 5: Run the app
   flutter run
   
-  NOTE: The app is now connected to a LIVE production backend on Render! 🚀
-  You can now actually log in and test everything without running a local backend.
-  Simply use your registered phone number (9137113650) and you will receive a real OTP.
+  NOTE: The app is connected to a LIVE production backend on Render! 🚀
+  Simply use your registered phone number (9137113650) and you will receive 
+  a real OTP.
 
-  TIP: To preview the messenger screen without navigating, you can temporarily 
-  change the home route in lib/main.dart...
-  
-  // Change this line temporarily:
-  home: LoginScreen(),
-  // To this:
-  home: MessengerScreen(),
-  
-  (You'll need to add the import at the top of main.dart too)
-  Remember to change it BACK to LoginScreen() before committing!
+  Your profile: Name = "Raj", Area = "Kalyan"
 
-  ALTERNATIVELY: You can run the backend and test the FULL app flow 
-  (login with YOUR phone number 9137113650, navigate to screens, etc.). 
-  See PART 3B below.
+  IMPORTANT: Firebase API keys (google-services.json) are in .gitignore.
+  ❌ Do NOT commit google-services.json
+  ❌ Do NOT put any API keys in your code
+  ❌ Do NOT share any keys with anyone
 
 
 ================================================================================
-PART 3B: HOW TO RUN THE BACKEND (Optional — For Full Testing)
+PART 4: YOUR 2 TASKS — WHAT EXACTLY TO DO
 ================================================================================
 
-If you want to test the full app (login with OTP, navigate to all screens),
-you need to run the backend server. YOUR PHONE NUMBER (9137113650) IS ALREADY 
-REGISTERED IN THE DATABASE as a worker in Kalyan — so you can actually log in!
-
-STEP 1: Install Node.js
-  - Download from https://nodejs.org/ (use the LTS version)
-  - Verify: Open terminal and run: node --version
-
-STEP 2: Install backend dependencies
-  cd "App backend"
-  npm install
-
-STEP 3: Create the .env file
-  Create a file called ".env" (just .env, no other name) inside the 
-  "App backend" folder. Paste this EXACT content:
-
-  ⚠️ ASK KRUSHNA on WhatsApp — he will send you the .env file contents.
-  He cannot put it on GitHub because it contains secret keys (AWS, Database).
-  
-  The .env file should have these 6 variables:
-    DATABASE_URL="..."     (Supabase PostgreSQL connection string)
-    JWT_SECRET="..."       (Secret key for authentication tokens)
-    AWS_ACCESS_KEY_ID="..."  (AWS credentials for OTP SMS)
-    AWS_SECRET_ACCESS_KEY="..."  (AWS credentials for OTP SMS)
-    AWS_REGION="ap-south-1"
-    PORT=5000
-
-  Krushna will WhatsApp you the exact values to paste.
-
-  ⚠️ IMPORTANT: Do NOT share this .env file with anyone outside the team.
-  ⚠️ IMPORTANT: Do NOT commit this file to Git (it's already in .gitignore).
-
-STEP 4: Generate Prisma Client
-  npx prisma generate
-
-STEP 5: Start the backend server
-  node index.js
-
-  You should see: "Server running on port 5000"
-  The backend is now running at http://localhost:5000
-
-STEP 6: Update the Flutter app (Already Done on main)
-  Open: App frontend/lib/services/api_service.dart
-  
-  The `baseUrl` is already set to the live Render backend:
-  `static const String baseUrl = 'https://asha-setu-backend.onrender.com/api';`
-
-  You can use this live backend for testing, or if you want to run your own 
-  local backend, change it to your IP as shown below:
-  
-  If testing on EMULATOR (Android Studio emulator):
-    static const String baseUrl = 'http://10.0.2.2:5000/api';
-  
-  If testing on PHYSICAL PHONE (connected to same WiFi as your PC):
-    Step A: Find your PC's IP address:
-      - Windows: Open cmd → type: ipconfig → look for "IPv4 Address" 
-        (usually something like 192.168.x.x)
-      - Mac: System Preferences → Network → look for IP
-    Step B: Use that IP in baseUrl:
-      static const String baseUrl = 'http://YOUR_PC_IP:5000/api';
-      Example: static const String baseUrl = 'http://192.168.1.5:5000/api';
-  
-  ⚠️ IMPORTANT: Change this BACK to the original before committing!
-  ⚠️ DO NOT commit your local IP address.
-
-STEP 7: Test login with YOUR number
-  - Run the Flutter app: flutter run
-  - Enter YOUR phone number: 9137113650
-  - You will receive an OTP via SMS to your phone
-  - Enter the OTP and you'll be logged in to the dashboard
-  - Your profile: Name = "Raj", Area = "Kalyan"
-  - From there you can navigate to the messenger screen to test your UI changes
-
-  NOTE: Registered phone numbers in the system:
-  - Your number: 9137113650 (Worker: Raj, Area: Kalyan)
-  - Krushna's number (already registered)
-
-
-================================================================================
-PART 4: YOUR 3 TASKS — WHAT EXACTLY TO DO
-================================================================================
-
-You have 3 tasks: 1 Flutter UI task + 2 documentation tasks.
+You have 2 tasks:
 
 ────────────────────────────────────────────────────────────────────────────────
-TASK 1: Redesign messenger_screen.dart
+TASK 1: Create todays_tasks_screen.dart  (NEW SCREEN)
 ────────────────────────────────────────────────────────────────────────────────
 
-File Location: App frontend/lib/screens/messenger_screen.dart
-Lines of Code: ~300 lines
+File to CREATE: App frontend/lib/screens/todays_tasks_screen.dart
 
 WHAT THIS SCREEN DOES:
-This is the in-app messaging/chat screen where ASHA workers can communicate 
-with their district officers (supervisors) and potentially other workers.
-Think of it like a simple WhatsApp chat interface.
+This is a dedicated full-page screen showing ALL of today's tasks for the
+ASHA worker. Currently, there's only a small card on the dashboard showing
+"X Due Today" — your job is to build a FULL PAGE for viewing, filtering,
+and completing today's tasks.
 
-CURRENT STATE:
-The screen has basic messaging functionality but the UI looks plain and 
-doesn't feel like a real chat app.
+───── WHERE THE DATA COMES FROM ─────
 
-WHAT YOU NEED TO IMPROVE — CHECKLIST:
+The app already has a Provider called AreaMapProvider that has all the data
+you need. It is located at: lib/providers/area_map_provider.dart
 
-  □ CHAT BUBBLES — Proper message bubble styling
-    - Sent messages: Align to RIGHT side, use blue/accent color background
-    - Received messages: Align to LEFT side, use grey/dark color background
-    - Bubbles should have rounded corners (more rounded on the sender's side)
-    - Use Container with BoxDecoration and BorderRadius
-    - Example shapes:
-      * Sent:    rounded top-left, top-right, bottom-left (sharp bottom-right)
-      * Received: rounded top-left, top-right, bottom-right (sharp bottom-left)
+Here are the EXACT fields you can use (already available, no backend changes needed):
 
-  □ TIMESTAMPS below each message
-    - Show time in "hh:mm AM/PM" format
-    - Use small, grey text (10sp or 11sp)
-    - Position below each bubble, aligned with the bubble
+  From AreaMapProvider:
+    provider.dueTodayCount     → int (number of tasks due today)
+    provider.completedToday    → int (number completed today)
+    provider.targetToday       → int (daily target, usually 8)
+    provider.highRiskCount     → int (high risk patient count)
+    provider.hasOverdue        → bool (true if there are overdue tasks)
+    provider.households        → List<Household> (all households)
+    provider.progressValue     → double (0.0 to 1.0 overall progress)
 
-  □ USER AVATAR circles next to messages
-    - Small circular avatar (32x32) next to received messages
-    - Use CircleAvatar widget with the first letter of the sender's name
-    - Use different colors for different senders
-    - No avatar needed for sent messages (they're yours)
+  Each Household object has:
+    household.householdId      → String (unique ID)
+    household.displayId        → String (e.g., "H001")
+    household.headName         → String (head of household name)
+    household.address          → String (address)
+    household.pendingTasksCount → int (pending tasks in this household)
+    household.status           → String ("pending", "completed", "high-risk", "closed")
+    household.isClosed         → bool
+    household.badges           → List<String> (e.g., ["vaccination", "postnatal"])
+    household.memberCount      → int
 
-  □ TYPING INDICATOR animation
-    - Show 3 bouncing dots when the other person is typing
-    - Use a Row of 3 small circles with staggered bounce animation
-    - This can be a static UI element (you don't need real-time data)
-    - Place it at the bottom of the chat, above the input bar
+  To get DETAILED tasks for a household, call:
+    await provider.loadHouseholdDetails(householdId);
+    final detail = provider.getCachedDetail(householdId);
+  
+  detail.pendingTasks is a List<Map<String, dynamic>> where each task has:
+    task['taskId']    → String
+    task['type']      → String (e.g., "Vaccination", "ANC Visit", "BP Monitoring")
+    task['dueDate']   → String (e.g., "2026-03-05")
+    task['notes']     → String (description/notes)
 
-  □ MESSAGE INPUT BAR redesign
-    - Rounded TextField with padding
-    - Hint text: "Type a message..."
-    - Send button on the right side with an arrow/send icon
-    - Send button should be a circular IconButton with accent color
-    - The input bar should have a slightly different background from the chat area
-    - Optional: Add an attachment icon (camera/file) on the left
+  To COMPLETE a task:
+    await provider.completeTask(
+      householdId: householdId,
+      taskId: taskId,
+      context: context,
+    );
 
-  □ EMPTY STATE — "No messages yet"
-    - When there are no messages, show a centered illustration
-    - Use an icon (Icons.chat_bubble_outline or Icons.forum) with grey color
-    - Add text: "No messages yet" and "Start a conversation with your supervisor"
-    - This should look clean and inviting, not boring
+  There's also a BACKEND tasks endpoint:
+    GET  /api/tasks              → Returns all tasks for the logged-in worker
+    PUT  /api/tasks/:taskId/status → Update task status (body: {"status": "COMPLETED"})
+  
+  You can call these using:
+    final tasks = await ApiService.get('/tasks');
+    await ApiService.put('/tasks/$taskId/status', {'status': 'COMPLETED'});
 
-  □ SCROLL TO BOTTOM behavior
-    - New messages should auto-scroll to the bottom
-    - Use ScrollController with animateTo
-    - Add a "scroll to bottom" floating button if the user has scrolled up
+───── HOW TO ACCESS THE PROVIDER IN YOUR SCREEN ─────
 
-  □ OVERALL POLISH
-    - Follow the dark theme from lib/theme/app_theme.dart
-    - Smooth animations when new messages appear
-    - The screen should feel like WhatsApp or Telegram — fluid and responsive
+  import 'package:provider/provider.dart';
+  import '../providers/area_map_provider.dart';
 
-DESIGN INSPIRATION:
-Open WhatsApp or Telegram on your phone. Look at:
-- How chat bubbles are shaped and colored
-- How timestamps are positioned
-- How the input bar looks
-- The overall feel of the chat screen
-Replicate that level of polish in the ASHA-Setu messenger screen.
+  // In your build method or initState:
+  final provider = context.read<AreaMapProvider>();
+  // OR for reactive rebuilds:
+  final provider = context.watch<AreaMapProvider>();
+  // OR use Consumer widget:
+  Consumer<AreaMapProvider>(
+    builder: (context, provider, child) {
+      // Use provider.dueTodayCount, provider.households, etc.
+    },
+  );
 
-────────────────────────────────────────────────────────────────────────────────
-TASK 2: Create README.md
-────────────────────────────────────────────────────────────────────────────────
+───── HOW TO USE THE API SERVICE ─────
 
-File Location: README.md (create this in the ROOT folder: ASHA-Setuapp/README.md)
+  import '../services/api_service.dart';
 
-PURPOSE:
-This is the first thing anyone sees when they open the GitHub repository.
-It must be professional, well-formatted, and comprehensive.
+  // GET request:
+  final result = await ApiService.get('/tasks');
+  // result is a Map<String, dynamic>
+  // result['tasks'] is a List<dynamic>
 
-WRITE THE FOLLOWING SECTIONS:
+  // PUT request:
+  await ApiService.put('/tasks/$taskId/status', {'status': 'COMPLETED'});
 
-  1. PROJECT TITLE AND BADGES
-     # ASHA-Setu — Digital Health Assistant for ASHA Workers
-     
-     Add badges (optional):
-     ![Flutter](https://img.shields.io/badge/Flutter-3.x-blue)
-     ![Node.js](https://img.shields.io/badge/Node.js-18.x-green)
-     ![License](https://img.shields.io/badge/License-MIT-yellow)
+───── WHAT THE SCREEN SHOULD HAVE — DETAILED CHECKLIST ─────
 
-  2. PROJECT DESCRIPTION (2-3 paragraphs)
-     - What the app does: A digital companion for ASHA workers
-     - Who it's for: ASHA workers in rural India (1 million+ workers nationwide)
-     - What problem it solves: Replaces manual paperwork, enables real-time 
-       communication with supervisors, provides training resources, and 
-       streamlines patient tracking and visit logging
+  □ HEADER SECTION
+    - Title: "Today's Tasks" with a calendar icon
+    - Show current date (formatted nicely, e.g., "Tuesday, 4 March 2026")
+    - Show progress: "4 / 8 Completed" with a circular progress indicator
+    - Use MyTheme.primaryBlue (Color(0xFF0056D2)) for the accent color
 
-  3. FEATURES (bullet list)
-     - 📱 OTP-based phone login (AWS SNS)
-     - 📊 Interactive dashboard with daily stats
-     - 👩‍⚕️ Patient management (ANC, PNC, Infant, General categories)
-     - 📝 Visit tracking with health vitals (BP, weight, temperature, blood sugar)
-     - 📅 Calendar view for scheduled visits
-     - 📦 Medical inventory tracking (medicines, kits, supplies)
-     - 📚 Learning modules for continuous training
-     - 💬 In-app messaging with district officers
-     - 🚨 Emergency contacts with quick-dial
-     - ❓ Help & Support with FAQs
-     - 👤 Worker profile management with photo upload
-     - 🏠 Household registration and family tracking
+  □ SUMMARY CARDS ROW (at the top)
+    - 3 small cards in a Row:
+      1. "Due Today" → provider.dueTodayCount (orange/blue color)
+      2. "Completed" → provider.completedToday (green color)  
+      3. "Overdue" → show count of overdue tasks (red color if hasOverdue)
+    - Each card should show a number prominently with a label below
 
-  4. TECH STACK (use a table)
-     | Component       | Technology                    |
-     |----------------|-------------------------------|
-     | Mobile App      | Flutter 3.x (Dart)           |
-     | Backend API     | Node.js + Express.js         |
-     | Database        | PostgreSQL (Supabase)        |
-     | ORM             | Prisma                       |
-     | Authentication  | AWS SNS OTP + JWT            |
-     | Cloud Services  | AWS (SNS), Supabase          |
-     | Version Control | Git + GitHub                 |
+  □ FILTER TABS
+    - Horizontal tabs or chips: "All" | "Due Today" | "Overdue" | "Completed"
+    - Use ChoiceChip or custom tabs
+    - "All" selected by default
+    - Filter the task list based on selected tab
 
-  5. PROJECT STRUCTURE (use code block)
-     ASHA-Setuapp/
-     ├── App backend/              # Node.js REST API server
-     │   ├── src/
-     │   │   ├── controllers/      # Business logic (auth, patients, visits, etc.)
-     │   │   ├── routes/           # API endpoint definitions
-     │   │   └── middleware/       # JWT authentication middleware
-     │   ├── prisma/
-     │   │   └── schema.prisma     # Database schema (9 models)
-     │   ├── index.js              # Server entry point
-     │   └── package.json          # Node.js dependencies
-     ├── App frontend/             # Flutter mobile application
-     │   └── lib/
-     │       ├── screens/          # All 14 app screens
-     │       ├── services/         # API calls & auth token management
-     │       ├── theme/            # Dark theme configuration
-     │       ├── widgets/          # Reusable UI components
-     │       └── main.dart         # App entry point & routing
-     ├── README.md                 # This file
-     └── FEATURES.md               # Detailed feature documentation
+  □ TASK LIST (the main section)
+    - For each household with pending tasks, show a card
+    - Each task card should show:
+      * Task type (e.g., "Vaccination", "ANC Visit") with an icon
+      * Patient / Household name (household.headName)
+      * Household ID (household.displayId) as a small chip
+      * Due date
+      * Badges (from household.badges) as small colored chips
+      * Urgency indicator (red dot for overdue, orange for today, green for done)
+    - The card should be tappable
+    - Include a "Complete" button or swipe-to-complete gesture
+    - When completed, animate the card away or show strikethrough
 
-  6. GETTING STARTED / HOW TO RUN
-     Prerequisites:
-     - Flutter 3.x SDK
-     - Node.js 18+
-     - PostgreSQL database (or Supabase account)
+  □ EMPTY STATE
+    - When all tasks are done, show a celebration screen
+    - Use Icons.celebration or Icons.task_alt
+    - Text: "All tasks completed for today! 🎉"
+    - Sub-text: "Great work! Come back tomorrow for more tasks."
 
-     Backend Setup:
-     cd "App backend"
-     npm install
-     # Create .env file with DATABASE_URL, JWT_SECRET, AWS credentials
-     npx prisma db push
-     node index.js
+  □ PULL TO REFRESH
+    - Wrap in RefreshIndicator
+    - On refresh, call: await provider.refreshArea();
 
-     Frontend Setup:
-     cd "App frontend"
-     flutter pub get
-     flutter run
+  □ ANIMATIONS
+    - Staggered list animation (cards slide in one by one)
+    - Smooth progress bar animation
+    - Task completion animation (fade out or slide away)
 
-  7. DATABASE SCHEMA
-     List the 9 models briefly:
-     - Worker, Patient, Household, Task, VisitHistory, InventoryItem,
-       LearningModule, LearningProgress, Message
+───── THEME COLORS TO USE ─────
 
-  8. API ENDPOINTS (brief overview)
-     - POST /api/auth/login — Send OTP
-     - POST /api/auth/verify-otp — Verify OTP & get JWT
-     - GET/POST /api/patients — Patient CRUD
-     - POST /api/visits — Log visit
-     - GET/POST/PUT/DELETE /api/inventory — Inventory management
-     - GET/PUT /api/worker/profile — Worker profile
+  import '../theme/app_theme.dart';
 
-  9. TEAM
-     | Name    | Role                          |
-     |---------|-------------------------------|
-     | Krushna | Lead Developer (80%)           |
-     | Rudra   | UI/UX Polish (10%)            |
-     | Raj     | Documentation & Messenger (10%)|
+  MyTheme.primaryBlue      = Color(0xFF0056D2)  — main accent
+  MyTheme.secondaryBlue    = Color(0xFFE3F2FD)  — light blue backgrounds
+  MyTheme.criticalRed      = Color(0xFFDC3545)  — overdue/urgent items
+  MyTheme.successGreen     = Color(0xFF28A745)  — completed items
+  MyTheme.warningOrange    = Color(0xFFFFC107)  — due today items
+  MyTheme.textDark         = Color(0xFF212121)  — main text
+  MyTheme.textLight        = Color(0xFF757575)  — secondary text
+  MyTheme.backgroundWhite  = Color(0xFFF5F7FA)  — background
 
-  10. LICENSE
-      MIT License (or "This project was developed as an academic project.")
+───── REGISTERING YOUR NEW SCREEN ─────
+
+  After creating todays_tasks_screen.dart, you need to register the route.
+  
+  In lib/main.dart, add this import at the top:
+    import 'screens/todays_tasks_screen.dart';
+
+  And add this route inside the routes: {} map:
+    '/todays-tasks': (context) => const TodaysTasksScreen(),
+
+  ⚠️ IMPORTANT: Do NOT change any other routes in main.dart!
 
 
 ────────────────────────────────────────────────────────────────────────────────
-TASK 3: Create FEATURES.md
+TASK 2: Make messenger_screen.dart LIVE (Real API Data)
 ────────────────────────────────────────────────────────────────────────────────
 
-File Location: FEATURES.md (create this in the ROOT folder: ASHA-Setuapp/FEATURES.md)
+File to EDIT: App frontend/lib/screens/messenger_screen.dart
+Current Lines: ~576 lines
 
-PURPOSE:
-A detailed document describing EVERY feature of the app. This is useful for 
-presentations, documentation, and project evaluation.
+WHAT THIS SCREEN CURRENTLY DOES:
+The messenger screen has TWO tabs: "Messages" and "Tasks".
+Right now, BOTH tabs show HARDCODED MOCK DATA (fake messages and fake tasks).
+Your job is to make them LIVE — pulling real data from the backend API.
 
-FORMAT FOR EACH FEATURE:
-Use this structure for every feature:
+───── MESSAGES TAB — MAKING IT LIVE ─────
 
-  ## Feature Name
-  **Screen:** screen_filename.dart
-  **Description:** What this feature does (2-3 sentences)
-  **Key Functionality:**
-  - Bullet point 1
-  - Bullet point 2
-  - Bullet point 3
+The backend has a tasks API that you can use for task-related messages.
+For actual messages, use the tasks endpoint creatively:
 
-FEATURES TO DOCUMENT (write in this order):
+  GET /api/tasks → Returns { tasks: [...] }
+  
+  Each task object from the backend has:
+    task.id         → String
+    task.title      → String
+    task.description → String
+    task.dueDate    → String (ISO date)
+    task.status     → String ("PENDING", "IN_PROGRESS", "COMPLETED")
+    task.workerId   → String
 
-  1. OTP Authentication
-     Screen: login_screen.dart, otp_screen.dart
-     - Phone number input with +91 country code
-     - 6-digit OTP sent via AWS SNS
-     - OTP verification with 5-minute expiry
-     - JWT token generation on successful login
-     - Auto-redirect to dashboard
+───── NEW BACKEND UPDATES (MARCH 4) ─────
 
-  2. Dashboard
-     Screen: dashboard_screen.dart
-     - Welcome greeting with worker name
-     - Daily statistics cards (patients visited, pending tasks)
-     - Priority alerts for overdue visits
-     - Quick action pills for navigation
-     - Sync button for data refresh
-     - Logout functionality
+I have implemented the actual Messaging backend and updated the Provider for you!
 
-  3. Patient Management
-     Screen: patients_screen.dart, add_patient_screen.dart
-     - View all assigned patients in a list
-     - Filter patients by category (ANC, PNC, Infant, General)
-     - Add new patient with details (name, age, gender, category)
-     - Assign patients to households
-     - Track pregnancy EDD (Expected Date of Delivery) for ANC patients
+1. AppStateProvider (lib/providers/app_state_provider.dart)
+   - `provider.fetchMessages()` → Fetches all messages for the worker.
+   - `provider.messages` → A List of message objects from the backend.
+   - Each message has: `id`, `senderId`, `receiverId`, `content`, `createdAt`.
 
-  4. Visit Tracking
-     Screen: visit_form_screen.dart
-     - Log visits with date and outcome
-     - Record health vitals: blood pressure, weight, temperature, blood sugar
-     - Add text notes for each visit
-     - Automatic increment of worker's total visits count
+2. New Endpoints:
+   - `GET /api/messages` → Returns all messages.
+   - `POST /api/messages/send` → Body: `{"receiverId": "...", "content": "..."}`.
+   - `GET /api/learning` → Returns educational modules.
+   - `POST /api/learning/progress` → Body: `{"moduleId": "...", "status": "COMPLETED"}`.
 
-  5. Calendar
-     Screen: calendar_screen.dart
-     - Monthly calendar view
-     - View scheduled visits by date
-     - Visual indicators for busy/free days
+For the Messages tab, you should:
 
-  6. Inventory Management
-     Screen: inventory_screen.dart
-     - View all medical supplies (medicines, kits, ORS packets, etc.)
-     - Add new inventory items with name, quantity, and unit
-     - Update quantities when supplies are used
-     - Delete items that are no longer tracked
-     - Sorted alphabetically for easy lookup
+  □ Replace the hardcoded _buildMessageTile() calls with REAL data
+    - Fetch messages/tasks from the API when the screen loads
+    - Parse the response and build the list dynamically
+    - Keep the same beautiful UI (avatars, timestamps, unread counts)
+    - Add a loading state (CircularProgressIndicator) while fetching
+    - Add error handling (show a retry button if API fails)
 
-  7. Learning Modules
-     Screen: learning_screen.dart
-     - Browse available training modules
-     - Track progress (Not Started, In Progress, Completed)
-     - Module details with duration and description
-     - Content links for videos and articles
+  □ Add a "Send Message" functionality
+    - When user taps FAB (floating action button), show a dialog/bottom sheet
+    - Allow typing a message
+    - POST to backend (you can use ApiService.post)
+    - Refresh the message list after sending
 
-  8. Messaging
-     Screen: messenger_screen.dart
-     - Chat interface with district officers
-     - Send and receive text messages
-     - Message read status tracking
-     - Support for worker-to-admin communication
+  □ Add PULL TO REFRESH
+    - Wrap the ListView in a RefreshIndicator
+    - On refresh, re-fetch messages from API
 
-  9. Emergency Contacts
-     Screen: emergency_screen.dart
-     - Quick-dial emergency numbers
-     - Categorized contacts (Hospital, Ambulance, Helpline)
-     - One-tap calling functionality
+───── TASKS TAB — MAKING IT LIVE ─────
 
-  10. Help & Support
-      Screen: help_support_screen.dart
-      - Frequently Asked Questions
-      - Support contact information
-      - Help articles and guides
+  □ Replace hardcoded _buildTaskCard() calls with REAL data
+    - Fetch tasks: final result = await ApiService.get('/tasks');
+    - Parse result['tasks'] as List<dynamic>
+    - Build task cards from real data
+    - Show actual task title, patient info, due dates, priority
+    
+  □ Make the Checkbox FUNCTIONAL
+    - When user taps checkbox to complete a task:
+      await ApiService.put('/tasks/${task['id']}/status', {'status': 'COMPLETED'});
+    - Update the UI to show the task as completed
+    - Show a SnackBar confirming completion
 
-  11. Worker Profile
-      Screen: profile_screen.dart
-      - View personal details (name, employee ID, village)
-      - Upload and change profile photo
-      - View statistics (total visits, assigned patients)
-      - Edit profile information
+  □ Add LOADING and ERROR states
+    - Show shimmer/loading while data is being fetched
+    - Show "No tasks found" if the list is empty
+    - Show error message with retry if API fails
+
+───── EXAMPLE CODE: Fetching and Displaying Tasks ─────
+
+  // Add these to your State class:
+  List<dynamic> _tasks = [];
+  bool _isLoading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _fetchTasks();  // ← ADD THIS
+  }
+
+  Future<void> _fetchTasks() async {
+    setState(() { _isLoading = true; _error = null; });
+    try {
+      final result = await ApiService.get('/tasks');
+      if (mounted) {
+        setState(() {
+          _tasks = result['tasks'] ?? [];
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = 'Failed to load tasks';
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  // In _buildTasksTab(), replace the hardcoded list:
+  Widget _buildTasksTab() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_error != null) {
+      return Center(child: Text(_error!));
+    }
+    if (_tasks.isEmpty) {
+      return Center(child: Text('No tasks found'));
+    }
+    return RefreshIndicator(
+      onRefresh: _fetchTasks,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(20),
+        itemCount: _tasks.length,
+        itemBuilder: (context, index) {
+          final task = _tasks[index];
+          return _buildTaskCard(
+            title: task['title'] ?? 'Untitled Task',
+            patient: task['description'] ?? '',
+            due: task['dueDate'] ?? 'No date',
+            priority: _getPriority(task),
+            isCompleted: task['status'] == 'COMPLETED',
+          );
+        },
+      ),
+    );
+  }
+
+  String _getPriority(Map<String, dynamic> task) {
+    final dueDate = DateTime.tryParse(task['dueDate'] ?? '');
+    if (dueDate == null) return 'Low';
+    if (dueDate.isBefore(DateTime.now())) return 'High';
+    if (dueDate.day == DateTime.now().day) return 'Medium';
+    return 'Low';
+  }
 
 
 ================================================================================
@@ -500,26 +415,28 @@ PART 5: STRICT RULES — READ CAREFULLY
 ================================================================================
 
 ✅ YOU MAY:
-  - Edit ONLY this Flutter file:
-    1. App frontend/lib/screens/messenger_screen.dart
-  - CREATE these 2 new files:
-    2. README.md (in root ASHA-Setuapp/ folder)
-    3. FEATURES.md (in root ASHA-Setuapp/ folder)
+  - CREATE this new file:
+    1. App frontend/lib/screens/todays_tasks_screen.dart
+  - EDIT this existing file:
+    2. App frontend/lib/screens/messenger_screen.dart
+  - EDIT lib/main.dart ONLY to add your new screen's route
   - Use colors and styles from lib/theme/app_theme.dart
+  - Use AreaMapProvider (lib/providers/area_map_provider.dart)
+  - Use ApiService (lib/services/api_service.dart)
   - Add visual Flutter packages to pubspec.yaml ONLY if needed
     → But TELL KRUSHNA first before adding any package
-  - Temporarily modify main.dart to preview messenger screen (revert before commit)
 
 ❌ YOU MAY NOT:
   - Touch ANY file in "App backend/" folder — DO NOT EVEN OPEN IT
-  - Edit login_screen.dart, otp_screen.dart, dashboard_screen.dart, 
+  - Edit login_screen.dart, otp_screen.dart, dashboard_screen.dart,
     patients_screen.dart, add_patient_screen.dart, visit_form_screen.dart,
-    calendar_screen.dart, inventory_screen.dart, profile_screen.dart, 
+    calendar_screen.dart, inventory_screen.dart, profile_screen.dart,
     help_support_screen.dart, learning_screen.dart, emergency_screen.dart,
-    or main_screen.dart
+    or main_screen.dart (EXCEPT main.dart for routing)
   - Edit api_service.dart or auth_service.dart
   - Push to main branch — ONLY push to dev-raj
   - Change any backend logic, API calls, or database code
+  - Commit google-services.json or any Firebase/API keys
   - Modify .env, .gitignore, or any configuration files
 
 
@@ -530,105 +447,98 @@ PART 6: HOW TO USE ANTIGRAVITY (AI Coding Assistant)
 If you have access to Antigravity (Gemini Code Assist in your IDE), here are 
 EXACT prompts you can copy-paste:
 
-─── PROMPT FOR TASK 1 (Messenger Screen) ───
+─── PROMPT FOR TASK 1 (Today's Tasks Screen) ───
 
 "I am working on a Flutter app called ASHA-Setu. My Git branch is dev-raj.
-I need to redesign the file: lib/screens/messenger_screen.dart
+I need to CREATE a new file: lib/screens/todays_tasks_screen.dart
 
-The app uses a dark theme defined in lib/theme/app_theme.dart — please use 
-those colors and styles.
+The app uses a light theme defined in lib/theme/app_theme.dart — please use 
+those colors (MyTheme.primaryBlue, criticalRed, successGreen, warningOrange, etc).
 
-Please make these improvements to create a WhatsApp/Telegram-like chat UI:
-1. Chat bubbles — sent messages on right (blue/accent), received on left (grey)
-   with proper rounded corners
-2. Timestamps below each message in small grey text
-3. Circular user avatars (32x32) next to received messages
-4. A typing indicator with 3 bouncing dots animation
-5. Redesigned message input bar with rounded TextField, send icon button, 
-   and optional attachment icon
-6. Empty state with icon and 'No messages yet' text when no messages exist
-7. Auto-scroll to bottom for new messages with a floating scroll-down button
+This screen should show ALL of today's tasks for an ASHA health worker.
 
-Keep the dark theme. Make it feel like a real messaging app (WhatsApp/Telegram).
+Data comes from AreaMapProvider (already available via Provider package):
+- provider.dueTodayCount, provider.completedToday, provider.targetToday
+- provider.households (List<Household> with pendingTasksCount, status, badges)
+- provider.completeTask(householdId, taskId, context) to mark tasks done
+- Also use ApiService.get('/tasks') for server-side task data
+
+Please build this screen with:
+1. A header showing 'Today's Tasks' with date and circular progress (completed/target)
+2. Three summary cards: Due Today (orange), Completed (green), Overdue (red)
+3. Filter chips: All | Due Today | Overdue | Completed
+4. A scrollable task list where each card shows:
+   - Task type with icon, household name, display ID chip
+   - Due date, badges as chips, urgency dot
+   - Complete button that calls provider.completeTask()
+5. Empty state with celebration icon when all done
+6. Pull-to-refresh with RefreshIndicator
+7. Staggered slide-in animations for cards
+
+After creating, add this route in main.dart: '/todays-tasks': (context) => const TodaysTasksScreen()
+
 Do NOT change any other files. Do NOT touch backend code."
 
-─── PROMPT FOR TASK 2 (README) ───
 
-"Create a professional README.md for a project called ASHA-Setu. It is a 
-Flutter + Node.js mobile app for ASHA health workers in rural India.
+─── PROMPT FOR TASK 2 (Live Messenger) ───
 
-Include these sections:
-1. Title with badges (Flutter, Node.js, License)
-2. Project description (3 paragraphs about what it does, who it's for, problem it solves)
-3. Features list with emojis (OTP login, dashboard, patient management, visit tracking,
-   calendar, inventory, learning modules, messaging, emergency contacts, help, profile)
-4. Tech stack table (Flutter, Node.js, Express, Prisma, PostgreSQL/Supabase, AWS SNS, JWT)
-5. Project structure tree
-6. Getting started / how to run (backend + frontend setup)
-7. Database schema overview (9 models: Worker, Patient, Household, Task, etc.)
-8. API endpoints overview
-9. Team table (Krushna - Lead 80%, Rudra - UI 10%, Raj - Docs & Messenger 10%)
-10. MIT License
+"I am working on a Flutter app called ASHA-Setu. My Git branch is dev-raj.
+I need to EDIT the file: lib/screens/messenger_screen.dart
 
-Make it look clean, professional, and well-formatted with proper markdown."
+Currently the Messages and Tasks tabs use HARDCODED mock data. 
+I need to make them LIVE with real API data.
 
-─── PROMPT FOR TASK 3 (FEATURES.md) ───
+For Tasks tab:
+- GET /api/tasks returns { tasks: [...] } with id, title, description, dueDate, status
+- PUT /api/tasks/:taskId/status with body {'status': 'COMPLETED'} to complete
+- Use ApiService.get('/tasks') and ApiService.put() from lib/services/api_service.dart
 
-"Create a detailed FEATURES.md for the ASHA-Setu project. Document all 11 
-features of the app. For each feature, include:
-- Feature name as h2 header
-- Screen file that implements it
-- 2-3 sentence description
-- Bullet list of key functionality
+For Messages tab:
+- Use the same tasks data to show task notifications as messages
+- Keep the current beautiful UI design (avatars, timestamps, unread badges)
+- Replace hardcoded data with API data
 
-Features to document:
-1. OTP Auth (login_screen, otp_screen) — AWS SNS OTP with JWT
-2. Dashboard (dashboard_screen) — stats, alerts, quick actions
-3. Patient Management (patients_screen, add_patient_screen) — CRUD, categories
-4. Visit Tracking (visit_form_screen) — vitals logging
-5. Calendar (calendar_screen) — monthly view
-6. Inventory (inventory_screen) — medical supply tracking
-7. Learning (learning_screen) — training modules with progress
-8. Messaging (messenger_screen) — chat with district officers
-9. Emergency (emergency_screen) — quick-dial contacts
-10. Help & Support (help_support_screen) — FAQs
-11. Profile (profile_screen) — worker profile management
+Please make these changes:
+1. Add state variables: _tasks list, _isLoading, _error
+2. Fetch tasks in initState via _fetchTasks() method
+3. Replace hardcoded task list with ListView.builder from _tasks
+4. Make the checkbox functional (PUT to update status, refresh list)
+5. Add loading indicator while fetching
+6. Add error state with retry button
+7. Add pull-to-refresh (RefreshIndicator)
+8. Add empty state ('No tasks yet')
 
-Format in clean markdown with clear sections."
+Keep the dark theme. Keep the existing UI design. 
+Do NOT change any other files. Do NOT touch backend code."
 
 
 ================================================================================
 PART 7: HOW TO SUBMIT YOUR WORK
 ================================================================================
 
-When you've finished all 3 tasks:
+When you've finished both tasks:
 
-STEP 1: Test the messenger screen on an emulator or physical device
-  - Check bubble alignment (sent right, received left)
-  - Check animations are smooth
-  - Verify dark theme consistency
+STEP 1: Test both screens
+  - Ensure todays_tasks_screen.dart loads and shows task data
+  - Ensure messenger's Tasks tab shows real API data
+  - Ensure task completion works (checkbox marks task as done)
+  - Test pull-to-refresh on both screens
 
-STEP 2: Proofread README.md and FEATURES.md
-  - No typos
-  - All markdown renders correctly (preview in VS Code)
-  - All sections are complete
-
-STEP 3: Stage and commit your changes
-  Open terminal in the ASHA-Setuapp folder and run:
-  
+STEP 2: Stage and commit
   git add -A
-  git commit -m "feat(raj): Redesign messenger UI and add project documentation"
+  git commit -m "feat(raj): Add Today's Tasks screen and make messenger live"
 
-STEP 4: Push to YOUR branch
+STEP 3: Push to YOUR branch
   git push origin dev-raj
 
-STEP 5: Notify Krushna on WhatsApp
+STEP 4: Notify Krushna on WhatsApp
   "Hey Krushna, I've pushed my changes to dev-raj.
-   Messenger UI is redesigned, README.md and FEATURES.md are written.
+   Created todays_tasks_screen.dart and made messenger_screen.dart live with API.
    Please review and merge."
 
 ================================================================================
-  DEADLINE: 3rd MARCH 2026
+  DEADLINE: 7th MARCH 2026
   YOUR BRANCH: dev-raj
-  YOUR FILES: messenger_screen.dart, README.md, FEATURES.md
+  YOUR FILES: todays_tasks_screen.dart (new), messenger_screen.dart (edit), 
+              main.dart (add route only)
 ================================================================================

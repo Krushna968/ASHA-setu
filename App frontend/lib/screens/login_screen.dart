@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../theme/app_theme.dart';
 import '../services/api_service.dart';
+import '../services/auth_service.dart';
+import '../services/notification_service.dart';
 import 'otp_screen.dart';
-
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -81,7 +82,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   color: Colors.blue.shade50,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
+                child: Icon(
                   Icons.favorite, // ASHA-like heart/care icon
                   size: 56,
                   color: MyTheme.primaryBlue,
@@ -110,7 +111,7 @@ class _LoginScreenState extends State<LoginScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.language, size: 20, color: MyTheme.primaryBlue),
+                  Icon(Icons.language, size: 20, color: MyTheme.primaryBlue),
                   const SizedBox(width: 8),
                   Text(
                     _selectedLanguage == 'हिंदी' ? 'भाषा चुनें' : 'SELECT LANGUAGE',
@@ -158,8 +159,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
                 style: const TextStyle(fontSize: 18, letterSpacing: 1.2, fontWeight: FontWeight.bold, color: Colors.grey),
                 decoration: InputDecoration(
-                  prefixIcon: const Padding(
-                    padding: EdgeInsets.all(16.0),
+                  prefixIcon: Padding(
+                    padding: const EdgeInsets.all(16.0),
                     child: Text('+91', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: MyTheme.textDark)),
                   ),
                   hintText: '0000000000',
@@ -173,7 +174,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ],
               const SizedBox(height: 32),
 
-              // Get OTP Button
+              // Verify Button
               SizedBox(
                 width: double.infinity,
                 height: 56,
@@ -194,6 +195,76 @@ class _LoginScreenState extends State<LoginScreen> {
                         ],
                       ),
                 ),
+              ),
+
+              const SizedBox(height: 16),
+              // Bypass Login Button
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: OutlinedButton(
+                  onPressed: () async {
+                    setState(() => _isLoading = true);
+                    // Use a pre-generated valid token for 9321609760
+                    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImM1NWQ0NjQ0LWI0MDUtNGZlNS1hOTJhLTUyMmE5NDQ5YjM1YSIsImVtcGxveWVlSWQiOiJBU0hBLTAxIiwibW9iaWxlTnVtYmVyIjoiOTMyMTYwOTc2MCIsImlhdCI6MTc3MjU1MTIwMCwiZXhwIjoxODA0MDg3MjAwfQ.bM4RPvDUyvSQ4_Lu4nMCZkYXSGYAMWiR2pXKOjKS_Pg";
+                    final worker = {
+                      "id": "c55d4644-b405-4fe5-a92a-522a9449b35a",
+                      "name": "Krushna rasal",
+                      "employeeId": "ASHA-01",
+                      "village": "Airoli Sector 4, Navi Mumbai",
+                      "stats": {
+                        "individuals": 8,
+                        "tasks": 0,
+                        "totalVisits": 3
+                      }
+                    };
+                    
+                    try {
+                      await AuthService.saveAuthData(token, worker);
+                      await NotificationService.sendCurrentToken();
+                      
+                      if (mounted) {
+                        Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (route) => false);
+                      }
+                    } catch (e) {
+                      setState(() => _isLoading = false);
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Bypass failed: $e')));
+                      }
+                    }
+                  },
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.teal,
+                    side: const BorderSide(color: Colors.teal),
+                  ),
+                  child: const Text('Bypass Login (9321609760)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+              // Register Link
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    _selectedLanguage == 'हिंदी' ? 'ASHA-Setu में नए हैं? ' : 'New to ASHA-Setu? ',
+                    style: TextStyle(color: Colors.grey[700], fontSize: 16),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/register');
+                    },
+                    child: Text(
+                      _selectedLanguage == 'हिंदी' ? 'पंजीकरण करें' : 'Register',
+                      style: TextStyle(
+                        color: MyTheme.primaryBlue,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ],
               ),
 
               const SizedBox(height: 32), // Reduced from 64

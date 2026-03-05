@@ -31,6 +31,7 @@ model Worker {
   totalVisits      Int                @default(0)
   otp              String?
   otpExpiry        DateTime?
+  fcmToken         String?
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
   patients         Patient[]
@@ -49,7 +50,8 @@ model Patient {
   age          Int
   gender       String?
   category     String // e.g., 'ANC', 'PNC', 'INFANT', 'GENERAL'
-  address      String? // Address can now be null if inherited from Household
+  address      String? // Legacy field, now optional
+  relation     String? // e.g., 'Head (Mother)', 'Husband', 'Wife', 'Child'
   pregnancyEDD DateTime? // Expected Date of Delivery for ANC
   workerId     String
   householdId  String?
@@ -61,15 +63,21 @@ model Patient {
 }
 
 model Household {
-  id            String    @id @default(uuid())
-  headName      String // Name of the head of the family
-  address       String
-  village       String?
-  familyMembers Patient[] // Relation to individual patients in the family
-  workerId      String
-  worker        Worker    @relation(fields: [workerId], references: [id])
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  id                String    @id @default(uuid())
+  houseNumber       String // e.g., 'H001', 'H002'
+  headName          String // Name of the head of the family
+  address           String
+  village           String?
+  status            String    @default("pending") // 'pending', 'completed', 'high-risk', 'closed'
+  pendingTasksCount Int       @default(0)
+  isClosed          Boolean   @default(false)
+  familyMembers     Patient[] // Relation to individual patients in the family
+  workerId          String
+  worker            Worker    @relation(fields: [workerId], references: [id])
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([workerId, houseNumber])
 }
 
 model LearningModule {
@@ -120,6 +128,7 @@ model Task {
   priority    String   @default("MEDIUM") // 'HIGH', 'MEDIUM', 'LOW'
   dueDate     DateTime
   workerId    String
+  householdId String? // Link task to household
   worker      Worker   @relation(fields: [workerId], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -131,11 +140,14 @@ model VisitHistory {
   patientId     String
   visitDate     DateTime @default(now())
   outcome       String
+  visitType     String? // e.g., 'Routine Checkup', 'ANC Follow-up'
+  symptoms      String? // Comma-separated symptom list
   bloodPressure String?
   weight        Float?
   bloodSugar    Float?
   temperature   Float?
   notes         String?
+  isHouseClosed Boolean  @default(false) // Whether worker marked house as closed during this visit
   worker        Worker   @relation(fields: [workerId], references: [id])
   patient       Patient  @relation(fields: [patientId], references: [id])
 }

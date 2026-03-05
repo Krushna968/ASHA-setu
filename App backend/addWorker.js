@@ -7,7 +7,7 @@ async function addWorker() {
         update: {},
         create: {
             employeeId: 'ASHA-' + Date.now(),
-            name: 'Rajat (Demo User)',
+            name: 'Nagrbai (Demo User)',
             mobileNumber: '9029232428',
             village: 'Demo Village 3'
         }

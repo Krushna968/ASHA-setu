@@ -1,9 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:animate_do/animate_do.dart';
+import 'package:app_settings/app_settings.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
+import '../providers/area_map_provider.dart';
+import '../providers/app_state_provider.dart';
+import '../l10n/app_localizations.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -13,12 +20,19 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  String _workerName = 'Loading...';
-  String _employeeId = '...';
-  String _village = 'Loading Data...';
+  String _workerName = 'Krushna Rasal';
+  String _employeeId = 'ASHA-2024-089';
+  String _village = 'Airoli Sector 4, Navi Mumbai';
+  int _totalHouses = 42;
   String _lastSyncTime = 'JUST NOW';
   String? _profileImageUrl;
   bool _isUploadingImage = false;
+  bool _isSyncing = false;
+  
+  // Stats variables (mapped from /worker/stats)
+  int _completedToday = 0;
+  int _targetToday = 0;
+  int _highRiskCount = 0;
 
   @override
   void initState() {
@@ -36,10 +50,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _village = stats['village'] ?? 'Local Village';
           _profileImageUrl = stats['profileImage'];
           _lastSyncTime = DateFormat('hh:mm a').format(DateTime.now());
+          
+          _completedToday = stats['completedToday'] ?? 0;
+          _targetToday = stats['targetToday'] ?? 8;
+          _highRiskCount = stats['highRiskCount'] ?? 0;
         });
       }
     } catch (e) {
-      // Handle error
+      debugPrint('Load Error: $e');
     }
   }
 
@@ -47,12 +65,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
 
-    if (pickedFile == null) return; // User canceled
+    if (pickedFile == null) return;
 
     setState(() => _isUploadingImage = true);
 
     try {
-      // Send directly to Postgres Backend via Multipart
       final response = await ApiService.postMultipart(
         '/worker/update-profile', 
         pickedFile.path, 
@@ -70,12 +87,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         throw Exception(response['error']);
       }
     } catch (e) {
-      debugPrint('UPLOAD ERROR: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Upload failed: ${e.toString()}', maxLines: 3, overflow: TextOverflow.ellipsis), 
+          content: Text('Upload failed: ${e.toString()}'), 
           backgroundColor: MyTheme.criticalRed,
-          duration: const Duration(seconds: 5),
         ));
       }
     } finally {
@@ -86,322 +101,460 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8),
+      backgroundColor: MyTheme.backgroundWhite,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         automaticallyImplyLeading: false,
-        title: const Text(
-          'Worker Profile',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: MyTheme.textDark),
-        ),
-        centerTitle: true,
         actions: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.notifications_none, color: MyTheme.textDark, size: 28),
-                onPressed: () {},
-              ),
-              Positioned(
-                top: 10, right: 10,
-                child: Container(
-                  width: 8, height: 8,
-                  decoration: const BoxDecoration(color: MyTheme.criticalRed, shape: BoxShape.circle),
-                ),
-              ),
-            ],
+          IconButton(
+            icon: const Icon(Icons.settings_outlined, color: Colors.white),
+            onPressed: () {},
           ),
+          const SizedBox(width: 8),
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
         child: Column(
           children: [
-            _buildAvatarSection(),
-            const SizedBox(height: 24),
-            _buildCoverageCard(),
-            const SizedBox(height: 24),
-            _buildSectionLabel('ACCOUNT SETTINGS'),
-            const SizedBox(height: 8),
-            _buildSettingsGroup([
-              _SettingItem(
-                icon: Icons.translate,
-                iconBg: const Color(0xFFEEF2FF),
-                iconColor: MyTheme.primaryBlue,
-                title: 'Language Change',
-                subtitle: 'Hindi (हिन्दी)',
-                onTap: () {},
+            _buildPremiumHeader(),
+            Transform.translate(
+              offset: const Offset(0, -15), // Reduced negative offset to prevent overlap
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: [
+                    _buildStatsRow(),
+                    const SizedBox(height: 24),
+                    _buildCoveragePremium(),
+                    const SizedBox(height: 32),
+                    _buildSectionHeader('ACCOUNT MANAGEMENT'),
+                    const SizedBox(height: 12),
+                    _buildSettingsList([
+                      _SettingItem(
+                        icon: Icons.language_rounded,
+                        bg: Colors.blue.shade50,
+                        color: Colors.blue.shade700,
+                        title: 'Change Language',
+                        subtitle: 'Select your preferred language',
+                        onTap: () => _showLanguageSelector(context),
+                      ),
+                      _SettingItem(
+                        icon: Icons.cloud_sync_rounded,
+                        bg: Colors.teal.shade50,
+                        color: Colors.teal.shade700,
+                        title: 'Sync Now',
+                        subtitle: _isSyncing ? 'Syncing...' : 'Last synced: $_lastSyncTime',
+                        trailing: _isSyncing 
+                          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                          : null,
+                        onTap: _isSyncing ? null : _handleManualSync,
+                      ),
+                      _SettingItem(
+                        icon: Icons.notifications_active_outlined,
+                        bg: Colors.orange.shade50,
+                        color: Colors.orange.shade700,
+                        title: 'Push Notifications',
+                        subtitle: 'Manage app permissions',
+                        onTap: () => AppSettings.openAppSettings(type: AppSettingsType.notification),
+                      ),
+                    ]),
+                    const SizedBox(height: 24),
+                    _buildSectionHeader('SUPPORT & INFO'),
+                    const SizedBox(height: 12),
+                    _buildSettingsList([
+                      _SettingItem(
+                        icon: Icons.help_center_outlined,
+                        bg: Colors.grey.shade100,
+                        color: Colors.grey.shade700,
+                        title: 'Help & Support Center',
+                        onTap: () {},
+                      ),
+                      _SettingItem(
+                        icon: Icons.verified_user_outlined,
+                        bg: Colors.grey.shade100,
+                        color: Colors.grey.shade700,
+                        title: 'Privacy Policy',
+                        onTap: () {},
+                      ),
+                      _SettingItem(
+                        icon: Icons.info_outline_rounded,
+                        bg: Colors.grey.shade100,
+                        color: Colors.grey.shade700,
+                        title: 'App Version 2.10.4',
+                        showArrow: false,
+                        onTap: () {},
+                      ),
+                    ]),
+                    const SizedBox(height: 40),
+                    _buildPremiumLogout(context),
+                    const SizedBox(height: 60),
+                  ],
+                ),
               ),
-              _SettingItem(
-                icon: Icons.cloud_off,
-                iconBg: const Color(0xFFFFEFEF),
-                iconColor: MyTheme.criticalRed,
-                title: 'Offline Settings',
-                subtitle: 'Sync data & storage management',
-                onTap: () {},
-              ),
-            ]),
-            const SizedBox(height: 24),
-            _buildSectionLabel('SUPPORT'),
-            const SizedBox(height: 8),
-            _buildSettingsGroup([
-              _SettingItem(
-                icon: Icons.help_outline,
-                iconBg: const Color(0xFFF5F5F5),
-                iconColor: Colors.grey.shade600,
-                title: 'Help & Support',
-                subtitle: null,
-                showArrow: false,
-                onTap: () {},
-              ),
-              _SettingItem(
-                icon: Icons.info_outline,
-                iconBg: const Color(0xFFF5F5F5),
-                iconColor: Colors.grey.shade600,
-                title: 'About App v2.4.0',
-                subtitle: null,
-                showArrow: false,
-                onTap: () {},
-              ),
-            ]),
-            const SizedBox(height: 32),
-            _buildLogoutButton(context),
-            const SizedBox(height: 24),
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildAvatarSection() {
-    return Column(
-      children: [
-        Stack(
+  Widget _buildPremiumHeader() {
+    return Container(
+      width: double.infinity,
+      height: 300,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [MyTheme.primaryBlue, Color(0xFF1565C0)],
+        ),
+        // Removed bottom border radius to make it square shaped
+      ),
+      child: SafeArea(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 110,
-              height: 110,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFFDDE8FF), width: 4),
-                color: const Color(0xFF77B5D9),
-              ),
-              child: ClipOval(
-                child: _profileImageUrl != null
-                    ? Image.network(_profileImageUrl!, fit: BoxFit.cover, width: 110, height: 110,
-                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.person, size: 64, color: Colors.white))
-                    : const Icon(Icons.person, size: 64, color: Colors.white),
-              ),
-            ),
-            Positioned(
-              bottom: 4,
-              right: 4,
-              child: GestureDetector(
-                onTap: _isUploadingImage ? null : _pickAndUploadImage,
-                child: Container(
-                  width: 32,
-                  height: 32,
-                  decoration: BoxDecoration(
-                    color: _isUploadingImage ? Colors.grey : MyTheme.primaryBlue,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
+            FadeInDown(
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  // Gradient Ring
+                  Container(
+                    width: 110,
+                    height: 110,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [Colors.white, Colors.blueAccent, Colors.white],
+                      ),
+                    ),
                   ),
-                  child: _isUploadingImage 
-                    ? const Padding(padding: EdgeInsets.all(6), child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                    : const Icon(Icons.edit, size: 16, color: Colors.white),
-                ),
+                  // Profile Photo
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white24,
+                    ),
+                    child: ClipOval(
+                      child: _profileImageUrl != null
+                          ? Image.network(_profileImageUrl!, fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => const Icon(Icons.person, size: 50, color: Colors.white))
+                          : const Icon(Icons.person, size: 50, color: Colors.white),
+                    ),
+                  ),
+                  // Edit Button
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: GestureDetector(
+                      onTap: _isUploadingImage ? null : _pickAndUploadImage,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [BoxShadow(color: Colors.black26, blurRadius: 4)],
+                        ),
+                        child: _isUploadingImage 
+                          ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                          : const Icon(Icons.camera_alt_rounded, size: 18, color: MyTheme.primaryBlue),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
+            const SizedBox(height: 16),
+            FadeInUp(
+              child: Column(
+                children: [
+                  Text(
+                    _workerName,
+                    style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      'ID: $_employeeId',
+                      style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20), // Added buffer space to prevent card overlap
           ],
         ),
-        const SizedBox(height: 16),
-        Text(
-          _workerName,
-          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: MyTheme.textDark),
+      ),
+    );
+  }
+
+  Widget _buildStatsRow() {
+    return FadeInUp(
+      delay: const Duration(milliseconds: 200),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 15, offset: const Offset(0, 5)),
+          ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          'ASHA ID: $_employeeId',
-          style: const TextStyle(fontSize: 14, color: MyTheme.primaryBlue, fontWeight: FontWeight.w600),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildStatItem('Tasks', '$_completedToday', Icons.task_alt_rounded, Colors.green),
+            _buildStatItem('Target', '$_targetToday', Icons.flag_rounded, Colors.blue),
+            _buildStatItem('High Risk', '$_highRiskCount', Icons.warning_amber_rounded, Colors.red),
+          ],
         ),
-        const SizedBox(height: 12),
+      ),
+    );
+  }
+
+  Widget _buildStatItem(String label, String value, IconData icon, Color color) {
+    return Column(
+      children: [
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+          padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: const Color(0xFFECFDF5),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: const Color(0xFFD1FAE5)),
+            color: color.withOpacity(0.1),
+            shape: BoxShape.circle,
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 8, height: 8,
-                decoration: const BoxDecoration(color: MyTheme.successGreen, shape: BoxShape.circle),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                'SYNCED: $_lastSyncTime',
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 0.5,
-                  color: MyTheme.successGreen,
-                ),
-              ),
-            ],
-          ),
+          child: Icon(icon, color: color, size: 20),
         ),
+        const SizedBox(height: 8),
+        Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: MyTheme.textDark)),
+        Text(label, style: TextStyle(fontSize: 11, color: MyTheme.textLight, fontWeight: FontWeight.w500)),
       ],
     );
   }
 
-  Widget _buildCoverageCard() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFEEF2FF),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFDDE8FF)),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: MyTheme.primaryBlue,
-              borderRadius: BorderRadius.circular(12),
+  Widget _buildCoveragePremium() {
+    return FadeInUp(
+      delay: const Duration(milliseconds: 300),
+      child: GestureDetector(
+        onTap: () async {
+          final Uri url = Uri.parse('https://www.google.com/maps/search/?api=1&query=Airoli+Sector+4+Navi+Mumbai+boundary');
+          if (!await launchUrl(url)) {
+            debugPrint('Could not launch map');
+          }
+        },
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: MyTheme.primaryBlue,
+            borderRadius: BorderRadius.circular(24),
+            image: const DecorationImage(
+              image: NetworkImage('https://www.transparenttextures.com/patterns/cubes.png'),
+              opacity: 0.1,
             ),
-            child: const Icon(Icons.location_on, color: Colors.white, size: 22),
+            boxShadow: [
+              BoxShadow(color: MyTheme.primaryBlue.withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 6)),
+            ],
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'AREA OF COVERAGE',
-                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey.shade600, letterSpacing: 0.8),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  _village.toUpperCase(),
-                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: MyTheme.textDark),
+                child: const Icon(Icons.map_rounded, color: Colors.white, size: 30),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('AREA OF COVERAGE', style: TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                    const SizedBox(height: 4),
+                    Text(_village, style: const TextStyle(color: Colors.white, fontSize: 17, fontWeight: FontWeight.bold)),
+                    Text('$_totalHouses Houses Assigned', style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 12, fontWeight: FontWeight.w500)),
+                  ],
                 ),
-              ],
-            ),
+              ),
+              const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white54, size: 16),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildSectionLabel(String label) {
+  Widget _buildSectionHeader(String title) {
     return Align(
       alignment: Alignment.centerLeft,
       child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: Colors.grey.shade500,
-          letterSpacing: 1,
-        ),
+        title,
+        style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.grey.shade500, letterSpacing: 1.2),
       ),
     );
   }
 
-  Widget _buildSettingsGroup(List<_SettingItem> items) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
-        ],
-      ),
-      child: Column(
-        children: items.asMap().entries.map((entry) {
-          final item = entry.value;
-          final bool isLast = entry.key == items.length - 1;
-          return Column(
-            children: [
-              ListTile(
-                onTap: item.onTap,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                leading: Container(
-                  width: 40,
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: item.iconBg,
-                    borderRadius: BorderRadius.circular(10),
+  Widget _buildSettingsList(List<_SettingItem> items) {
+    return FadeInUp(
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 10)],
+        ),
+        child: Column(
+          children: items.map((item) {
+            final isLast = item == items.last;
+            return Column(
+              children: [
+                ListTile(
+                  onTap: item.onTap,
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(color: item.bg, borderRadius: BorderRadius.circular(12)),
+                    child: Icon(item.icon, color: item.color, size: 22),
                   ),
-                  child: Icon(item.icon, color: item.iconColor, size: 20),
+                  title: Text(item.title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                  subtitle: item.subtitle != null ? Text(item.subtitle!) : null,
+                  trailing: item.trailing ?? (item.showArrow ? const Icon(Icons.arrow_forward_ios_rounded, size: 14) : null),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
                 ),
-                title: Text(
-                  item.title,
-                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: MyTheme.textDark),
-                ),
-                subtitle: item.subtitle != null
-                    ? Text(item.subtitle!, style: TextStyle(fontSize: 12, color: Colors.grey.shade500))
-                    : null,
-                trailing: item.showArrow
-                    ? Icon(Icons.chevron_right, color: Colors.grey.shade400)
-                    : null,
-              ),
-              if (!isLast)
-                Divider(height: 1, indent: 72, color: Colors.grey.shade100),
-            ],
-          );
-        }).toList(),
+                if (!isLast) const Divider(indent: 70, height: 1),
+              ],
+            );
+          }).toList(),
+        ),
       ),
     );
   }
 
-  Widget _buildLogoutButton(BuildContext context) {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: () {
-          showDialog(
-            context: context,
-            builder: (ctx) => AlertDialog(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-              title: const Text('Logout', style: TextStyle(fontWeight: FontWeight.bold)),
-              content: const Text('Are you sure you want to logout from the system?'),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(ctx),
-                  child: const Text('Cancel'),
-                ),
-                ElevatedButton(
-                  style: ElevatedButton.styleFrom(backgroundColor: MyTheme.criticalRed),
-                  onPressed: () async {
-                    Navigator.pop(ctx);
-                    await AuthService.logout();
-                    if (context.mounted) {
-                      Navigator.pushNamedAndRemoveUntil(context, '/login', (r) => false);
-                    }
+  Widget _buildPremiumLogout(BuildContext context) {
+    return FadeInUp(
+      child: Container(
+        width: double.infinity,
+        height: 60,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [BoxShadow(color: Colors.red.withOpacity(0.1), blurRadius: 10)],
+        ),
+        child: ElevatedButton.icon(
+          onPressed: () => _confirmLogout(context),
+          icon: const Icon(Icons.logout_rounded, size: 20),
+          label: const Text('Log Out From System'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFFFFF5F5),
+            foregroundColor: MyTheme.criticalRed,
+            elevation: 0,
+            side: BorderSide(color: MyTheme.criticalRed.withOpacity(0.2)),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _handleManualSync() async {
+    setState(() => _isSyncing = true);
+    try {
+      // Sync both providers
+      await Future.wait([
+        context.read<AreaMapProvider>().refreshArea(),
+        context.read<AppStateProvider>().fetchAllData(),
+      ]);
+      if (mounted) {
+        setState(() {
+          _lastSyncTime = 'Just Now';
+          _isSyncing = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('All data synced successfully!'), backgroundColor: MyTheme.successGreen)
+        );
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isSyncing = false);
+    }
+  }
+
+  void _showLanguageSelector(BuildContext context) {
+    final List<Map<String, String>> languages = [
+      {'code': 'en', 'name': 'English', 'native': 'English'},
+      {'code': 'hi', 'name': 'Hindi', 'native': 'हिन्दी'},
+      {'code': 'mr', 'name': 'Marathi', 'native': 'मराठी'},
+      {'code': 'ta', 'name': 'Tamil', 'native': 'தமிழ்'},
+      {'code': 'te', 'name': 'Telugu', 'native': 'తెలుగు'},
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('Change Language', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              ...languages.map((lang) {
+                final bool isCurrent = lang['code'] == 'en'; // Assuming English is default for now
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: isCurrent ? MyTheme.primaryBlue.withOpacity(0.1) : Colors.grey.shade100,
+                    child: Text(lang['code']!.toUpperCase(), style: TextStyle(color: isCurrent ? MyTheme.primaryBlue : Colors.grey, fontWeight: FontWeight.bold, fontSize: 12)),
+                  ),
+                  title: Text(
+                    lang['native']!,
+                    style: TextStyle(
+                      fontWeight: isCurrent ? FontWeight.w700 : FontWeight.normal,
+                      fontSize: 16,
+                      color: isCurrent ? MyTheme.primaryBlue : MyTheme.textDark,
+                    ),
+                  ),
+                  trailing: isCurrent ? const Icon(Icons.check_circle, color: MyTheme.primaryBlue) : null,
+                  onTap: () {
+                    // Logic to change locale would go here if LocaleProvider exists
+                    Navigator.pop(context);
                   },
-                  child: const Text('Logout'),
-                ),
-              ],
-            ),
-          );
-        },
-        icon: const Icon(Icons.logout, color: MyTheme.criticalRed, size: 20),
-        label: const Text(
-          'Logout from System',
-          style: TextStyle(color: MyTheme.criticalRed, fontWeight: FontWeight.w600, fontSize: 16),
-        ),
-        style: OutlinedButton.styleFrom(
-          side: const BorderSide(color: Color(0xFFFFCDD2)),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          backgroundColor: const Color(0xFFFFF5F5),
-        ),
+                );
+              }),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _confirmLogout(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text('Logout?', style: TextStyle(fontWeight: FontWeight.bold)),
+        content: const Text('Are you sure you want to exit the application? Offline data will remain safe.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: MyTheme.criticalRed, foregroundColor: Colors.white, elevation: 0),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await AuthService.logout();
+              if (context.mounted) {
+                Navigator.pushNamedAndRemoveUntil(context, '/login', (r) => false);
+              }
+            },
+            child: const Text('Logout'),
+          ),
+        ],
       ),
     );
   }
@@ -409,20 +562,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
 class _SettingItem {
   final IconData icon;
-  final Color iconBg;
-  final Color iconColor;
+  final Color bg;
+  final Color color;
   final String title;
   final String? subtitle;
   final bool showArrow;
-  final VoidCallback onTap;
+  final Widget? trailing;
+  final VoidCallback? onTap;
 
   const _SettingItem({
     required this.icon,
-    required this.iconBg,
-    required this.iconColor,
+    required this.bg,
+    required this.color,
     required this.title,
     this.subtitle,
     this.showArrow = true,
-    required this.onTap,
+    this.trailing,
+    this.onTap,
   });
 }

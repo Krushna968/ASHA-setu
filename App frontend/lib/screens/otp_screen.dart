@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
+import '../services/notification_service.dart';
 
 class OtpScreen extends StatefulWidget {
   final String mobileNumber;
@@ -62,6 +63,9 @@ class _OtpScreenState extends State<OtpScreen> {
         // Save auth data locally (our custom Node.js JWT)
         await AuthService.saveAuthData(result['token'], result['worker']);
         
+        // Send FCM token now that user is logged in
+        await NotificationService.sendCurrentToken();
+        
         if (mounted) {
           Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (route) => false);
         }
@@ -81,7 +85,7 @@ class _OtpScreenState extends State<OtpScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: MyTheme.primaryBlue),
+        iconTheme: IconThemeData(color: MyTheme.primaryBlue),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -102,9 +106,9 @@ class _OtpScreenState extends State<OtpScreen> {
                   color: Colors.blue.shade50,
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.message,
-                  size: 50,
+                child: Icon(
+                  Icons.mark_email_unread_outlined,
+                  size: 64,
                   color: MyTheme.primaryBlue,
                 ),
               ),
@@ -156,7 +160,7 @@ class _OtpScreenState extends State<OtpScreen> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: MyTheme.primaryBlue, width: 2),
+                          borderSide: BorderSide(color: MyTheme.primaryBlue, width: 2),
                         ),
                       ),
                       onChanged: (value) {
@@ -170,6 +174,18 @@ class _OtpScreenState extends State<OtpScreen> {
                   ),
                 ),
               ),
+              
+              if (widget.mobileNumber.contains('9321609760')) ...[
+                const SizedBox(height: 12),
+                Text(
+                  'Demo OTP: 050228',
+                  style: TextStyle(
+                    color: MyTheme.primaryBlue,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
               
               if (_errorMessage != null) ...[
                 const SizedBox(height: 20),

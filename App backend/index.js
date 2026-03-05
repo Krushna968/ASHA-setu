@@ -59,6 +59,10 @@ app.use(express.json());
 // Serve uploaded profile pictures statically
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// Initialize Cron Jobs
+const { startCronJobs } = require('./src/utils/cronJobs');
+startCronJobs();
+
 // Import Routes
 const authRoutes = require('./src/routes/authRoutes');
 const patientRoutes = require('./src/routes/patientRoutes');
@@ -66,6 +70,9 @@ const taskRoutes = require('./src/routes/taskRoutes');
 const visitRoutes = require('./src/routes/visitRoutes');
 const workerRoutes = require('./src/routes/workerRoutes');
 const inventoryRoutes = require('./src/routes/inventoryRoutes');
+const householdRoutes = require('./src/routes/householdRoutes');
+const learningRoutes = require('./src/routes/learningRoutes');
+const messageRoutes = require('./src/routes/messageRoutes');
 
 // Mount Routes
 app.use('/api/auth', authRoutes);
@@ -74,6 +81,9 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/visits', visitRoutes);
 app.use('/api/worker', workerRoutes);
 app.use('/api/inventory', inventoryRoutes);
+app.use('/api/households', householdRoutes);
+app.use('/api/learning', learningRoutes);
+app.use('/api/messages', messageRoutes);
 
 // Basic health check endpoint
 app.get('/api/health', (req, res) => {

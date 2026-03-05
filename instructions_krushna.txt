@@ -1,13 +1,13 @@
 ================================================================================
   ASHA-SETU APP — INSTRUCTIONS FOR KRUSHNA (Lead Developer — 80% of work)
   Branch: main-krushna
-  Deadline for Rudra & Raj: 3rd March 2026
+  Deadline for Rudra & Raj: 7th March 2026
 ================================================================================
 
 Hey Krushna! You are the lead developer and owner of the project.
 You handle ALL the core logic, authentication, backend, database, and primary 
 Flutter screens. The project is now LIVE on Render and connected to Supabase! 🚀
-Below is your exact scope of work.
+Below is your updated scope of work for Phase 2.
 
 ================================================================================
 YOUR RESPONSIBILITIES (80%)
@@ -21,13 +21,15 @@ YOUR RESPONSIBILITIES (80%)
 
 2. BACKEND — Node.js + Express + Prisma (Your Domain)
    - All controllers: authController, patientController, taskController, 
-     visitController, workerController, inventoryController
+     visitController, workerController, inventoryController, householdController,
+     reportController
    - All routes: authRoutes, patientRoutes, taskRoutes, visitRoutes, 
-     workerRoutes, inventoryRoutes
-   - Prisma schema (schema.prisma) — all 9 models
+     workerRoutes, inventoryRoutes, householdRoutes
+   - Prisma schema (schema.prisma) — all models
    - Database migrations via `prisma db push`
    - index.js server configuration
    - .env management (AWS keys, DB URL, JWT secret)
+   - Cron jobs (cronJobs.js)
 
 3. FLUTTER FRONTEND — Core Screens (Your Domain)
    - login_screen.dart (Done ✓)
@@ -38,26 +40,76 @@ YOUR RESPONSIBILITIES (80%)
    - visit_form_screen.dart — log patient visits
    - calendar_screen.dart — visit calendar/scheduling
    - inventory_screen.dart — medical supply tracking
-   - profile_screen.dart — worker profile management
    - main_screen.dart — bottom navigation wrapper
+   - area_task_map_screen.dart — household grid map
+   - quiz_screen.dart — health quiz
 
-4. SERVICES
-   - api_service.dart — all API calls to backend
+4. PROVIDERS & SERVICES
+   - area_map_provider.dart — household data, tasks, dashboard stats
+   - app_state_provider.dart — local app state
+   - api_service.dart — all API calls
    - auth_service.dart — JWT storage & retrieval
+   - notification_service.dart — push notifications
 
 5. INTEGRATION & DEPLOYMENT
    - Connecting Flutter frontend to Node.js backend
    - Supabase PostgreSQL database management
    - AWS SNS configuration
+   - Firebase setup (google-services.json — KEEP IN .gitignore)
    - APK builds and testing
    - Final merge of all branches into main
+
+================================================================================
+PHASE 2 — WHAT CHANGED (NEW WORK DISTRIBUTION)
+================================================================================
+
+The OLD tasks for Raj and Rudra (Phase 1) are REPLACED with these:
+
+RAJ (dev-raj) — Deadline 7th March:
+  NEW Task 1: CREATE todays_tasks_screen.dart
+    - Full-page for today's tasks (uses AreaMapProvider + /api/tasks)
+    - Filter tabs, task completion, pull-to-refresh, animations
+  NEW Task 2: EDIT messenger_screen.dart to make it LIVE
+    - Replace hardcoded mock data with real API calls
+    - Wire Tasks tab to GET /api/tasks
+    - Make checkboxes functional (PUT /api/tasks/:taskId/status)
+    - Add loading, error, and empty states
+
+RUDRA (dev-rudra) — Deadline 7th March:
+  NEW Task 1: CREATE high_risk_screen.dart
+    - Full-page for high-risk patients (filter from AreaMapProvider)
+    - Red/urgent color scheme, risk categorization, detail view
+  NEW Task 2: REDESIGN profile_screen.dart UI
+    - Premium visual redesign using Stitch
+    - Keep ALL functionality (image upload, logout, profile loading)
+    - Only change the visual design, not the logic
+
+================================================================================
+SECURITY REMINDERS
+================================================================================
+
+⚠️ FIREBASE API KEYS — NEVER EXPOSE:
+  - google-services.json is in .gitignore ✓
+  - serviceAccountKey.json is in .gitignore ✓
+  - *.env is in .gitignore ✓
+  
+  VERIFY: Run this command to check nothing is tracked:
+    git ls-files | findstr /i "google-services serviceAccount .env"
+  If it returns anything, REMOVE with:
+    git rm --cached <filename>
+
+⚠️ DO NOT SHARE with Raj or Rudra:
+  ❌ .env file
+  ❌ serviceAccountKey.json
+  ❌ google-services.json
+  ❌ Any AWS keys, DB passwords, or JWT secrets
 
 ================================================================================
 YOUR WORKFLOW
 ================================================================================
 
 1. Work on `main-krushna` branch
-2. When Rudra and Raj finish their work, they will push to their 
+2. When Rudra and Raj finish their work by 7th March, they push to their
    branches (dev-rudra, dev-raj)
 3. YOU will review their code and merge into main:
    git checkout main
@@ -70,63 +122,60 @@ WHAT TO SHARE WITH YOUR TEAM (via WhatsApp)
 
 Share the following with BOTH team members:
 
-1. GitHub Repo Link: https://github.com/Krushna968/ASHA-setu
-   - Rudra works on branch: dev-rudra
-   - Raj works on branch: dev-raj
+1. GitHub Repo: https://github.com/Krushna968/ASHA-setu
+   - Rudra: branch dev-rudra
+   - Raj: branch dev-raj
 
-2. Their specific instructions file:
+2. Their instruction file:
    - Send instructions_rudra.txt to Rudra
    - Send instructions_raj.txt to Raj
 
-3. DO NOT SHARE these sensitive files:
-   ❌ .env file (contains AWS keys, DB password, JWT secret)
-   ❌ serviceAccountKey.json (Firebase admin key)
-   
-   They do NOT need these files for their tasks.
-
-4. DO SHARE:
-   ✅ The GitHub repo access (add them as collaborators)
-   ✅ Their instructions.txt file
-   ✅ The Figma/design reference (if any)
-   ✅ A brief WhatsApp message explaining their task
-
-================================================================================
-SAMPLE WHATSAPP MESSAGE FOR RUDRA
-================================================================================
-
-"Hey Rudra! Here's the GitHub repo for ASHA-Setu: https://github.com/Krushna968/ASHA-setu
-Your branch is: dev-rudra
-I've attached your instructions_rudra.txt — read it TOP TO BOTTOM carefully.
-Your job is to polish the UI of 3 screens: help_support, learning, and emergency.
-Just make them look beautiful — colors, animations, icons.
-Don't touch the backend or any other files.
-Deadline: 3rd March. Push to your branch when done."
+3. DO NOT SHARE sensitive files (listed above)
 
 ================================================================================
 SAMPLE WHATSAPP MESSAGE FOR RAJ
 ================================================================================
 
-"Hey Raj! Here's the GitHub repo for ASHA-Setu: https://github.com/Krushna968/ASHA-setu
-Your branch is: dev-raj
-I've attached your instructions_raj.txt — read it TOP TO BOTTOM carefully.
-Your job is to improve the messenger screen UI and write project documentation (README + FEATURES).
-Don't touch the backend or any other files.
-Deadline: 3rd March. Push to your branch when done."
+"Hey Raj! Phase 2 tasks for ASHA-Setu:
+Your branch: dev-raj
+New instructions in instructions_raj.txt — read it TOP TO BOTTOM.
+
+Your 2 tasks:
+1. CREATE todays_tasks_screen.dart — full page for today's tasks
+2. EDIT messenger_screen.dart — make messages & tasks LIVE with real API data
+
+All data is already available via Provider and API endpoints.
+Don't touch the backend.
+Deadline: 7th March. Push to dev-raj when done."
+
+================================================================================
+SAMPLE WHATSAPP MESSAGE FOR RUDRA
+================================================================================
+
+"Hey Rudra! Phase 2 tasks for ASHA-Setu:
+Your branch: dev-rudra
+New instructions in instructions_rudra.txt — read it TOP TO BOTTOM.
+
+Your 2 tasks:
+1. CREATE high_risk_screen.dart — full page for high-risk patients (red/urgent theme)
+2. REDESIGN profile_screen.dart — make it look premium with Stitch (keep all features working)
+
+All data is already available via Provider.
+Don't touch the backend. Don't break profile upload/logout.
+Deadline: 7th March. Push to dev-rudra when done."
 
 ================================================================================
 WHAT TO EXPECT FROM THEM
 ================================================================================
 
-Rudra (UI Polish — dev-rudra) — Deadline 3rd March:
-- Better looking help_support_screen.dart
-- Better looking learning_screen.dart  
-- Better looking emergency_screen.dart
-- Only visual changes, no logic changes
+Rudra (High Risk + Profile — dev-rudra) — Deadline 7th March:
+- New high_risk_screen.dart with urgent red theme
+- Redesigned profile_screen.dart (no logic changes)
+- Route added in main.dart: '/high-risk'
 
-Raj (Messenger + Docs — dev-raj) — Deadline 3rd March:
-- Improved messenger_screen.dart UI (WhatsApp-style chat bubbles)
-- A README.md file for the project
-- A FEATURES.md documenting all 11 features
-- Only visual changes to messenger, rest is documentation
+Raj (Today's Tasks + Messenger — dev-raj) — Deadline 7th March:
+- New todays_tasks_screen.dart with filters and task completion
+- Live messenger_screen.dart (real API data, functional checkboxes)
+- Route added in main.dart: '/todays-tasks'
 
 ================================================================================
