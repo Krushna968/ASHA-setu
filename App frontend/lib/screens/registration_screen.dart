@@ -143,7 +143,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   child: Column(
                     children: [
                       Text(
-                        'Become an ASHA Worker',
+                        'Welcome to ASHA-Setu',
+                        textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: MyTheme.primaryBlue,
@@ -151,7 +152,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Please provide your official details to register.',
+                        'A digital platform for all ASHA workers. We are onboarding all workers to this new platform.',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.grey[600],
