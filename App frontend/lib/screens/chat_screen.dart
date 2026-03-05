@@ -464,7 +464,7 @@ class _ChatScreenState extends State<ChatScreen>
           children: [
             IconButton(
               icon: Icon(Icons.attach_file_rounded, color: Colors.grey.shade600),
-              onPressed: () {},
+              onPressed: _showAttachmentMenu,
             ),
             Expanded(
               child: Container(
@@ -504,6 +504,93 @@ class _ChatScreenState extends State<ChatScreen>
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showAttachmentMenu() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                margin: const EdgeInsets.only(bottom: 24),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade300,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildAttachmentOption(Icons.insert_drive_file, Colors.indigo, 'Document'),
+                  _buildAttachmentOption(Icons.camera_alt, Colors.pink, 'Camera'),
+                  _buildAttachmentOption(Icons.photo, Colors.purple, 'Gallery'),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _buildAttachmentOption(Icons.headset, Colors.orange, 'Audio'),
+                  _buildAttachmentOption(Icons.location_on, Colors.green, 'Location'),
+                  _buildAttachmentOption(Icons.person, Colors.blue, 'Contact'),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildAttachmentOption(IconData icon, Color color, String label) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Selected $label attachment.'),
+            backgroundColor: MyTheme.primaryBlue,
+            duration: const Duration(seconds: 1),
+          ),
+        );
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 28),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.grey.shade700,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
       ),
     );
   }

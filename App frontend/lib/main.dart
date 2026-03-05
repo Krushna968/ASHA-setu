@@ -85,9 +85,9 @@ class AshaSetuApp extends StatelessWidget {
           final isLoggedIn = snapshot.data ?? false;
           
           if (isLoggedIn) {
-            return const MessengerScreen(); // Temporarily kept for verification
+            return const MainScreen();
           } else {
-            return const MessengerScreen(); // Temporarily kept for verification
+            return const MainScreen();
           }
         },
       ),

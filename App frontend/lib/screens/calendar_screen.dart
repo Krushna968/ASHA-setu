@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:provider/provider.dart';
-import '../providers/app_state_provider.dart';
+import '../services/task_service.dart';
 import '../theme/app_theme.dart';
 
 class CalendarScreen extends StatefulWidget {
@@ -15,34 +14,10 @@ class _CalendarScreenState extends State<CalendarScreen> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
 
-  // Data will be fetched from AppStateProvider
-
   @override
   void initState() {
     super.initState();
     _selectedDay = DateTime.now();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<AppStateProvider>(context, listen: false).fetchVisits();
-    });
-  }
-
-  List<Map<String, dynamic>> _getEventsForDay(DateTime day, List<dynamic> visits) {
-    final normalized = DateTime(day.year, day.month, day.day);
-    
-    return visits.where((v) {
-      final vDate = DateTime.parse(v['visitDate']);
-      return _isSameDay(vDate, normalized);
-    }).map((v) {
-      final individual = v['patient'] ?? {};
-      final time = DateFormat('hh:mm a').format(DateTime.parse(v['visitDate']));
-      
-      return {
-        'title': 'Visit: ${individual['name'] ?? 'Unknown'}',
-        'time': time,
-        'status': v['outcome'] ?? 'Pending',
-        'type': (v['visitType'] ?? 'visit').toString().toLowerCase(),
-      };
-    }).toList();
   }
 
   bool _isSameDay(DateTime? a, DateTime? b) {
@@ -52,19 +27,27 @@ class _CalendarScreenState extends State<CalendarScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = Provider.of<AppStateProvider>(context);
-    final visits = provider.visits;
-    final selectedEvents = _getEventsForDay(_selectedDay ?? _focusedDay, visits);
-
     return Scaffold(
       backgroundColor: MyTheme.backgroundWhite,
       body: SafeArea(
         child: Column(
           children: [
             _buildHeader(),
-            _buildCalendarGrid(),
-            const SizedBox(height: 4),
-            _buildEventsList(selectedEvents),
+            ListenableBuilder(
+              listenable: TaskService(),
+              builder: (context, child) {
+                final selectedEvents = TaskService().getTasksForDay(_selectedDay ?? _focusedDay);
+                return Expanded(
+                  child: Column(
+                    children: [
+                      _buildCalendarGrid(),
+                      const SizedBox(height: 4),
+                      _buildEventsList(selectedEvents),
+                    ],
+                  ),
+                );
+              },
+            ),
           ],
         ),
       ),
@@ -205,8 +188,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
               final currentDay = DateTime(_focusedDay.year, _focusedDay.month, dayNumber);
               final isToday = _isSameDay(currentDay, DateTime.now());
               final isSelected = _isSameDay(currentDay, _selectedDay);
-              final provider = Provider.of<AppStateProvider>(context, listen: false);
-              final hasEvents = _getEventsForDay(currentDay, provider.visits).isNotEmpty;
+              final hasEvents = TaskService().getTasksForDay(currentDay).isNotEmpty;
 
               return GestureDetector(
                 onTap: () => setState(() {
@@ -259,7 +241,7 @@ class _CalendarScreenState extends State<CalendarScreen> {
   // ─────────────────────────────────────────────────────────
   // EVENTS LIST
   // ─────────────────────────────────────────────────────────
-  Widget _buildEventsList(List<Map<String, dynamic>> events) {
+  Widget _buildEventsList(List<TaskItem> events) {
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -318,85 +300,99 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
-  Widget _buildEventCard(Map<String, dynamic> event) {
-    final status = event['status'] as String;
-    final type = event['type'] as String? ?? 'visit';
+  Widget _buildEventCard(TaskItem event) {
+    final status = event.isCompleted ? 'Completed' : (event.due.isBefore(DateTime.now()) ? 'Pending' : 'Scheduled');
 
     Color statusColor = Colors.grey;
     if (status == 'Pending') statusColor = Colors.orange;
     if (status == 'Completed') statusColor = MyTheme.successGreen;
     if (status == 'Scheduled') statusColor = MyTheme.primaryBlue;
 
-    IconData typeIcon = Icons.home_rounded;
-    if (type == 'followup') typeIcon = Icons.replay_rounded;
-    if (type == 'vaccination') typeIcon = Icons.vaccines_rounded;
-    if (type == 'anc') typeIcon = Icons.pregnant_woman_rounded;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
-        ],
-      ),
-      child: Row(
-        children: [
-          // Time badge
-          Container(
-            width: 48,
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            decoration: BoxDecoration(
-              color: statusColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(10),
+    return GestureDetector(
+      onTap: () {
+        if (!event.isCompleted) {
+            TaskService().toggleTaskCompletion(event.id, true);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('${event.title} marked as completed'),
+                backgroundColor: MyTheme.successGreen,
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(seconds: 2),
+              ),
+            );
+        }
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2)),
+          ],
+        ),
+        child: Row(
+          children: [
+            // Time badge
+            Container(
+              width: 52,
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Column(
+                children: [
+                  Icon(event.icon, color: statusColor, size: 20),
+                  const SizedBox(height: 4),
+                  Text(
+                    event.formattedTime.split(' ')[0],
+                    style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: statusColor),
+                  ),
+                  Text(
+                    event.formattedTime.split(' ').last,
+                    style: TextStyle(fontSize: 8, color: statusColor),
+                  ),
+                ],
+              ),
             ),
-            child: Column(
-              children: [
-                Icon(typeIcon, color: statusColor, size: 20),
-                const SizedBox(height: 4),
-                Text(
-                  (event['time'] as String).split(' ')[0],
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: statusColor),
-                ),
-                Text(
-                  (event['time'] as String).split(' ').last,
-                  style: TextStyle(fontSize: 8, color: statusColor),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 14),
-          // Info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  event['title'],
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: MyTheme.textDark),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle),
+            const SizedBox(width: 14),
+            // Info
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    event.title,
+                    style: TextStyle(
+                      fontSize: 14, 
+                      fontWeight: FontWeight.w600, 
+                      color: MyTheme.textDark,
+                      decoration: event.isCompleted ? TextDecoration.lineThrough : null,
                     ),
-                    const SizedBox(width: 6),
-                    Text(
-                      status,
-                      style: TextStyle(fontSize: 12, color: statusColor, fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-              ],
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Container(
+                        width: 6,
+                        height: 6,
+                        decoration: BoxDecoration(color: statusColor, shape: BoxShape.circle),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        status,
+                        style: TextStyle(fontSize: 12, color: statusColor, fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-          Icon(Icons.chevron_right_rounded, color: Colors.grey[300], size: 22),
-        ],
+            Icon(Icons.chevron_right_rounded, color: Colors.grey[300], size: 22),
+          ],
+        ),
       ),
     );
   }
