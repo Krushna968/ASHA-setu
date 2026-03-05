@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';
+import 'package:intl/intl.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import '../services/api_service.dart';
 
@@ -238,5 +239,58 @@ class AppStateProvider extends ChangeNotifier {
     if (updated) {
       await fetchVisits();
     }
+  }
+
+  // Seed Demo Data for Testing
+  void seedDemoData() {
+    final now = DateTime.now();
+    final todayStr = DateFormat('yyyy-MM-dd').format(now);
+    
+    // Demo Individuals
+    _individuals = [
+      {'id': 'p1', 'name': 'Aditi Sharma', 'householdId': 'h1'},
+      {'id': 'p2', 'name': 'Rajesh Kumar', 'householdId': 'h1'},
+      {'id': 'p3', 'name': 'Sita Devi', 'householdId': 'h2'},
+      {'id': 'p4', 'name': 'Amit Patel', 'householdId': 'h3'},
+      {'id': 'p5', 'name': 'Priya Singh', 'householdId': 'h4'},
+    ];
+    
+    // Demo Visits
+    _visits = [
+      {
+        'patientId': 'p1',
+        'visitDate': '${todayStr}T10:30:00',
+        'visitType': 'Routine',
+        'outcome': 'Normal'
+      },
+      {
+        'patientId': 'p2',
+        'visitDate': '${todayStr}T11:45:00',
+        'visitType': 'Follow-up',
+        'outcome': 'Stable'
+      },
+      {
+        'patientId': 'p3',
+        'visitDate': '${todayStr}T09:20:00',
+        'visitType': 'ANC Follow-up',
+        'outcome': 'Healthy'
+      },
+      {
+        'patientId': 'p4',
+        'visitDate': '${todayStr}T14:15:00',
+        'visitType': 'Emergency',
+        'outcome': 'Referred'
+      },
+      {
+        'patientId': 'p5',
+        'visitDate': '${todayStr}T15:00:00',
+        'visitType': 'PNC Follow-up',
+        'outcome': 'Stable'
+      },
+    ];
+    
+    _box.put('individuals', _individuals);
+    _box.put('visits', _visits);
+    notifyListeners();
   }
 }
