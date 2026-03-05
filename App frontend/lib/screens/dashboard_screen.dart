@@ -543,7 +543,9 @@ class _DashboardScreenState extends State<DashboardScreen>
         const SizedBox(width: 12),
         // Profile Avatar
         GestureDetector(
-          onTap: _handleLogout,
+          onTap: () {
+            context.read<AppStateProvider>().setCurrentIndex(3);
+          },
           child: Stack(
             children: [
               Container(
