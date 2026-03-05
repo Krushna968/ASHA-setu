@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 
 class ChatScreen extends StatefulWidget {
   final String contactName;
@@ -23,11 +25,15 @@ class _Message {
   final String text;
   final bool isSentByMe;
   final String time;
+  final String? attachment;
+  final bool isAcknowledged;
 
   _Message({
     required this.text,
     required this.isSentByMe,
     required this.time,
+    this.attachment,
+    this.isAcknowledged = false,
   });
 }
 
@@ -36,6 +42,7 @@ class _ChatScreenState extends State<ChatScreen>
   final TextEditingController _msgController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   late AnimationController _typingController;
+  final ImagePicker _picker = ImagePicker();
   
   List<_Message> messages = [];
 
@@ -51,7 +58,6 @@ class _ChatScreenState extends State<ChatScreen>
 
     _scrollController.addListener(() {
       if (_scrollController.hasClients) {
-        // If we scroll up by more than 100 pixels, show the button
         final offset = _scrollController.position.pixels;
         final maxOffset = _scrollController.position.maxScrollExtent;
         setState(() {
@@ -60,12 +66,12 @@ class _ChatScreenState extends State<ChatScreen>
       }
     });
 
-    // Populate with some initial dummy data to show the UI
     messages = [
       _Message(
         text: 'Hello ${widget.contactName}. I visited the Sharma household today.',
         isSentByMe: true,
         time: '10:05 AM',
+        isAcknowledged: true,
       ),
       _Message(
         text: 'Hello Raj. How is the newborn baby doing?',
@@ -76,6 +82,7 @@ class _ChatScreenState extends State<ChatScreen>
         text: 'The baby is healthy. Weight is normal and vaccinations are up to date.',
         isSentByMe: true,
         time: '10:15 AM',
+        isAcknowledged: true,
       ),
       _Message(
         text: 'Excellent. Please update the registry later today.',
@@ -98,8 +105,7 @@ class _ChatScreenState extends State<ChatScreen>
     if (text.isEmpty) return;
 
     final now = DateTime.now();
-    final timeStr =
-        '${now.hour == 0 ? 12 : (now.hour > 12 ? now.hour - 12 : now.hour)}:${now.minute.toString().padLeft(2, '0')} ${now.hour >= 12 ? 'PM' : 'AM'}';
+    final timeStr = DateFormat('h:mm a').format(now);
 
     setState(() {
       messages.add(_Message(
@@ -125,10 +131,31 @@ class _ChatScreenState extends State<ChatScreen>
     });
   }
 
+  Future<void> _pickImage(ImageSource source) async {
+    try {
+      final XFile? image = await _picker.pickImage(source: source);
+      if (image != null) {
+        final now = DateTime.now();
+        final timeStr = DateFormat('h:mm a').format(now);
+        setState(() {
+          messages.add(_Message(
+            text: 'Shared a photo',
+            isSentByMe: true,
+            time: timeStr,
+            attachment: 'image',
+          ));
+        });
+        _scrollToBottom();
+      }
+    } catch (e) {
+      debugPrint('Error picking image: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F2F5), // Light grey, similar to WhatsApp
+      backgroundColor: const Color(0xFFF0F2F5),
       appBar: _buildAppBar(),
       body: Column(
         children: [
@@ -206,7 +233,7 @@ class _ChatScreenState extends State<ChatScreen>
                     ),
                     const SizedBox(width: 4),
                     const Text(
-                      'Online',
+                      'Monitoring Active',
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.white70,
@@ -254,19 +281,11 @@ class _ChatScreenState extends State<ChatScreen>
           ),
           const SizedBox(height: 16),
           const Text(
-            'No messages yet',
+            'No notifications yet',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: MyTheme.textDark,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Start a conversation with your contact.',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade600,
             ),
           ),
         ],
@@ -334,6 +353,23 @@ class _ChatScreenState extends State<ChatScreen>
                     ? CrossAxisAlignment.end
                     : CrossAxisAlignment.start,
                 children: [
+                  if (msg.attachment != null)
+                    Container(
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.black12,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(msg.attachment == 'image' ? Icons.image : Icons.insert_drive_file, color: msg.isSentByMe ? Colors.white70 : Colors.grey),
+                          const SizedBox(width: 8),
+                          Text(msg.attachment == 'image' ? 'Image Attached' : 'Document Attached', style: TextStyle(color: msg.isSentByMe ? Colors.white : MyTheme.textDark, fontSize: 12)),
+                        ],
+                      ),
+                    ),
                   Text(
                     msg.text,
                     style: TextStyle(
@@ -356,10 +392,10 @@ class _ChatScreenState extends State<ChatScreen>
                       ),
                       if (msg.isSentByMe) ...[
                         const SizedBox(width: 4),
-                        const Icon(
-                          Icons.done_all_rounded,
+                        Icon(
+                          msg.isAcknowledged ? Icons.done_all_rounded : Icons.done_rounded,
                           size: 14,
-                          color: Colors.white70,
+                          color: msg.isAcknowledged ? Colors.greenAccent : Colors.white70,
                         ),
                       ],
                     ],
@@ -373,76 +409,8 @@ class _ChatScreenState extends State<ChatScreen>
     );
   }
 
-  // A static UI element indicating the other person is typing...
   Widget _buildTypingIndicator() {
-    bool isTyping = false; // toggle to true to see the effect while testing
-    
-    // ignore: dead_code
-    if (!isTyping) return const SizedBox.shrink();
-
-    // ignore: dead_code
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(56, 0, 16, 8),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
-                bottomLeft: Radius.circular(4),
-                bottomRight: Radius.circular(16),
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildDot(0),
-                const SizedBox(width: 4),
-                _buildDot(1),
-                const SizedBox(width: 4),
-                _buildDot(2),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDot(int index) {
-    return AnimatedBuilder(
-      animation: _typingController,
-      builder: (context, child) {
-        // Create a staggered bounce effect
-        final offset = index * 0.2;
-        final progress = (_typingController.value - offset).clamp(0.0, 1.0);
-        final sineValue = progress > 0.0 && progress < 0.6
-            ? (progress * 3.14159 / 0.6) // Math.sin parameter
-            : 0.0;
-        
-        // Simple manual implementation of sine wave
-        double yPos = 0.0;
-        if (sineValue > 0) {
-           // Approximation of sine for the bounce
-           yPos = -4.0 * (1 - ((sineValue - 1.57).abs() / 1.57)); 
-        }
-
-        return Transform.translate(
-          offset: Offset(0, yPos < -4.0 ? -4.0 : yPos),
-          child: Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade400,
-              shape: BoxShape.circle,
-            ),
-          ),
-        );
-      },
-    );
+    return const SizedBox.shrink();
   }
 
   Widget _buildInputBar() {
@@ -480,7 +448,7 @@ class _ChatScreenState extends State<ChatScreen>
                     textInputAction: TextInputAction.send,
                     onSubmitted: (_) => _sendMessage(),
                     decoration: const InputDecoration(
-                      hintText: 'Type a message...',
+                      hintText: 'Acknowledge or respond...',
                       hintStyle: TextStyle(color: Colors.grey),
                       border: InputBorder.none,
                       contentPadding:
@@ -537,20 +505,29 @@ class _ChatScreenState extends State<ChatScreen>
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _buildAttachmentOption(Icons.insert_drive_file, Colors.indigo, 'Document'),
-                  _buildAttachmentOption(Icons.camera_alt, Colors.pink, 'Camera'),
-                  _buildAttachmentOption(Icons.photo, Colors.purple, 'Gallery'),
+                  _buildAttachmentOption(Icons.insert_drive_file, Colors.indigo, 'Document', () {
+                    Navigator.pop(context);
+                    setState(() {
+                      messages.add(_Message(
+                        text: 'Shared a document',
+                        isSentByMe: true,
+                        time: DateFormat('h:mm a').format(DateTime.now()),
+                        attachment: 'doc',
+                      ));
+                    });
+                    _scrollToBottom();
+                  }),
+                  _buildAttachmentOption(Icons.camera_alt, Colors.pink, 'Camera', () {
+                    Navigator.pop(context);
+                    _pickImage(ImageSource.camera);
+                  }),
+                  _buildAttachmentOption(Icons.photo, Colors.purple, 'Gallery', () {
+                    Navigator.pop(context);
+                    _pickImage(ImageSource.gallery);
+                  }),
                 ],
               ),
               const SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildAttachmentOption(Icons.headset, Colors.orange, 'Audio'),
-                  _buildAttachmentOption(Icons.location_on, Colors.green, 'Location'),
-                  _buildAttachmentOption(Icons.person, Colors.blue, 'Contact'),
-                ],
-              ),
             ],
           ),
         );
@@ -558,18 +535,9 @@ class _ChatScreenState extends State<ChatScreen>
     );
   }
 
-  Widget _buildAttachmentOption(IconData icon, Color color, String label) {
+  Widget _buildAttachmentOption(IconData icon, Color color, String label, VoidCallback onTap) {
     return GestureDetector(
-      onTap: () {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Selected $label attachment.'),
-            backgroundColor: MyTheme.primaryBlue,
-            duration: const Duration(seconds: 1),
-          ),
-        );
-      },
+      onTap: onTap,
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

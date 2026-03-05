@@ -220,30 +220,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Gradient Ring
+                  // Clean Solid Border Ring
                   Container(
-                    width: 110,
-                    height: 110,
-                    decoration: const BoxDecoration(
+                    width: 108,
+                    height: 108,
+                    decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      gradient: LinearGradient(
-                        colors: [Colors.white, Colors.blueAccent, Colors.white],
-                      ),
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
                   ),
                   // Profile Photo
                   Container(
                     width: 100,
                     height: 100,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white24,
+                      color: MyTheme.primaryBlue.withOpacity(0.1),
                     ),
                     child: ClipOval(
                       child: _profileImageUrl != null
                           ? Image.network(_profileImageUrl!, fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) => const Icon(Icons.person, size: 50, color: Colors.white))
-                          : const Icon(Icons.person, size: 50, color: Colors.white),
+                              errorBuilder: (context, error, stackTrace) => Icon(Icons.person, size: 50, color: MyTheme.primaryBlue.withOpacity(0.5)))
+                          : Icon(Icons.person, size: 50, color: MyTheme.primaryBlue.withOpacity(0.5)),
                     ),
                   ),
                   // Edit Button
@@ -494,10 +499,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       {'code': 'te', 'name': 'Telugu', 'native': 'తెలుగు'},
     ];
 
+    final currentLocaleCode = context.read<AppStateProvider>().locale.languageCode;
+
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (context) {
+      builder: (bottomSheetContext) {
         return Padding(
           padding: const EdgeInsets.symmetric(vertical: 24),
           child: Column(
@@ -506,7 +513,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               const Text('Change Language', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               const SizedBox(height: 16),
               ...languages.map((lang) {
-                final bool isCurrent = lang['code'] == 'en'; // Assuming English is default for now
+                final bool isCurrent = lang['code'] == currentLocaleCode;
                 return ListTile(
                   leading: CircleAvatar(
                     backgroundColor: isCurrent ? MyTheme.primaryBlue.withOpacity(0.1) : Colors.grey.shade100,
@@ -522,8 +529,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   trailing: isCurrent ? const Icon(Icons.check_circle, color: MyTheme.primaryBlue) : null,
                   onTap: () {
-                    // Logic to change locale would go here if LocaleProvider exists
-                    Navigator.pop(context);
+                    context.read<AppStateProvider>().setLocale(Locale(lang['code']!));
+                    Navigator.pop(bottomSheetContext);
                   },
                 );
               }),

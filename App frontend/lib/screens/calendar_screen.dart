@@ -33,20 +33,21 @@ class _CalendarScreenState extends State<CalendarScreen> {
         child: Column(
           children: [
             _buildHeader(),
-            ListenableBuilder(
-              listenable: TaskService(),
-              builder: (context, child) {
-                final selectedEvents = TaskService().getTasksForDay(_selectedDay ?? _focusedDay);
-                return Expanded(
-                  child: Column(
-                    children: [
-                      _buildCalendarGrid(),
-                      const SizedBox(height: 4),
-                      _buildEventsList(selectedEvents),
-                    ],
-                  ),
-                );
-              },
+            Expanded(
+              child: SingleChildScrollView(
+                child: ListenableBuilder(
+                  listenable: TaskService(),
+                  builder: (context, child) {
+                    final selectedEvents = TaskService().getTasksForDay(_selectedDay ?? _focusedDay);
+                    return Column(
+                      children: [
+                        _buildCalendarGrid(),
+                        _buildEventsList(selectedEvents),
+                      ],
+                    );
+                  },
+                ),
+              ),
             ),
           ],
         ),
@@ -116,46 +117,41 @@ class _CalendarScreenState extends State<CalendarScreen> {
     final weekDays = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'];
 
     return Container(
-      color: Colors.white,
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: const BorderRadius.only(
+          bottomLeft: Radius.circular(30),
+          bottomRight: Radius.circular(30),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
       child: Column(
         children: [
           // Month navigation
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            padding: const EdgeInsets.symmetric(vertical: 12),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                GestureDetector(
-                  onTap: () => setState(() => _focusedDay = DateTime(_focusedDay.year, _focusedDay.month - 1)),
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(Icons.chevron_left_rounded, color: Colors.grey[600], size: 22),
-                  ),
-                ),
+                _buildNavButton(Icons.chevron_left_rounded, 
+                    () => setState(() => _focusedDay = DateTime(_focusedDay.year, _focusedDay.month - 1))),
                 Text(
                   DateFormat('MMMM yyyy').format(_focusedDay),
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: MyTheme.textDark),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: MyTheme.textDark, letterSpacing: 0.5),
                 ),
-                GestureDetector(
-                  onTap: () => setState(() => _focusedDay = DateTime(_focusedDay.year, _focusedDay.month + 1)),
-                  child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[100],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(Icons.chevron_right_rounded, color: Colors.grey[600], size: 22),
-                  ),
-                ),
+                _buildNavButton(Icons.chevron_right_rounded, 
+                    () => setState(() => _focusedDay = DateTime(_focusedDay.year, _focusedDay.month + 1))),
               ],
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 12),
           // Weekday headers
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -164,13 +160,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
                       child: Center(
                         child: Text(
                           d,
-                          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 12, color: Colors.grey[400]),
+                          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: Colors.grey[400]),
                         ),
                       ),
                     ))
                 .toList(),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 12),
           // Day grid
           GridView.builder(
             shrinkWrap: true,
@@ -178,8 +174,8 @@ class _CalendarScreenState extends State<CalendarScreen> {
             itemCount: daysInMonth + (firstWeekday - 1),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 7,
-              crossAxisSpacing: 2,
-              mainAxisSpacing: 2,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
             ),
             itemBuilder: (context, index) {
               if (index < firstWeekday - 1) return const SizedBox();
@@ -196,37 +192,39 @@ class _CalendarScreenState extends State<CalendarScreen> {
                   _focusedDay = currentDay;
                 }),
                 child: Container(
+                  alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: isSelected
-                        ? MyTheme.primaryBlue
-                        : isToday
-                            ? MyTheme.primaryBlue.withValues(alpha: 0.08)
-                            : Colors.transparent,
-                    borderRadius: BorderRadius.circular(10),
+                    shape: BoxShape.circle,
+                    color: isSelected 
+                        ? Colors.transparent 
+                        : (isToday ? MyTheme.primaryBlue.withValues(alpha: 0.1) : Colors.transparent),
+                    border: isSelected 
+                        ? Border.all(color: MyTheme.primaryBlue, width: 2) 
+                        : null,
                   ),
-                  child: Stack(
-                    alignment: Alignment.center,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
                         '$dayNumber',
                         style: TextStyle(
-                          fontSize: 13,
-                          color: isSelected ? Colors.white : MyTheme.textDark,
-                          fontWeight: isToday || isSelected ? FontWeight.bold : FontWeight.w500,
+                          fontSize: 15,
+                          color: isSelected ? MyTheme.primaryBlue : (isToday ? MyTheme.primaryBlue : MyTheme.textDark),
+                          fontWeight: isToday || isSelected ? FontWeight.w800 : FontWeight.w500,
+                          height: 1.0, // Control line height for better centering
                         ),
                       ),
-                      if (hasEvents)
-                        Positioned(
-                          bottom: 5,
-                          child: Container(
-                            width: 5,
-                            height: 5,
-                            decoration: BoxDecoration(
-                              color: isSelected ? Colors.white : MyTheme.primaryBlue,
-                              shape: BoxShape.circle,
-                            ),
+                      if (hasEvents) ...[
+                        const SizedBox(height: 4), // Clear gap below number
+                        Container(
+                          width: 4,
+                          height: 4,
+                          decoration: BoxDecoration(
+                            color: MyTheme.primaryBlue,
+                            shape: BoxShape.circle,
                           ),
                         ),
+                      ],
                     ],
                   ),
                 ),
@@ -238,65 +236,101 @@ class _CalendarScreenState extends State<CalendarScreen> {
     );
   }
 
+  Widget _buildNavButton(IconData icon, VoidCallback onTap) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.grey[50],
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.grey[200]!),
+        ),
+        child: Icon(icon, color: Colors.grey[700], size: 20),
+      ),
+    );
+  }
+
   // ─────────────────────────────────────────────────────────
   // EVENTS LIST
   // ─────────────────────────────────────────────────────────
   Widget _buildEventsList(List<TaskItem> events) {
-    return Expanded(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
-            child: Row(
-              children: [
-                Text(
-                  _selectedDay != null
-                      ? (_isSameDay(_selectedDay!, DateTime.now())
-                          ? "Today's Schedule"
-                          : DateFormat('d MMM').format(_selectedDay!))
-                      : "Today's Schedule",
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: MyTheme.textDark),
-                ),
-                const SizedBox(width: 8),
-                if (events.isNotEmpty)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: MyTheme.primaryBlue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(25, 20, 25, 12),
+          child: Row(
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _selectedDay != null
+                        ? (_isSameDay(_selectedDay!, DateTime.now())
+                            ? "Today's Schedule"
+                            : DateFormat('d MMMM').format(_selectedDay!))
+                        : "Today's Schedule",
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: MyTheme.textDark),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '${events.length} activities planned',
+                    style: TextStyle(fontSize: 12, color: Colors.grey[500], fontWeight: FontWeight.w500),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              if (events.isNotEmpty)
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: MyTheme.primaryBlue.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Center(
                     child: Text(
                       '${events.length}',
-                      style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: MyTheme.primaryBlue),
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: MyTheme.primaryBlue),
                     ),
                   ),
-              ],
-            ),
+                ),
+            ],
           ),
-          Expanded(
-            child: events.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.event_available_rounded, size: 48, color: Colors.grey[300]),
-                        const SizedBox(height: 8),
-                        Text(
-                          'No visits scheduled',
-                          style: TextStyle(color: Colors.grey[400], fontSize: 14),
+        ),
+        events.isEmpty
+            ? Center(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 40),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          shape: BoxShape.circle,
                         ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
-                    itemCount: events.length,
-                    itemBuilder: (context, i) => _buildEventCard(events[i]),
+                        child: Icon(Icons.calendar_today_outlined, size: 40, color: Colors.grey[300]),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Clean schedule for this day',
+                        style: TextStyle(color: Colors.grey[400], fontSize: 14, fontWeight: FontWeight.w500),
+                      ),
+                    ],
                   ),
-          ),
-        ],
-      ),
+                ),
+              )
+            : ListView.builder(
+                padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+                itemCount: events.length,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemBuilder: (context, i) => _buildEventCard(events[i]),
+              ),
+      ],
     );
   }
 

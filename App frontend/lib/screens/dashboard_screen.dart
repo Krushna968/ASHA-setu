@@ -7,6 +7,7 @@ import '../services/api_service.dart';
 import '../providers/app_state_provider.dart';
 import '../providers/area_map_provider.dart';
 import 'area_task_map_screen.dart';
+import '../l10n/app_localizations.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -101,9 +102,10 @@ class _DashboardScreenState extends State<DashboardScreen>
 
   String _getGreeting() {
     final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good Morning,';
-    if (hour < 17) return 'Good Afternoon,';
-    return 'Good Evening,';
+    final l10n = AppLocalizations.of(context)!;
+    if (hour < 12) return l10n.goodMorning;
+    if (hour < 17) return l10n.goodAfternoon;
+    return l10n.goodEvening;
   }
 
   void _handleLogout() async {
@@ -111,17 +113,17 @@ class _DashboardScreenState extends State<DashboardScreen>
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Logout'),
-        content: const Text('Are you sure you want to logout?'),
+        title: Text(AppLocalizations.of(context)!.logout),
+        content: Text(AppLocalizations.of(context)!.confirmLogout),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
+            child: Text(AppLocalizations.of(context)!.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: ElevatedButton.styleFrom(backgroundColor: MyTheme.criticalRed),
-            child: const Text('Logout'),
+            child: Text(AppLocalizations.of(context)!.logout),
           ),
         ],
       ),
@@ -160,11 +162,11 @@ class _DashboardScreenState extends State<DashboardScreen>
                   const SizedBox(height: 24),
                   _buildActionRequiredCard(),
                   const SizedBox(height: 24),
-                  _buildSectionTitle('Quick Actions'),
+                  _buildSectionTitle(AppLocalizations.of(context)!.quickActions),
                   const SizedBox(height: 14),
                   _buildQuickActionsGrid(),
                   const SizedBox(height: 24),
-                  _buildSectionTitle('Recent Activity', showViewAll: true),
+                  _buildSectionTitle(AppLocalizations.of(context)!.recentActivity, showViewAll: true),
                   const SizedBox(height: 14),
                   _buildRecentActivity(),
                   const SizedBox(height: 16),
@@ -246,7 +248,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                           ),
                         ),
                         Text(
-                          'HOUSES DONE',
+                          AppLocalizations.of(context)!.housesDone,
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.bold,
@@ -262,7 +264,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            'Total: $target Houses',
+                            AppLocalizations.of(context)!.totalHouses(target),
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -284,7 +286,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                       Icon(Icons.stars_rounded, color: MyTheme.successGreen, size: 18),
                       const SizedBox(width: 6),
                       Text(
-                        'Daily Target Achieved!',
+                        AppLocalizations.of(context)!.targetAchieved,
                         style: TextStyle(
                           color: MyTheme.successGreen,
                           fontWeight: FontWeight.bold,
@@ -309,7 +311,7 @@ class _DashboardScreenState extends State<DashboardScreen>
       children: [
         Expanded(
           child: _buildSimpleStat(
-            label: 'Individuals',
+            label: AppLocalizations.of(context)!.individuals,
             value: _isLoadingStats ? '—' : '$_individualsCount',
             icon: Icons.people_rounded,
             color: MyTheme.primaryBlue,
@@ -318,7 +320,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         const SizedBox(width: 12),
         Expanded(
           child: _buildSimpleStat(
-            label: 'Tasks',
+            label: AppLocalizations.of(context)!.tasks,
             value: _isLoadingStats ? '—' : '$_tasksCount',
             icon: Icons.assignment_turned_in_rounded,
             color: MyTheme.successGreen,
@@ -327,7 +329,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         const SizedBox(width: 12),
         Expanded(
           child: _buildSimpleStat(
-            label: 'Visits',
+            label: AppLocalizations.of(context)!.visits,
             value: _isLoadingStats ? '—' : '$_visitsCount',
             icon: Icons.directions_walk_rounded,
             color: MyTheme.warningOrange,
@@ -395,7 +397,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                 onTap: () => Navigator.pushNamed(context, '/high-risk'),
                 child: _buildSmallStatCard(
                   icon: Icons.warning_rounded,
-                  label: 'High Risk',
+                  label: AppLocalizations.of(context)!.highRisk,
                   value: '${provider.highRiskCount}',
                   color: provider.highRiskCount > 0 ? MyTheme.criticalRed : MyTheme.successGreen,
                 ),
@@ -405,7 +407,7 @@ class _DashboardScreenState extends State<DashboardScreen>
             Expanded(
               child: _buildSmallStatCard(
                 icon: Icons.pending_actions_rounded,
-                label: 'Due Today',
+                label: AppLocalizations.of(context)!.dueToday,
                 value: '${provider.dueTodayCount}',
                 color: provider.hasOverdue ? MyTheme.criticalRed : MyTheme.primaryBlue,
               ),
@@ -527,7 +529,7 @@ class _DashboardScreenState extends State<DashboardScreen>
                     Icon(Icons.cloud_done_rounded, size: 14, color: MyTheme.successGreen),
                     const SizedBox(width: 6),
                     Text(
-                      'Synced: $_lastSyncTime',
+                      AppLocalizations.of(context)!.synced(_lastSyncTime),
                       style: TextStyle(
                         color: MyTheme.successGreen,
                         fontWeight: FontWeight.w600,
@@ -677,9 +679,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                             color: Colors.white.withAlpha(50),
                             borderRadius: BorderRadius.circular(6),
                           ),
-                          child: const Text(
-                            'TODAY\'S TASKS',
-                            style: TextStyle(
+                          child: Text(
+                            AppLocalizations.of(context)!.todaysTasks,
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 10,
                               fontWeight: FontWeight.w700,
@@ -689,7 +691,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                         ),
                         const SizedBox(height: 10),
                         Text(
-                          pendingHouses > 0 ? '$pendingHouses Pending Houses' : 'All houses visited! 🎉',
+                          pendingHouses > 0 
+                            ? AppLocalizations.of(context)!.pendingHouses(pendingHouses) 
+                            : AppLocalizations.of(context)!.allHousesVisited,
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
@@ -700,9 +704,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                         // Progress bar
                         Row(
                           children: [
-                            const Text(
-                              'Progress',
-                              style: TextStyle(
+                            Text(
+                              AppLocalizations.of(context)!.progress,
+                              style: const TextStyle(
                                 color: Colors.white70,
                                 fontSize: 11,
                                 fontWeight: FontWeight.w500,
@@ -732,8 +736,8 @@ class _DashboardScreenState extends State<DashboardScreen>
                         const SizedBox(height: 8),
                         Text(
                           pendingHouses > 0
-                              ? '• Tap to view your task calendar.'
-                              : '• Great job staying on top of your work.',
+                              ? AppLocalizations.of(context)!.tapToViewTasks
+                              : AppLocalizations.of(context)!.greatJob,
                           style: const TextStyle(
                             color: Colors.white70,
                             fontSize: 11,
@@ -792,7 +796,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           GestureDetector(
             onTap: () => Navigator.pushNamed(context, '/individuals'),
             child: Text(
-              'View All',
+              AppLocalizations.of(context)!.viewAll,
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,

@@ -175,6 +175,576 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add Individual'**
   String get addIndividual;
+
+  /// No description provided for @logout.
+  ///
+  /// In en, this message translates to:
+  /// **'Logout'**
+  String get logout;
+
+  /// No description provided for @confirmLogout.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to logout?'**
+  String get confirmLogout;
+
+  /// No description provided for @cancel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get cancel;
+
+  /// No description provided for @viewAll.
+  ///
+  /// In en, this message translates to:
+  /// **'View All'**
+  String get viewAll;
+
+  /// No description provided for @loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading...'**
+  String get loading;
+
+  /// No description provided for @retry.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retry;
+
+  /// No description provided for @today.
+  ///
+  /// In en, this message translates to:
+  /// **'Today'**
+  String get today;
+
+  /// No description provided for @yesterday.
+  ///
+  /// In en, this message translates to:
+  /// **'Yesterday'**
+  String get yesterday;
+
+  /// No description provided for @daysAgo.
+  ///
+  /// In en, this message translates to:
+  /// **'days ago'**
+  String get daysAgo;
+
+  /// No description provided for @search.
+  ///
+  /// In en, this message translates to:
+  /// **'Search'**
+  String get search;
+
+  /// No description provided for @goodMorning.
+  ///
+  /// In en, this message translates to:
+  /// **'Good Morning,'**
+  String get goodMorning;
+
+  /// No description provided for @goodAfternoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Good Afternoon,'**
+  String get goodAfternoon;
+
+  /// No description provided for @goodEvening.
+  ///
+  /// In en, this message translates to:
+  /// **'Good Evening,'**
+  String get goodEvening;
+
+  /// No description provided for @quickActions.
+  ///
+  /// In en, this message translates to:
+  /// **'Quick Actions'**
+  String get quickActions;
+
+  /// No description provided for @recentActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Activity'**
+  String get recentActivity;
+
+  /// No description provided for @housesDone.
+  ///
+  /// In en, this message translates to:
+  /// **'HOUSES DONE'**
+  String get housesDone;
+
+  /// No description provided for @totalHouses.
+  ///
+  /// In en, this message translates to:
+  /// **'Total: {count} Houses'**
+  String totalHouses(Object count);
+
+  /// No description provided for @targetAchieved.
+  ///
+  /// In en, this message translates to:
+  /// **'Daily Target Achieved!'**
+  String get targetAchieved;
+
+  /// No description provided for @highRisk.
+  ///
+  /// In en, this message translates to:
+  /// **'High Risk'**
+  String get highRisk;
+
+  /// No description provided for @dueToday.
+  ///
+  /// In en, this message translates to:
+  /// **'Due Today'**
+  String get dueToday;
+
+  /// No description provided for @synced.
+  ///
+  /// In en, this message translates to:
+  /// **'Synced: {time}'**
+  String synced(Object time);
+
+  /// No description provided for @directoryTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Individual Directory'**
+  String get directoryTitle;
+
+  /// No description provided for @registeredCount.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} registered individuals'**
+  String registeredCount(Object count);
+
+  /// No description provided for @searchHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search by name or address...'**
+  String get searchHint;
+
+  /// No description provided for @categoryAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get categoryAll;
+
+  /// No description provided for @categoryGeneral.
+  ///
+  /// In en, this message translates to:
+  /// **'General'**
+  String get categoryGeneral;
+
+  /// No description provided for @ageLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Age {age}'**
+  String ageLabel(Object age);
+
+  /// No description provided for @lastVisit.
+  ///
+  /// In en, this message translates to:
+  /// **'Last visit: {date}'**
+  String lastVisit(Object date);
+
+  /// No description provided for @todaysTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'TODAY\'S TASKS'**
+  String get todaysTasks;
+
+  /// No description provided for @pendingHouses.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} Pending Houses'**
+  String pendingHouses(Object count);
+
+  /// No description provided for @allHousesVisited.
+  ///
+  /// In en, this message translates to:
+  /// **'All houses visited! 🎉'**
+  String get allHousesVisited;
+
+  /// No description provided for @progress.
+  ///
+  /// In en, this message translates to:
+  /// **'Progress'**
+  String get progress;
+
+  /// No description provided for @tapToViewTasks.
+  ///
+  /// In en, this message translates to:
+  /// **'• Tap to view your task calendar.'**
+  String get tapToViewTasks;
+
+  /// No description provided for @greatJob.
+  ///
+  /// In en, this message translates to:
+  /// **'• Great job staying on top of your work.'**
+  String get greatJob;
+
+  /// No description provided for @noMatch.
+  ///
+  /// In en, this message translates to:
+  /// **'No individuals match \"{query}\"'**
+  String noMatch(Object query);
+
+  /// No description provided for @noIndividualsInCategory.
+  ///
+  /// In en, this message translates to:
+  /// **'No individuals in this category'**
+  String get noIndividualsInCategory;
+
+  /// No description provided for @detailsComingSoon.
+  ///
+  /// In en, this message translates to:
+  /// **'Individual Details coming soon!'**
+  String get detailsComingSoon;
+
+  /// No description provided for @unknown.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown'**
+  String get unknown;
+
+  /// No description provided for @unknownAddress.
+  ///
+  /// In en, this message translates to:
+  /// **'Unknown Address'**
+  String get unknownAddress;
+
+  /// No description provided for @logVisitTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Log Healthcare Visit'**
+  String get logVisitTitle;
+
+  /// No description provided for @selectHousehold.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Household'**
+  String get selectHousehold;
+
+  /// No description provided for @individualStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Individual'**
+  String get individualStep;
+
+  /// No description provided for @detailsStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get detailsStep;
+
+  /// No description provided for @notesStep.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes'**
+  String get notesStep;
+
+  /// No description provided for @selectHouseLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Select a household'**
+  String get selectHouseLabel;
+
+  /// No description provided for @searchIndividualHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search individual...'**
+  String get searchIndividualHint;
+
+  /// No description provided for @noIndividualsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No individuals found for this search.'**
+  String get noIndividualsFound;
+
+  /// No description provided for @visitDate.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit Date'**
+  String get visitDate;
+
+  /// No description provided for @visitType.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit Type'**
+  String get visitType;
+
+  /// No description provided for @routineCheckup.
+  ///
+  /// In en, this message translates to:
+  /// **'Routine Checkup'**
+  String get routineCheckup;
+
+  /// No description provided for @immunization.
+  ///
+  /// In en, this message translates to:
+  /// **'Immunization'**
+  String get immunization;
+
+  /// No description provided for @followUp.
+  ///
+  /// In en, this message translates to:
+  /// **'Follow-up'**
+  String get followUp;
+
+  /// No description provided for @emergency.
+  ///
+  /// In en, this message translates to:
+  /// **'Emergency'**
+  String get emergency;
+
+  /// No description provided for @symptomsObserved.
+  ///
+  /// In en, this message translates to:
+  /// **'Symptoms Observed'**
+  String get symptomsObserved;
+
+  /// No description provided for @otherObservationsHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Any other observations...'**
+  String get otherObservationsHint;
+
+  /// No description provided for @houseClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'House was closed'**
+  String get houseClosed;
+
+  /// No description provided for @next.
+  ///
+  /// In en, this message translates to:
+  /// **'Next'**
+  String get next;
+
+  /// No description provided for @back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get back;
+
+  /// No description provided for @submitVisit.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit Visit'**
+  String get submitVisit;
+
+  /// No description provided for @successVisitLogged.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit logged successfully!'**
+  String get successVisitLogged;
+
+  /// No description provided for @visitLoggedAndHouseClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit logged & house marked as closed!'**
+  String get visitLoggedAndHouseClosed;
+
+  /// No description provided for @visitLoggedSuccessfully.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit logged successfully!'**
+  String get visitLoggedSuccessfully;
+
+  /// No description provided for @visitSavedOffline.
+  ///
+  /// In en, this message translates to:
+  /// **'Visit saved offline (will sync later)'**
+  String get visitSavedOffline;
+
+  /// No description provided for @failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Failed'**
+  String get failed;
+
+  /// No description provided for @house.
+  ///
+  /// In en, this message translates to:
+  /// **'House'**
+  String get house;
+
+  /// No description provided for @individual.
+  ///
+  /// In en, this message translates to:
+  /// **'Individual'**
+  String get individual;
+
+  /// No description provided for @details.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get details;
+
+  /// No description provided for @symptoms.
+  ///
+  /// In en, this message translates to:
+  /// **'Symptoms'**
+  String get symptoms;
+
+  /// No description provided for @noHouseholdsFound.
+  ///
+  /// In en, this message translates to:
+  /// **'No households found'**
+  String get noHouseholdsFound;
+
+  /// No description provided for @members.
+  ///
+  /// In en, this message translates to:
+  /// **'members'**
+  String get members;
+
+  /// No description provided for @individualsInThisHouse.
+  ///
+  /// In en, this message translates to:
+  /// **'individuals in this house'**
+  String get individualsInThisHouse;
+
+  /// No description provided for @noIndividualsInThisHouse.
+  ///
+  /// In en, this message translates to:
+  /// **'No individuals in this house'**
+  String get noIndividualsInThisHouse;
+
+  /// No description provided for @registerIndividualPrompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Register an individual to this house first'**
+  String get registerIndividualPrompt;
+
+  /// No description provided for @age.
+  ///
+  /// In en, this message translates to:
+  /// **'Age'**
+  String get age;
+
+  /// No description provided for @ancFollowUp.
+  ///
+  /// In en, this message translates to:
+  /// **'ANC Follow-up'**
+  String get ancFollowUp;
+
+  /// No description provided for @pncFollowUp.
+  ///
+  /// In en, this message translates to:
+  /// **'PNC Follow-up'**
+  String get pncFollowUp;
+
+  /// No description provided for @medicineDelivery.
+  ///
+  /// In en, this message translates to:
+  /// **'Medicine Delivery'**
+  String get medicineDelivery;
+
+  /// No description provided for @healthEducation.
+  ///
+  /// In en, this message translates to:
+  /// **'Health Education'**
+  String get healthEducation;
+
+  /// No description provided for @feverHighTemperature.
+  ///
+  /// In en, this message translates to:
+  /// **'Fever / High Temperature'**
+  String get feverHighTemperature;
+
+  /// No description provided for @persistentCough.
+  ///
+  /// In en, this message translates to:
+  /// **'Persistent Cough'**
+  String get persistentCough;
+
+  /// No description provided for @breathingDifficulty.
+  ///
+  /// In en, this message translates to:
+  /// **'Breathing Difficulty'**
+  String get breathingDifficulty;
+
+  /// No description provided for @diarrheaStomachPain.
+  ///
+  /// In en, this message translates to:
+  /// **'Diarrhea / Stomach Pain'**
+  String get diarrheaStomachPain;
+
+  /// No description provided for @bodyPainWeakness.
+  ///
+  /// In en, this message translates to:
+  /// **'Body Pain / Weakness'**
+  String get bodyPainWeakness;
+
+  /// No description provided for @skinRashAllergy.
+  ///
+  /// In en, this message translates to:
+  /// **'Skin Rash / Allergy'**
+  String get skinRashAllergy;
+
+  /// No description provided for @tapAllThatApply.
+  ///
+  /// In en, this message translates to:
+  /// **'Tap all that apply'**
+  String get tapAllThatApply;
+
+  /// No description provided for @notesObservations.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes / Observations'**
+  String get notesObservations;
+
+  /// No description provided for @anyAdditionalObservations.
+  ///
+  /// In en, this message translates to:
+  /// **'Any additional observations...'**
+  String get anyAdditionalObservations;
+
+  /// No description provided for @markHouseAsClosed.
+  ///
+  /// In en, this message translates to:
+  /// **'Mark House as Closed'**
+  String get markHouseAsClosed;
+
+  /// No description provided for @houseClosedExplanation.
+  ///
+  /// In en, this message translates to:
+  /// **'This will grey out the house on the map'**
+  String get houseClosedExplanation;
+
+  /// No description provided for @submitAndCloseHouse.
+  ///
+  /// In en, this message translates to:
+  /// **'Submit & Close House'**
+  String get submitAndCloseHouse;
+
+  /// No description provided for @continueText.
+  ///
+  /// In en, this message translates to:
+  /// **'Continue'**
+  String get continueText;
+
+  /// No description provided for @home.
+  ///
+  /// In en, this message translates to:
+  /// **'Home'**
+  String get home;
+
+  /// No description provided for @notifications.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications'**
+  String get notifications;
+
+  /// No description provided for @calendar.
+  ///
+  /// In en, this message translates to:
+  /// **'Calendar'**
+  String get calendar;
+
+  /// No description provided for @profile.
+  ///
+  /// In en, this message translates to:
+  /// **'Profile'**
+  String get profile;
 }
 
 class _AppLocalizationsDelegate

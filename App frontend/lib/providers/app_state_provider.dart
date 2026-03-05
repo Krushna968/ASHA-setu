@@ -22,10 +22,14 @@ class AppStateProvider extends ChangeNotifier {
   
   // Tab navigation (used by MainScreen)
   int _currentIndex = 0;
+  
+  // Locale management
+  Locale _locale = const Locale('en');
 
   bool get isLoading => _isLoading;
   bool get isTransitioning => _isTransitioning;
   int get currentIndex => _currentIndex;
+  Locale get locale => _locale;
   String? get error => _error;
   List<dynamic> get individuals => _individuals;
   List<dynamic> get visits => _visits;
@@ -44,6 +48,13 @@ class AppStateProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  void setLocale(Locale locale) {
+    if (!['en', 'hi', 'mr', 'ta', 'te'].contains(locale.languageCode)) return;
+    _locale = locale;
+    _box.put('locale', locale.languageCode);
+    notifyListeners();
+  }
+
   void setCurrentIndex(int index) {
     _currentIndex = index;
     notifyListeners();
@@ -57,6 +68,11 @@ class AppStateProvider extends ChangeNotifier {
     
     final List<dynamic> localPending = _box.get('pendingRequests', defaultValue: []);
     _pendingRequests = localPending.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+    
+    final String? localeCode = _box.get('locale');
+    if (localeCode != null) {
+      _locale = Locale(localeCode);
+    }
     
     notifyListeners();
 

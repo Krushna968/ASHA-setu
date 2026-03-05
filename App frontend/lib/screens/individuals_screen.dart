@@ -3,6 +3,7 @@ import '../theme/app_theme.dart';
 import 'add_individual_screen.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state_provider.dart';
+import '../l10n/app_localizations.dart';
 
 class IndividualsScreen extends StatefulWidget {
   const IndividualsScreen({super.key});
@@ -17,18 +18,22 @@ class _IndividualsScreenState extends State<IndividualsScreen>
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
 
-  final List<CategoryTab> _categories = [
-    CategoryTab('All', Icons.people_rounded, MyTheme.primaryBlue),
-    CategoryTab('ANC', Icons.pregnant_woman_rounded, Colors.purple),
-    CategoryTab('PNC', Icons.child_friendly_rounded, Colors.pink),
-    CategoryTab('Infants', Icons.child_care_rounded, Colors.orange),
-    CategoryTab('General', Icons.person_rounded, Colors.teal),
-  ];
+  List<CategoryTab> _getLocalizedCategories() {
+    final l10n = AppLocalizations.of(context)!;
+    return [
+      CategoryTab('All', Icons.people_rounded, MyTheme.primaryBlue, label: l10n.categoryAll),
+      CategoryTab('ANC', Icons.pregnant_woman_rounded, Colors.purple),
+      CategoryTab('PNC', Icons.child_friendly_rounded, Colors.pink),
+      CategoryTab('Infants', Icons.child_care_rounded, Colors.orange),
+      CategoryTab('General', Icons.person_rounded, Colors.teal, label: l10n.categoryGeneral),
+    ];
+  }
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: _categories.length, vsync: this);
+    // Categories depend on context for localization, so we don't init them here
+    _tabController = TabController(length: 5, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<AppStateProvider>(context, listen: false).fetchIndividuals();
     });
@@ -94,7 +99,7 @@ class _IndividualsScreenState extends State<IndividualsScreen>
                       ? _buildErrorState(_errorMsg)
                       : TabBarView(
                           controller: _tabController,
-                          children: _categories.map((cat) {
+                          children: _getLocalizedCategories().map((cat) {
                             return _buildIndividualList(_filterIndividuals(cat.name, _allIndividuals));
                           }).toList(),
                         ),
@@ -106,9 +111,9 @@ class _IndividualsScreenState extends State<IndividualsScreen>
         backgroundColor: MyTheme.primaryBlue,
         elevation: 6,
         icon: const Icon(Icons.person_add_rounded, color: Colors.white),
-        label: const Text(
-          'Add Individual',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        label: Text(
+          AppLocalizations.of(context)!.addIndividual,
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         onPressed: () async {
           final result = await Navigator.push(
@@ -134,9 +139,9 @@ class _IndividualsScreenState extends State<IndividualsScreen>
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Individual Directory',
-                style: TextStyle(
+              Text(
+                AppLocalizations.of(context)!.directoryTitle,
+                style: const TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
                   color: MyTheme.textDark,
@@ -145,8 +150,8 @@ class _IndividualsScreenState extends State<IndividualsScreen>
               const SizedBox(height: 2),
               Text(
                 isLoading
-                    ? 'Loading...'
-                    : '$totalIndividuals registered individuals',
+                    ? AppLocalizations.of(context)!.loading
+                    : AppLocalizations.of(context)!.registeredCount(totalIndividuals),
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.grey[500],
@@ -195,7 +200,7 @@ class _IndividualsScreenState extends State<IndividualsScreen>
           controller: _searchController,
           onChanged: (val) => setState(() => _searchQuery = val),
           decoration: InputDecoration(
-            hintText: 'Search by name or address...',
+            hintText: AppLocalizations.of(context)!.searchHint,
             hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
             prefixIcon: Icon(Icons.search_rounded, color: Colors.grey[400]),
             suffixIcon: _searchQuery.isNotEmpty
@@ -234,7 +239,7 @@ class _IndividualsScreenState extends State<IndividualsScreen>
         unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
         tabAlignment: TabAlignment.start,
         padding: const EdgeInsets.symmetric(horizontal: 12),
-        tabs: _categories.map((cat) {
+        tabs: _getLocalizedCategories().map((cat) {
           final count = counts[cat.name] ?? 0;
           return Tab(
             child: Row(
@@ -242,11 +247,7 @@ class _IndividualsScreenState extends State<IndividualsScreen>
               children: [
                 Icon(cat.icon, size: 16),
                 const SizedBox(width: 6),
-                Text(cat.name == 'ANC'
-                    ? 'ANC'
-                    : cat.name == 'PNC'
-                        ? 'PNC'
-                        : cat.name),
+                Text(cat.label ?? cat.name),
                 if (!isLoading) ...[
                   const SizedBox(width: 4),
                   Container(
@@ -297,7 +298,7 @@ class _IndividualsScreenState extends State<IndividualsScreen>
             ElevatedButton.icon(
               onPressed: _fetchIndividuals,
               icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Retry'),
+              label: Text(AppLocalizations.of(context)!.retry),
               style: ElevatedButton.styleFrom(
                 backgroundColor: MyTheme.primaryBlue,
                 foregroundColor: Colors.white,
@@ -323,8 +324,8 @@ class _IndividualsScreenState extends State<IndividualsScreen>
             const SizedBox(height: 12),
             Text(
               _searchQuery.isNotEmpty
-                  ? 'No individuals match "$_searchQuery"'
-                  : 'No individuals in this category',
+                  ? AppLocalizations.of(context)!.noMatch(_searchQuery)
+                  : AppLocalizations.of(context)!.noIndividualsInCategory,
               style: TextStyle(color: Colors.grey[400], fontSize: 15),
             ),
           ],
@@ -347,10 +348,10 @@ class _IndividualsScreenState extends State<IndividualsScreen>
   }
 
   Widget _buildIndividualCard(Map<String, dynamic> individual, int index) {
-    final String name = individual['name'] ?? 'Unknown';
+    final String name = individual['name'] ?? AppLocalizations.of(context)!.unknown;
     final int age = individual['age'] ?? 0;
-    final String address = individual['address'] ?? 'Unknown Address';
-    final String category = individual['category'] ?? 'General';
+    final String address = individual['address'] ?? AppLocalizations.of(context)!.unknownAddress;
+    final String category = individual['category'] ?? AppLocalizations.of(context)!.categoryGeneral;
     final List visits = individual['visitHistory'] ?? [];
     final String? lastVisit = visits.isNotEmpty ? visits[0]['visitDate'] : null;
 
@@ -391,7 +392,7 @@ class _IndividualsScreenState extends State<IndividualsScreen>
             borderRadius: BorderRadius.circular(16),
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Individual Details coming soon!')),
+                SnackBar(content: Text(AppLocalizations.of(context)!.detailsComingSoon)),
               );
             },
             child: Padding(
@@ -459,7 +460,7 @@ class _IndividualsScreenState extends State<IndividualsScreen>
                             Icon(Icons.cake_rounded, size: 13, color: Colors.grey[400]),
                             const SizedBox(width: 4),
                             Text(
-                              'Age $age',
+                              AppLocalizations.of(context)!.ageLabel(age),
                               style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                             ),
                             const SizedBox(width: 12),
@@ -487,8 +488,8 @@ class _IndividualsScreenState extends State<IndividualsScreen>
                                 ),
                               ),
                               const SizedBox(width: 6),
-                              Text(
-                                'Last visit: ${_formatDate(lastVisit)}',
+                               Text(
+                                AppLocalizations.of(context)!.lastVisit(_formatDate(lastVisit)),
                                 style: TextStyle(
                                   fontSize: 11,
                                   color: Colors.grey[400],
@@ -535,10 +536,11 @@ class _IndividualsScreenState extends State<IndividualsScreen>
       final date = DateTime.parse(dateStr);
       final now = DateTime.now();
       final diff = now.difference(date);
+      final l10n = AppLocalizations.of(context)!;
 
-      if (diff.inDays == 0) return 'Today';
-      if (diff.inDays == 1) return 'Yesterday';
-      if (diff.inDays < 7) return '${diff.inDays} days ago';
+      if (diff.inDays == 0) return l10n.today;
+      if (diff.inDays == 1) return l10n.yesterday;
+      if (diff.inDays < 7) return '${diff.inDays} ${l10n.daysAgo}';
       return '${date.day}/${date.month}/${date.year}';
     } catch (_) {
       return dateStr;
@@ -553,6 +555,7 @@ class CategoryTab {
   final String name;
   final IconData icon;
   final Color color;
+  final String? label;
 
-  CategoryTab(this.name, this.icon, this.color);
+  CategoryTab(this.name, this.icon, this.color, {this.label});
 }

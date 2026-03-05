@@ -4,6 +4,7 @@ import '../services/api_service.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state_provider.dart';
 import '../providers/area_map_provider.dart';
+import '../l10n/app_localizations.dart';
 
 class VisitFormScreen extends StatefulWidget {
   const VisitFormScreen({super.key});
@@ -148,9 +149,9 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
                   child: Text(
                     synced
                         ? (_markHouseClosed
-                            ? 'Visit logged & house marked as closed!'
-                            : 'Visit logged successfully!')
-                        : 'Visit saved offline (will sync later)',
+                            ? AppLocalizations.of(context)!.visitLoggedAndHouseClosed
+                            : AppLocalizations.of(context)!.visitLoggedSuccessfully)
+                        : AppLocalizations.of(context)!.visitSavedOffline,
                   ),
                 ),
               ],
@@ -167,7 +168,7 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed: ${e.toString()}'),
+            content: Text('${AppLocalizations.of(context)!.failed}: $e'),
             backgroundColor: MyTheme.criticalRed,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -182,7 +183,8 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final steps = ['House', 'Individual', 'Details', 'Symptoms'];
+    final l10n = AppLocalizations.of(context)!;
+    final steps = [l10n.house, l10n.individual, l10n.details, l10n.symptoms];
 
     return Scaffold(
       backgroundColor: MyTheme.backgroundWhite,
@@ -191,7 +193,7 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
         elevation: 0,
         surfaceTintColor: Colors.transparent,
         foregroundColor: MyTheme.textDark,
-        title: const Text('Log Visit', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+        title: Text(l10n.logVisitTitle, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () {
@@ -290,13 +292,14 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
 
   // ─── STEP 0 — Select House ──────────────────────────────────────
   Widget _buildStep0HouseSelect() {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       key: const ValueKey('step0'),
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
-          child: Text('Select a household', style: TextStyle(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500)),
+          child: Text(l10n.selectHousehold, style: TextStyle(fontSize: 13, color: Colors.grey[600], fontWeight: FontWeight.w500)),
         ),
         Expanded(
           child: _isLoadingHouseholds
@@ -308,7 +311,7 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
                         children: [
                           Icon(Icons.home_work_outlined, size: 48, color: Colors.grey[300]),
                           const SizedBox(height: 12),
-                          Text('No households found', style: TextStyle(color: Colors.grey[500], fontSize: 14)),
+                          Text(l10n.noHouseholdsFound, style: TextStyle(color: Colors.grey[500], fontSize: 14)),
                         ],
                       ),
                     )
@@ -380,7 +383,7 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(headName, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-                                      Text('$members members • $status', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+                                      Text('$members ${l10n.members} • $status', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
                                     ],
                                   ),
                                 ),
@@ -399,6 +402,7 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
 
   // ─── STEP 1 — Select Individual (filtered by house) ───────────────
   Widget _buildStep1IndividualSelect() {
+    final l10n = AppLocalizations.of(context)!;
     final filtered = _searchQuery.isEmpty
         ? _householdIndividuals
         : _householdIndividuals.where((p) {
@@ -444,7 +448,7 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
               controller: _searchController,
               onChanged: (v) => setState(() => _searchQuery = v),
               decoration: InputDecoration(
-                hintText: 'Search individual by name...',
+                hintText: l10n.searchIndividualHint,
                 hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
                 prefixIcon: Icon(Icons.search_rounded, color: Colors.grey[400]),
                 border: InputBorder.none,
@@ -455,7 +459,7 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
-          child: Text('${filtered.length} individuals in this house', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+          child: Text('${filtered.length} ${l10n.individualsInThisHouse}', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
         ),
         Expanded(
           child: _isLoadingIndividuals
@@ -467,9 +471,9 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
                         children: [
                           Icon(Icons.person_off_outlined, size: 48, color: Colors.grey[300]),
                           const SizedBox(height: 12),
-                          Text('No individuals in this house', style: TextStyle(color: Colors.grey[500])),
+                          Text(l10n.noIndividualsInThisHouse, style: TextStyle(color: Colors.grey[500])),
                           const SizedBox(height: 4),
-                          Text('Register an individual to this house first', style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+                          Text(l10n.registerIndividualPrompt, style: TextStyle(color: Colors.grey[400], fontSize: 12)),
                         ],
                       ),
                     )
@@ -524,7 +528,7 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
                                     children: [
                                       Text(name, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
                                       Text(
-                                        'Age $age • $category${relation.isNotEmpty ? ' • $relation' : ''}',
+                                        '${l10n.age} $age • $category${relation.isNotEmpty ? ' • $relation' : ''}',
                                         style: TextStyle(fontSize: 12, color: Colors.grey[500]),
                                       ),
                                     ],
@@ -545,6 +549,15 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
 
   // ─── STEP 2 — Visit Details ─────────────────────────────────────
   Widget _buildStep2Details() {
+    final l10n = AppLocalizations.of(context)!;
+    _visitTypes[0] = l10n.routineCheckup;
+    _visitTypes[1] = l10n.ancFollowUp;
+    _visitTypes[2] = l10n.pncFollowUp;
+    _visitTypes[3] = l10n.immunization;
+    _visitTypes[4] = l10n.emergency;
+    _visitTypes[5] = l10n.medicineDelivery;
+    _visitTypes[6] = l10n.healthEducation;
+
     return SingleChildScrollView(
       key: const ValueKey('step2'),
       padding: const EdgeInsets.all(20),
@@ -574,7 +587,7 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
           const SizedBox(height: 24),
 
           // Visit Date
-          const Text('Visit Date', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: MyTheme.textDark)),
+          Text(l10n.visitDate, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: MyTheme.textDark)),
           const SizedBox(height: 8),
           GestureDetector(
             onTap: () async {
@@ -607,7 +620,7 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
           const SizedBox(height: 24),
 
           // Visit Type
-          const Text('Visit Type', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: MyTheme.textDark)),
+          Text(l10n.visitType, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: MyTheme.textDark)),
           const SizedBox(height: 10),
           Wrap(
             spacing: 8,
@@ -639,15 +652,23 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
 
   // ─── STEP 3 — Symptoms, Notes & House Close Toggle ──────────────
   Widget _buildStep3SymptomsAndClose() {
+    final l10n = AppLocalizations.of(context)!;
+    _symptoms[0] = _SymptomOption(l10n.feverHighTemperature, Icons.thermostat_rounded, Colors.red);
+    _symptoms[1] = _SymptomOption(l10n.persistentCough, Icons.air_rounded, Colors.orange);
+    _symptoms[2] = _SymptomOption(l10n.breathingDifficulty, Icons.coronavirus_rounded, Colors.deepOrange);
+    _symptoms[3] = _SymptomOption(l10n.diarrheaStomachPain, Icons.sick_rounded, Colors.amber);
+    _symptoms[4] = _SymptomOption(l10n.bodyPainWeakness, Icons.accessibility_new_rounded, Colors.purple);
+    _symptoms[5] = _SymptomOption(l10n.skinRashAllergy, Icons.healing_rounded, Colors.pink);
+
     return SingleChildScrollView(
       key: const ValueKey('step3'),
       padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Symptoms Observed', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: MyTheme.textDark)),
+          Text(l10n.symptomsObserved, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: MyTheme.textDark)),
           const SizedBox(height: 4),
-          Text('Tap all that apply', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+          Text(l10n.tapAllThatApply, style: TextStyle(fontSize: 12, color: Colors.grey[500])),
           const SizedBox(height: 14),
 
           ...List.generate(_symptoms.length, (i) {
@@ -701,7 +722,7 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
           }),
 
           const SizedBox(height: 20),
-          const Text('Notes / Observations', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: MyTheme.textDark)),
+          Text(l10n.notesObservations, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: MyTheme.textDark)),
           const SizedBox(height: 8),
           Container(
             decoration: BoxDecoration(
@@ -712,7 +733,7 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
               maxLines: 4,
               style: const TextStyle(fontSize: 14),
               decoration: InputDecoration(
-                hintText: 'Any additional observations...',
+                hintText: l10n.anyAdditionalObservations,
                 hintStyle: TextStyle(color: Colors.grey[400], fontSize: 13),
                 filled: true,
                 fillColor: Colors.white,
@@ -756,7 +777,7 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Mark House as Closed',
+                        l10n.markHouseAsClosed,
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 14,
@@ -764,7 +785,7 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
                         ),
                       ),
                       Text(
-                        'This will grey out the house on the map',
+                        l10n.houseClosedExplanation,
                         style: TextStyle(fontSize: 11, color: Colors.grey[500]),
                       ),
                     ],
@@ -786,6 +807,7 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
 
   // ─── Bottom Bar ─────────────────────────────────────────────────
   Widget _buildBottomBar() {
+    final l10n = AppLocalizations.of(context)!;
     final isLastStep = _currentStep == 3;
     bool canProceed;
     switch (_currentStep) {
@@ -817,7 +839,7 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
                   side: BorderSide(color: Colors.grey.shade300),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                child: const Text('Back', style: TextStyle(fontWeight: FontWeight.w600)),
+                child: Text(l10n.back, style: const TextStyle(fontWeight: FontWeight.w600)),
               ),
             ),
           if (_currentStep > 0) const SizedBox(width: 12),
@@ -850,8 +872,8 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
                       children: [
                         Text(
                           isLastStep
-                              ? (_markHouseClosed ? 'Submit & Close House' : 'Submit Visit')
-                              : 'Continue',
+                              ? (_markHouseClosed ? l10n.submitAndCloseHouse : l10n.submitVisit)
+                              : l10n.continueText,
                           style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
                         ),
                         const SizedBox(width: 6),

@@ -20,6 +20,7 @@ import 'screens/help_support_screen.dart';
 import 'screens/add_individual_screen.dart';
 import 'screens/high_risk_screen.dart';
 import 'screens/registration_screen.dart';
+import 'screens/language_selection_screen.dart';
 import 'services/auth_service.dart';
 import 'providers/app_state_provider.dart';
 import 'services/notification_service.dart';
@@ -67,63 +68,76 @@ class AshaSetuApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'ASHA Setu',
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: AppLocalizations.supportedLocales,
-      theme: MyTheme.lightTheme,
-      home: FutureBuilder<bool>(
-        future: AuthService.isLoggedIn(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Scaffold(
-              body: Center(
-                child: CircularProgressIndicator(),
-              ),
+    return Consumer<AppStateProvider>(
+      builder: (context, appState, child) {
+        return MaterialApp(
+          title: 'ASHA Setu',
+          locale: appState.locale,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          theme: MyTheme.lightTheme,
+          home: FutureBuilder<List<bool>>(
+            future: Future.wait([
+              AuthService.isLoggedIn(),
+              AuthService.isLanguageSelected(),
+            ]),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Scaffold(
+                  body: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+              
+              final isLoggedIn = snapshot.data?[0] ?? false;
+              final isLanguageSelected = snapshot.data?[1] ?? false;
+              
+              if (isLoggedIn) {
+                return const MainScreen(); // Direct to dashboard
+              } else if (isLanguageSelected) {
+                return const LoginScreen(); // Skip language, go to login
+              } else {
+                return const LanguageSelectionScreen(); // Show language first
+              }
+            },
+          ),
+          routes: {
+            '/login': (context) => const LoginScreen(),
+            '/dashboard': (context) => const MainScreen(),
+            '/visit-form': (context) => const VisitFormScreen(),
+            '/individuals': (context) => const IndividualsScreen(),
+            '/messenger': (context) => const MessengerScreen(),
+            '/emergency': (context) => const EmergencyScreen(),
+            '/calendar': (context) => const CalendarScreen(),
+            '/inventory': (context) => const InventoryScreen(),
+            '/learning': (context) => const LearningScreen(),
+            '/profile': (context) => const ProfileScreen(),
+            '/help': (context) => const HelpSupportScreen(),
+            '/add-individual': (context) => const AddIndividualScreen(),
+            '/high-risk': (context) => const HighRiskScreen(),
+            '/login': (context) => const LoginScreen(),
+            '/register': (context) => const RegistrationScreen(),
+            '/language': (context) => const LanguageSelectionScreen(),
+          },
+          debugShowCheckedModeBanner: false,
+          builder: (context, child) {
+            return Stack(
+              children: [
+                if (child != null) child,
+                Consumer<AppStateProvider>(
+                  builder: (context, appState, _) {
+                    if (appState.isTransitioning) {
+                      return const LoadingTransitionScreen(message: 'Loading ASHA-Setu...');
+                    }
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ],
             );
-          }
-          final isLoggedIn = snapshot.data ?? false;
-          
-          if (isLoggedIn) {
-            return const MainScreen();
-          } else {
-            return const MainScreen();
-          }
-        },
-      ),
-      routes: {
-        '/dashboard': (context) => const MainScreen(),
-        '/visit-form': (context) => const VisitFormScreen(),
-        '/individuals': (context) => const IndividualsScreen(),
-        '/messenger': (context) => const MessengerScreen(),
-        '/emergency': (context) => const EmergencyScreen(),
-        '/calendar': (context) => const CalendarScreen(),
-        '/inventory': (context) => const InventoryScreen(),
-        '/learning': (context) => const LearningScreen(),
-        '/profile': (context) => const ProfileScreen(),
-        '/help': (context) => const HelpSupportScreen(),
-        '/add-individual': (context) => const AddIndividualScreen(),
-        '/high-risk': (context) => const HighRiskScreen(),
-        '/login': (context) => const LoginScreen(),
-        '/register': (context) => const RegistrationScreen(),
-      },
-      builder: (context, child) {
-        return Stack(
-          children: [
-            if (child != null) child,
-            Consumer<AppStateProvider>(
-              builder: (context, appState, _) {
-                if (appState.isTransitioning) {
-                  return const LoadingTransitionScreen(message: 'Loading ASHA-Setu...');
-                }
-                return const SizedBox.shrink();
-              },
-            ),
-          ],
+          },
         );
       },
-      debugShowCheckedModeBanner: false,
     );
   }
 }
-

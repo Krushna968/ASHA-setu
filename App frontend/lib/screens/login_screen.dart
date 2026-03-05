@@ -5,6 +5,7 @@ import '../services/api_service.dart';
 import '../services/auth_service.dart';
 import '../services/notification_service.dart';
 import 'otp_screen.dart';
+import '../l10n/app_localizations.dart';
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
@@ -13,7 +14,6 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  String _selectedLanguage = 'English';
   final TextEditingController _phoneController = TextEditingController();
   bool _isLoading = false;
   String? _errorMessage;
@@ -107,42 +107,13 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 24), // Reduced to shift language selection up
               
-              // Language Selection
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.language, size: 20, color: MyTheme.primaryBlue),
-                  const SizedBox(width: 8),
-                  Text(
-                    _selectedLanguage == 'हिंदी' ? 'भाषा चुनें' : 'SELECT LANGUAGE',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(30),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: Row(
-                  children: [
-                    _buildLanguageOption('English'),
-                    _buildLanguageOption('हिंदी'),
-                    _buildLanguageOption('Regional'),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24), // Reduced to shift mobile number up
+              const SizedBox(height: 24), // Maintain spacing
 
               // Mobile Number Input
               Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  _selectedLanguage == 'हिंदी' ? 'मोबाइल नंबर' : 'Mobile Number',
+                  AppLocalizations.of(context)!.mobileNumber,
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: MyTheme.primaryBlue,
@@ -189,7 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(_selectedLanguage == 'हिंदी' ? 'ओटीपी प्राप्त करें' : 'Get OTP', style: const TextStyle(fontSize: 18)),
+                          Text(AppLocalizations.of(context)!.sendOtp, style: const TextStyle(fontSize: 18)),
                           const SizedBox(width: 8),
                           const Icon(Icons.arrow_forward),
                         ],
@@ -227,8 +198,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (route) => false);
                       }
                     } catch (e) {
-                      setState(() => _isLoading = false);
                       if (mounted) {
+                        setState(() => _isLoading = false);
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Bypass failed: $e')));
                       }
                     }
@@ -247,7 +218,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    _selectedLanguage == 'हिंदी' ? 'ASHA-Setu में नए हैं? ' : 'New to ASHA-Setu? ',
+                    AppLocalizations.of(context)!.localeName == 'hi' ? 'ASHA-Setu में नए हैं? ' : 'New to ASHA-Setu? ',
                     style: TextStyle(color: Colors.grey[700], fontSize: 16),
                   ),
                   TextButton(
@@ -255,7 +226,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       Navigator.pushNamed(context, '/register');
                     },
                     child: Text(
-                      _selectedLanguage == 'हिंदी' ? 'पंजीकरण करें' : 'Register',
+                      AppLocalizations.of(context)!.localeName == 'hi' ? 'पंजीकरण करें' : 'Register',
                       style: TextStyle(
                         color: MyTheme.primaryBlue,
                         fontSize: 16,
@@ -279,7 +250,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 24),
                Text(
-                _selectedLanguage == 'हिंदी' 
+                AppLocalizations.of(context)!.localeName == 'hi' 
                   ? 'लॉग इन करके, आप आशा सेवा शर्तों से सहमत होते हैं।'
                   : 'By logging in, you agree to the ASHA App\nTerms & Conditions and Privacy Policy.',
                 textAlign: TextAlign.center,
@@ -294,33 +265,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  Widget _buildLanguageOption(String label) {
-    bool isSelected = _selectedLanguage == label;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _selectedLanguage = label;
-          });
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: isSelected ? MyTheme.primaryBlue : Colors.transparent,
-            borderRadius: BorderRadius.circular(30),
-          ),
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: isSelected ? Colors.white : MyTheme.textDark,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildFooterItem(IconData icon, String label) {
     return Column(

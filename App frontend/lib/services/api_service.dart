@@ -3,8 +3,8 @@ import 'package:http/http.dart' as http;
 import 'auth_service.dart';
 
 class ApiService {
-  // Base URL for the local backend for demo
-  static const String baseUrl = 'http://localhost:5000/api';
+  // Base URL for the production backend on Render
+  static const String baseUrl = 'https://asha-setu-backend.onrender.com/api';
 
   // Include token in header
   static Future<Map<String, String>> _getHeaders() async {

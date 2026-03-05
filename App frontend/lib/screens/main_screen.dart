@@ -6,6 +6,7 @@ import 'dashboard_screen.dart';
 import 'messenger_screen.dart';
 import 'calendar_screen.dart';
 import 'profile_screen.dart';
+import '../l10n/app_localizations.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -58,11 +59,11 @@ class _MainScreenState extends State<MainScreen> {
               onTap: (index) {
                 appState.setCurrentIndex(index);
               },
-              items: const [
-                BottomNavigationBarItem(icon: Icon(Icons.home_outlined), label: 'Home'),
-                BottomNavigationBarItem(icon: Icon(Icons.chat_bubble_outline), label: 'Messages'),
-                BottomNavigationBarItem(icon: Icon(Icons.calendar_today), label: 'Calendar'),
-                BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
+              items: [
+                BottomNavigationBarItem(icon: const Icon(Icons.home_outlined), label: AppLocalizations.of(context)!.home),
+                BottomNavigationBarItem(icon: Icon(currentIndex == 1 ? Icons.notifications : Icons.notifications_none_rounded), label: AppLocalizations.of(context)!.notifications),
+                BottomNavigationBarItem(icon: const Icon(Icons.calendar_today), label: AppLocalizations.of(context)!.calendar),
+                BottomNavigationBarItem(icon: const Icon(Icons.person_outline), label: AppLocalizations.of(context)!.profile),
               ],
             ),
           ),

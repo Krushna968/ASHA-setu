@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../services/task_service.dart';
+import 'chat_screen.dart';
 import 'package:intl/intl.dart';
 
 class MessengerScreen extends StatefulWidget {
@@ -43,14 +44,32 @@ class _MessengerScreenState extends State<MessengerScreen> with SingleTickerProv
     },
   ];
 
+  // Filtered data
+  List<Map<String, dynamic>> _filteredChats = [];
+  
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _filteredChats = List.from(_chats);
+    
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  void _onSearchChanged() {
+    final query = _searchController.text.toLowerCase();
+    setState(() {
+      _filteredChats = _chats.where((chat) {
+        final name = chat['name'].toString().toLowerCase();
+        final msg = chat['lastMsg'].toString().toLowerCase();
+        return name.contains(query) || msg.contains(query);
+      }).toList();
+    });
   }
 
   @override
   void dispose() {
+    _searchController.removeListener(_onSearchChanged);
     _tabController.dispose();
     _searchController.dispose();
     _messageController.dispose();
@@ -79,9 +98,11 @@ class _MessengerScreenState extends State<MessengerScreen> with SingleTickerProv
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () {
+          // Logic for new notification/message
+        },
         backgroundColor: MyTheme.primaryBlue,
-        child: const Icon(Icons.add_comment_rounded, color: Colors.white),
+        child: const Icon(Icons.add_alert_rounded, color: Colors.white),
       ),
     );
   }
@@ -98,11 +119,13 @@ class _MessengerScreenState extends State<MessengerScreen> with SingleTickerProv
           Row(
             children: [
               const Text(
-                'Messenger Hub',
+                'Notification Hub',
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: MyTheme.textDark),
               ),
               const Spacer(),
-              _buildIconButton(Icons.search_rounded, () {}),
+              _buildIconButton(Icons.refresh_rounded, () {
+                // Refresh logic
+              }),
               const SizedBox(width: 8),
               _buildIconButton(Icons.more_vert_rounded, () {}),
             ],
@@ -136,7 +159,7 @@ class _MessengerScreenState extends State<MessengerScreen> with SingleTickerProv
         controller: _searchController,
         decoration: InputDecoration(
           icon: Icon(Icons.search_rounded, color: Colors.grey[400], size: 20),
-          hintText: 'Search people or tasks...',
+          hintText: 'Search notifications or tasks...',
           hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
           border: InputBorder.none,
         ),
@@ -159,12 +182,12 @@ class _MessengerScreenState extends State<MessengerScreen> with SingleTickerProv
         indicatorSize: TabBarIndicatorSize.label,
         labelStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
         tabs: [
-          const Tab(text: 'Messages'),
+          const Tab(text: 'Notifications'),
           Tab(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text('Tasks'),
+                const Text('Action Items'),
                 const SizedBox(width: 6),
                 ListenableBuilder(
                   listenable: TaskService(),
@@ -190,13 +213,38 @@ class _MessengerScreenState extends State<MessengerScreen> with SingleTickerProv
   // CHATS TAB
   // ─────────────────────────────────────────────────────────
   Widget _buildChatTab() {
+    if (_filteredChats.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.notifications_off_outlined, size: 64, color: Colors.grey[200]),
+            const SizedBox(height: 16),
+            const Text('No notifications found', style: TextStyle(color: Colors.grey, fontSize: 16)),
+          ],
+        ),
+      );
+    }
+
     return ListView.builder(
       padding: const EdgeInsets.symmetric(vertical: 10),
-      itemCount: _chats.length,
+      itemCount: _filteredChats.length,
       itemBuilder: (context, i) {
-        final chat = _chats[i];
+        final chat = _filteredChats[i];
         return InkWell(
-          onTap: () {},
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ChatScreen(
+                  contactName: chat['name'],
+                  initials: chat['name'].substring(0, 1),
+                  avatarColor: MyTheme.primaryBlue,
+                  isOnline: true,
+                ),
+              ),
+            );
+          },
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
             child: Row(
@@ -433,18 +481,28 @@ class _MessengerScreenState extends State<MessengerScreen> with SingleTickerProv
                         ),
                         const Spacer(),
                         if (!isCompleted)
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                            decoration: BoxDecoration(
-                              color: priorityColor.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              priority,
-                              style: TextStyle(
-                                color: priorityColor,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
+                          GestureDetector(
+                            onTap: () => onChanged(true),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: MyTheme.successGreen.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: MyTheme.successGreen.withValues(alpha: 0.3)),
+                              ),
+                              child: const Row(
+                                children: [
+                                  Icon(Icons.check_circle_outline_rounded, size: 14, color: MyTheme.successGreen),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Acknowledge',
+                                    style: TextStyle(
+                                      color: MyTheme.successGreen,
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           )
@@ -456,7 +514,7 @@ class _MessengerScreenState extends State<MessengerScreen> with SingleTickerProv
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: const Text(
-                              'Done ✅',
+                              'Acknowledged ✅',
                               style: TextStyle(
                                 color: MyTheme.successGreen,
                                 fontSize: 10,

@@ -8,12 +8,9 @@ list(APPEND FLUTTER_PLUGIN_LIST
   firebase_auth
   firebase_core
   firebase_storage
-<<<<<<< Updated upstream
   flutter_inappwebview_windows
-  url_launcher_windows
-=======
   printing
->>>>>>> Stashed changes
+  url_launcher_windows
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

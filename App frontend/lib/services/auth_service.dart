@@ -31,6 +31,19 @@ class AuthService {
     return token != null && token.isNotEmpty;
   }
 
+  // Skip language screen if already selected
+  static const String languageSelectedKey = 'language_selected';
+
+  static Future<void> setLanguageSelected() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(languageSelectedKey, true);
+  }
+
+  static Future<bool> isLanguageSelected() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(languageSelectedKey) ?? false;
+  }
+
   // Clearauth data on logout
   static Future<void> logout() async {
     final prefs = await SharedPreferences.getInstance();
