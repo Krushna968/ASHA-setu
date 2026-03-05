@@ -22,7 +22,7 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   String _workerName = 'Krushna Rasal';
   String _employeeId = 'ASHA-2024-089';
-  String _village = 'Sector 4, Ambedkar Nagar';
+  String _village = 'Airoli Sector 4, Navi Mumbai';
   int _totalHouses = 42;
   String _lastSyncTime = 'JUST NOW';
   String? _profileImageUrl;
@@ -345,7 +345,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       delay: const Duration(milliseconds: 300),
       child: GestureDetector(
         onTap: () async {
-          final Uri url = Uri.parse('https://www.google.com/maps/search/?api=1&query=Sector+4+Ambedkar+Nagar+boundary');
+          final Uri url = Uri.parse('https://www.google.com/maps/search/?api=1&query=Airoli+Sector+4+Navi+Mumbai+boundary');
           if (!await launchUrl(url)) {
             debugPrint('Could not launch map');
           }
