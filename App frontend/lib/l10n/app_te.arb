@@ -5,10 +5,10 @@
   "mobileNumber": "మొబైల్ నంబర్",
   "sendOtp": "OTP పంపండి",
   "dashboard": "డాష్‌బోర్డ్",
-  "patients": "రోగులు",
+  "individuals": "వ్యక్తులు",
   "visits": "సందర్శనలు",
   "inventory": "ఇన్వెంటరీ",
   "tasks": "పనులు",
   "logVisit": "సందర్శన నమోదు చేయండి",
-  "addPatient": "రోగిని చేర్చండి"
+  "addIndividual": "వ్యక్తిని చేర్చండి"
 }

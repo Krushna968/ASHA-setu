@@ -5,10 +5,10 @@
   "mobileNumber": "மொபைல் எண்",
   "sendOtp": "OTP அனுப்பவும்",
   "dashboard": "முகப்பு",
-  "patients": "நோயாளிகள்",
+  "individuals": "நபர்கள்",
   "visits": "பார்வைகள்",
   "inventory": "சரக்கு",
   "tasks": "பணிகள்",
   "logVisit": "பார்வையை பதிவு செய்",
-  "addPatient": "நோயாளியை சேர்"
+  "addIndividual": "நபரைச் சேர்"
 }

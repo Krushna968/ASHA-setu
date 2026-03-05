@@ -13,11 +13,12 @@ import 'screens/emergency_screen.dart';
 import 'screens/calendar_screen.dart';
 import 'screens/inventory_screen.dart';
 import 'screens/learning_screen.dart';
-import 'screens/patients_screen.dart';
+import 'screens/individuals_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/help_support_screen.dart';
-import 'screens/add_patient_screen.dart';
+import 'screens/add_individual_screen.dart';
 import 'screens/high_risk_screen.dart';
+import 'screens/registration_screen.dart';
 import 'services/auth_service.dart';
 import 'providers/app_state_provider.dart';
 import 'services/notification_service.dart';
@@ -83,7 +84,7 @@ class AshaSetuApp extends StatelessWidget {
       routes: {
         '/dashboard': (context) => const MainScreen(),
         '/visit-form': (context) => const VisitFormScreen(),
-        '/patients': (context) => const PatientsScreen(),
+        '/individuals': (context) => const IndividualsScreen(),
         '/messenger': (context) => const MessengerScreen(),
         '/emergency': (context) => const EmergencyScreen(),
         '/calendar': (context) => const CalendarScreen(),
@@ -91,9 +92,10 @@ class AshaSetuApp extends StatelessWidget {
         '/learning': (context) => const LearningScreen(),
         '/profile': (context) => const ProfileScreen(),
         '/help': (context) => const HelpSupportScreen(),
-        '/add-patient': (context) => const AddPatientScreen(),
+        '/add-individual': (context) => const AddIndividualScreen(),
         '/high-risk': (context) => const HighRiskScreen(),
         '/login': (context) => const LoginScreen(),
+        '/register': (context) => const RegistrationScreen(),
       },
       builder: (context, child) {
         return Stack(

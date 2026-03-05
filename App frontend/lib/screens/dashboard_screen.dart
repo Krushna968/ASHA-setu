@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 import '../theme/app_theme.dart';
 import '../services/auth_service.dart';
 import '../services/api_service.dart';
+import '../providers/app_state_provider.dart';
+import '../providers/area_map_provider.dart';
+import 'area_task_map_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -14,11 +18,11 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen>
     with TickerProviderStateMixin {
   String _workerName = 'ASHA Worker';
-  String _employeeId = '....';
-  String _village = 'Loading...';
+  String _employeeId = 'A010';
+  String _village = 'Airoli';
   String _lastSyncTime = 'JUST NOW';
   String? _profileImageUrl;
-  int _patientsCount = 0;
+  int _individualsCount = 0;
   int _tasksCount = 0;
   int _visitsCount = 0;
   bool _isLoadingStats = true;
@@ -45,6 +49,14 @@ class _DashboardScreenState extends State<DashboardScreen>
       duration: const Duration(milliseconds: 1200),
     );
 
+    // Refresh area data to get latest dashboard stats
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        // Use the global provider to refresh data
+        context.read<AreaMapProvider>().refreshArea();
+      }
+    });
+
     _loadUserData();
     _fadeController.forward();
     _slideController.forward();
@@ -70,9 +82,9 @@ class _DashboardScreenState extends State<DashboardScreen>
       if (mounted && !stats.containsKey('error')) {
         setState(() {
           _workerName = stats['name'] ?? _workerName;
-          _village = stats['village'] ?? 'Local Village';
-          _employeeId = stats['employeeId'] ?? 'Unknown ID';
-          _patientsCount = stats['patients'] ?? 0;
+          _village = stats['village'] ?? 'Airoli';
+          _employeeId = stats['employeeId'] ?? 'A010';
+          _individualsCount = stats['patients'] ?? 0;
           _tasksCount = stats['tasks'] ?? 0;
           _visitsCount = stats['totalVisits'] ?? 0;
           _profileImageUrl = stats['profileImage'];
@@ -140,9 +152,12 @@ class _DashboardScreenState extends State<DashboardScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildHeader(),
-                  const SizedBox(height: 24),
-                  _buildStatsRow(),
+                  _buildCircularCenterpiece(),
+                  const SizedBox(height: 16),
+                  _buildLiveStatsRow(),
                   const SizedBox(height: 20),
+                  _buildCondensedStatsRow(),
+                  const SizedBox(height: 24),
                   _buildActionRequiredCard(),
                   const SizedBox(height: 24),
                   _buildSectionTitle('Quick Actions'),
@@ -161,6 +176,304 @@ class _DashboardScreenState extends State<DashboardScreen>
       ),
     );
   }
+
+  // ─────────────────────────────────────────────────────────
+  // CENTERPIECE — Google Fit-style circular progress
+  // ─────────────────────────────────────────────────────────
+  Widget _buildCircularCenterpiece() {
+    return Consumer<AreaMapProvider>(
+      builder: (context, provider, child) {
+        final int completed = provider.totalCompleted;
+        final int target = provider.households.length > 0 ? provider.households.length : 1;
+        final double progress = (completed / target).clamp(0.0, 1.0);
+        final bool isTargetMet = completed >= target;
+        
+        final Color progressColor = isTargetMet ? MyTheme.successGreen : MyTheme.primaryBlue;
+
+        return Center(
+          child: Column(
+            children: [
+              SizedBox(
+                height: 240,
+                width: 240,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    // Background Glow/Shadow
+                    Container(
+                      width: 180,
+                      height: 180,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: progressColor.withValues(alpha: 0.1),
+                            blurRadius: 40,
+                            spreadRadius: 10,
+                          ),
+                        ],
+                      ),
+                    ),
+                    
+                    // The Gauge
+                    TweenAnimationBuilder<double>(
+                      tween: Tween<double>(begin: 0, end: progress),
+                      duration: const Duration(milliseconds: 1500),
+                      curve: Curves.easeOutCubic,
+                      builder: (context, value, child) {
+                        return CustomPaint(
+                          size: const Size(220, 220),
+                          painter: _DailyProgressPainter(
+                            progress: value,
+                            color: progressColor,
+                            trackColor: progressColor.withValues(alpha: 0.1),
+                          ),
+                        );
+                      },
+                    ),
+                    
+                    // Inner Content
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '$completed',
+                          style: TextStyle(
+                            fontSize: 48,
+                            fontWeight: FontWeight.w900,
+                            color: MyTheme.textDark,
+                            letterSpacing: -1,
+                          ),
+                        ),
+                        Text(
+                          'HOUSES DONE',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[500],
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: progressColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            'Total: $target Houses',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: progressColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              if (isTargetMet)
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.stars_rounded, color: MyTheme.successGreen, size: 18),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Daily Target Achieved!',
+                        style: TextStyle(
+                          color: MyTheme.successGreen,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // LIVE STATS ROW — Patients, Tasks, Visits
+  // ─────────────────────────────────────────────────────────
+  Widget _buildLiveStatsRow() {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildSimpleStat(
+            label: 'Individuals',
+            value: _isLoadingStats ? '—' : '$_individualsCount',
+            icon: Icons.people_rounded,
+            color: MyTheme.primaryBlue,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildSimpleStat(
+            label: 'Tasks',
+            value: _isLoadingStats ? '—' : '$_tasksCount',
+            icon: Icons.assignment_turned_in_rounded,
+            color: MyTheme.successGreen,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildSimpleStat(
+            label: 'Visits',
+            value: _isLoadingStats ? '—' : '$_visitsCount',
+            icon: Icons.directions_walk_rounded,
+            color: MyTheme.warningOrange,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSimpleStat({
+    required String label,
+    required String value,
+    required IconData icon,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Icon(icon, size: 18, color: color.withValues(alpha: 0.8)),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: MyTheme.textDark,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // CONDENSED STATS ROW
+  // ─────────────────────────────────────────────────────────
+  Widget _buildCondensedStatsRow() {
+    return Consumer<AreaMapProvider>(
+      builder: (context, provider, child) {
+        return Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () => Navigator.pushNamed(context, '/high-risk'),
+                child: _buildSmallStatCard(
+                  icon: Icons.warning_rounded,
+                  label: 'High Risk',
+                  value: '${provider.highRiskCount}',
+                  color: provider.highRiskCount > 0 ? MyTheme.criticalRed : MyTheme.successGreen,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildSmallStatCard(
+                icon: Icons.pending_actions_rounded,
+                label: 'Due Today',
+                value: '${provider.dueTodayCount}',
+                color: provider.hasOverdue ? MyTheme.criticalRed : MyTheme.primaryBlue,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildSmallStatCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: MyTheme.textDark,
+                ),
+              ),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey[500],
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Keep existing action cards but optimize spacing if needed...
+
 
   // ─────────────────────────────────────────────────────────
   // HEADER — Greeting + Avatar + Sync Badge
@@ -296,253 +609,156 @@ class _DashboardScreenState extends State<DashboardScreen>
     );
   }
 
-  // ─────────────────────────────────────────────────────────
-  // STATS ROW — 3 compact cards (Patients, Tasks, Visits)
-  // ─────────────────────────────────────────────────────────
-  Widget _buildStatsRow() {
-    return AnimatedBuilder(
-      animation: _slideController,
-      builder: (context, child) {
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(0, 0.3),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: _slideController,
-            curve: const Interval(0.0, 0.5, curve: Curves.easeOutCubic),
-          )),
-          child: child,
-        );
-      },
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildStatCard(
-              icon: Icons.people_rounded,
-              iconBgColor: const Color(0xFF0056D2),
-              value: _isLoadingStats ? '—' : '$_patientsCount',
-              label: 'Patients',
-              route: '/patients',
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildStatCard(
-              icon: Icons.task_alt_rounded,
-              iconBgColor: MyTheme.successGreen,
-              value: _isLoadingStats ? '—' : '$_tasksCount',
-              label: 'Tasks',
-              route: '/messenger',
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildStatCard(
-              icon: Icons.directions_walk_rounded,
-              iconBgColor: MyTheme.warningOrange,
-              value: _isLoadingStats ? '—' : '$_visitsCount',
-              label: 'Visits',
-              route: '/calendar',
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStatCard({
-    required IconData icon,
-    required Color iconBgColor,
-    required String value,
-    required String label,
-    String? route,
-  }) {
-    return GestureDetector(
-      onTap: () {
-        if (route != null) Navigator.pushNamed(context, route);
-      },
-      child: Container(
-      padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: iconBgColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: iconBgColor, size: 22),
-          ),
-          const SizedBox(height: 12),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: MyTheme.textDark,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey[500],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
-    ),
-    );
-  }
 
   // ─────────────────────────────────────────────────────────
   // ACTION REQUIRED — Pending follow-ups card
   // ─────────────────────────────────────────────────────────
-  Widget _buildActionRequiredCard() {
-    final pendingTasks = _tasksCount;
-    final progress = pendingTasks > 0 ? (pendingTasks / (pendingTasks + 2)).clamp(0.0, 1.0) : 0.0;
 
-    return AnimatedBuilder(
-      animation: _slideController,
-      builder: (context, child) {
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(0, 0.3),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: _slideController,
-            curve: const Interval(0.2, 0.6, curve: Curves.easeOutCubic),
-          )),
-          child: child,
-        );
-      },
-      child: GestureDetector(
-        onTap: () => Navigator.pushNamed(context, '/messenger'),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF0056D2), Color(0xFF3B82F6)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: MyTheme.primaryBlue.withValues(alpha: 0.3),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
+  Widget _buildActionRequiredCard() {
+    return Consumer<AreaMapProvider>(
+      builder: (context, provider, child) {
+        final pendingHouses = provider.households.where((h) => h.status == 'pending' || h.status == 'high-risk').length;
+        final completedHouses = provider.totalCompleted;
+        final totalHouses = provider.households.length;
+        final progress = totalHouses > 0 ? (completedHouses / totalHouses).clamp(0.0, 1.0) : 1.0;
+
+        return AnimatedBuilder(
+          animation: _slideController,
+          builder: (context, child) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, 0.3),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: _slideController,
+                curve: const Interval(0.2, 0.6, curve: Curves.easeOutCubic),
+              )),
+              child: child,
+            );
+          },
+          child: GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const AreaTaskMapScreen(filterMode: 'all'),
+                ),
+              );
+            },
+            child: Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF0052D4), Color(0xFF4364F7)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: MyTheme.primaryBlue.withAlpha(75),
+                    blurRadius: 20,
+                    offset: const Offset(0, 8),
+                  ),
+                ],
               ),
-            ],
-          ),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const Text(
-                        'ACTION REQUIRED',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      '$pendingTasks Pending Follow-ups',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    // Progress bar
-                    Row(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Progress',
-                          style: TextStyle(
-                            color: Colors.white70,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withAlpha(50),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: const Text(
+                            'TODAY\'S TASKS',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 1,
+                            ),
                           ),
                         ),
-                        const Spacer(),
+                        const SizedBox(height: 10),
                         Text(
-                          '${(progress * 100).toInt()}%',
+                          pendingHouses > 0 ? '$pendingHouses Pending Houses' : 'All houses visited! 🎉',
                           style: const TextStyle(
                             color: Colors.white,
-                            fontSize: 11,
+                            fontSize: 18,
                             fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // Progress bar
+                        Row(
+                          children: [
+                            const Text(
+                              'Progress',
+                              style: TextStyle(
+                                color: Colors.white70,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              '${(progress * 100).toInt()}%',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(999), 
+                          child: LinearProgressIndicator(
+                            value: progress,
+                            minHeight: 8,
+                            backgroundColor: Colors.white.withAlpha(50),
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          pendingHouses > 0
+                              ? '• Tap to view your task calendar.'
+                              : '• Great job staying on top of your work.',
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 11,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: LinearProgressIndicator(
-                        value: progress,
-                        minHeight: 6,
-                        backgroundColor: Colors.white.withValues(alpha: 0.2),
-                        color: Colors.white,
-                      ),
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withAlpha(40),
+                      shape: BoxShape.circle,
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _tasksCount > 0
-                          ? '• $_tasksCount assigned tasks to complete'
-                          : '• All tasks completed! 🎉',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 11,
-                      ),
+                    child: const Icon(
+                      Icons.chevron_right_rounded,
+                      color: Colors.white,
+                      size: 24,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 12),
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.15),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.chevron_right_rounded,
-                  color: Colors.white,
-                  size: 24,
-                ),
-              ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -572,7 +788,7 @@ class _DashboardScreenState extends State<DashboardScreen>
         const Spacer(),
         if (showViewAll)
           GestureDetector(
-            onTap: () => Navigator.pushNamed(context, '/patients'),
+            onTap: () => Navigator.pushNamed(context, '/individuals'),
             child: Text(
               'View All',
               style: TextStyle(
@@ -590,44 +806,58 @@ class _DashboardScreenState extends State<DashboardScreen>
   // QUICK ACTIONS — 2×3 Grid
   // ─────────────────────────────────────────────────────────
   Widget _buildQuickActionsGrid() {
-    final actions = [
-      QuickAction(Icons.person_add_rounded, 'Add Patient', const Color(0xFF0056D2), '/add-patient'),
-      QuickAction(Icons.assignment_rounded, 'Log Visit', const Color(0xFFE53935), '/visit-form'),
-      QuickAction(Icons.inventory_2_rounded, 'Inventory', const Color(0xFFF57C00), '/inventory'),
-      QuickAction(Icons.calendar_month_rounded, 'Calendar', const Color(0xFF00897B), '/calendar'),
-      QuickAction(Icons.menu_book_rounded, 'Learning', const Color(0xFF7B1FA2), '/learning'),
-      QuickAction(Icons.chat_bubble_rounded, 'Messages', const Color(0xFF1565C0), '/messenger'),
-    ];
+    return Consumer<AreaMapProvider>(
+      builder: (context, provider, child) {
+        final hasHighRisk = provider.highRiskCount > 0;
+        
+        final defaultActions = [
+          QuickAction(Icons.assignment_rounded, 'Log Visit', const Color(0xFFE53935), '/visit-form'),
+          QuickAction(Icons.map_rounded, 'Household Map', const Color(0xFF00897B), '/map_action'),
+          QuickAction(Icons.rule_rounded, 'Today\'s Tasks', const Color(0xFFF57C00), '/calendar_action'),
+          QuickAction(Icons.person_add_rounded, 'Register Individual', const Color(0xFF0056D2), '/add-individual'),
+          QuickAction(Icons.warning_rounded, 'High Risk', MyTheme.criticalRed, '/high-risk'),
+          QuickAction(Icons.school_rounded, 'Learning', const Color(0xFF7B1FA2), '/learning'),
+        ];
 
-    return AnimatedBuilder(
-      animation: _slideController,
-      builder: (context, child) {
-        return SlideTransition(
-          position: Tween<Offset>(
-            begin: const Offset(0, 0.2),
-            end: Offset.zero,
-          ).animate(CurvedAnimation(
-            parent: _slideController,
-            curve: const Interval(0.4, 0.8, curve: Curves.easeOutCubic),
-          )),
-          child: child,
+        List<QuickAction> actions = List.from(defaultActions);
+        
+        // Intelligent sorting: move High Risk to front if there's high risk cases
+        if (hasHighRisk) {
+          final highRiskAction = actions.removeAt(4);
+          actions.insert(0, highRiskAction);
+        }
+
+        return AnimatedBuilder(
+          animation: _slideController,
+          builder: (context, child) {
+            return SlideTransition(
+              position: Tween<Offset>(
+                begin: const Offset(0, 0.2),
+                end: Offset.zero,
+              ).animate(CurvedAnimation(
+                parent: _slideController,
+                curve: const Interval(0.4, 0.8, curve: Curves.easeOutCubic),
+              )),
+              child: child,
+            );
+          },
+          child: GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 3,
+              mainAxisSpacing: 12,
+              crossAxisSpacing: 12,
+              childAspectRatio: 1.0,
+            ),
+            itemCount: actions.length,
+            itemBuilder: (context, index) {
+              final action = actions[index];
+              return _buildQuickActionCard(action);
+            },
+          ),
         );
       },
-      child: GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 3,
-          mainAxisSpacing: 12,
-          crossAxisSpacing: 12,
-          childAspectRatio: 1.0,
-        ),
-        itemCount: actions.length,
-        itemBuilder: (context, index) {
-          final action = actions[index];
-          return _buildQuickActionCard(action);
-        },
-      ),
     );
   }
 
@@ -692,12 +922,34 @@ class _DashboardScreenState extends State<DashboardScreen>
   // RECENT ACTIVITY — Latest patient interactions
   // ─────────────────────────────────────────────────────────
   Widget _buildRecentActivity() {
-    // Placeholder recent activity data
-    final recentItems = [
-      RecentItem('Priya Sharma', 'Prenatal Checkup', '2h ago', MyTheme.successGreen),
-      RecentItem('Rahul Kumar', 'Vaccination', '4h ago', MyTheme.primaryBlue),
-      RecentItem('Anjali Singh', 'Iron Supplements Delivered', 'Yesterday', MyTheme.warningOrange),
-    ];
+    final appProvider = Provider.of<AppStateProvider>(context);
+    final visits = appProvider.visits;
+    
+    // Convert visits to RecentItems
+    final recentItems = visits.take(3).map((v) {
+      final String name = v['patientName'] ?? v['headName'] ?? 'Unknown';
+      final String type = v['visitType'] ?? v['outcome'] ?? 'Visit';
+      final String timeAgo = _formatVisitTime(v['visitDate'] ?? v['createdAt']);
+      
+      // Determine color based on type
+      Color color = MyTheme.primaryBlue;
+      if (type.toLowerCase().contains('prenatal') || type.toLowerCase().contains('anc')) {
+        color = MyTheme.successGreen;
+      } else if (type.toLowerCase().contains('urgent') || type.toLowerCase().contains('risk')) {
+        color = MyTheme.warningOrange;
+      }
+      
+      return RecentItem(name, type, timeAgo, color);
+    }).toList();
+
+    if (recentItems.isEmpty) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: Text('No recent activity', style: TextStyle(color: Colors.grey)),
+        ),
+      );
+    }
 
     return AnimatedBuilder(
       animation: _slideController,
@@ -804,6 +1056,24 @@ class _DashboardScreenState extends State<DashboardScreen>
       ),
     );
   }
+
+  String _formatVisitTime(dynamic date) {
+    if (date == null) return 'N/A';
+    try {
+      DateTime dt = date is DateTime ? date : DateTime.parse(date.toString());
+      final now = DateTime.now();
+      final diff = now.difference(dt);
+      
+      if (diff.inMinutes < 1) return 'Just now';
+      if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+      if (diff.inHours < 24) return '${diff.inHours}h ago';
+      if (diff.inDays == 1) return 'Yesterday';
+      if (diff.inDays < 7) return '${diff.inDays}d ago';
+      return DateFormat('dd MMM').format(dt);
+    } catch (e) {
+      return 'Recent';
+    }
+  }
 }
 
 // ─────────────────────────────────────────────────────────
@@ -826,3 +1096,75 @@ class RecentItem {
 
   RecentItem(this.name, this.type, this.timeAgo, this.dotColor);
 }
+
+// ─────────────────────────────────────────────────────────
+// CUSTOM PAINTERS
+// ─────────────────────────────────────────────────────────
+
+class _DailyProgressPainter extends CustomPainter {
+  final double progress;
+  final Color color;
+  final Color trackColor;
+
+  _DailyProgressPainter({
+    required this.progress,
+    required this.color,
+    required this.trackColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width / 2) - 12; // Leave space for stroke width
+    const strokeWidth = 24.0;
+
+    // 1. Draw Background Track
+    final trackPaint = Paint()
+      ..color = trackColor
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = strokeWidth
+      ..strokeCap = StrokeCap.round;
+
+    canvas.drawCircle(center, radius, trackPaint);
+
+    // 2. Draw Progress Arc
+    if (progress > 0) {
+      final progressPaint = Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = strokeWidth
+        ..strokeCap = StrokeCap.round;
+
+      // Draw the arc starting from top (-pi/2)
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius),
+        -1.5708, // -90 degrees in radians
+        6.28319 * progress, // 2*pi * progress
+        false,
+        progressPaint,
+      );
+      
+      // Add a subtle inner shadow/stroke for depth
+      final detailPaint = Paint()
+        ..color = Colors.white.withValues(alpha: 0.15)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.0;
+        
+      canvas.drawArc(
+        Rect.fromCircle(center: center, radius: radius + (strokeWidth / 2) - 2),
+        -1.5708,
+        6.28319 * progress,
+        false,
+        detailPaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DailyProgressPainter oldDelegate) {
+    return oldDelegate.progress != progress || 
+           oldDelegate.color != color || 
+           oldDelegate.trackColor != trackColor;
+  }
+}
+

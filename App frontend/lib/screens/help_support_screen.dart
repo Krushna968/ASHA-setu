@@ -41,8 +41,8 @@ class _HelpSupportScreenState extends State<HelpSupportScreen> {
       'icon': Icons.medication_outlined,
     },
     {
-      'q': 'How do I log a patient visit?',
-      'a': 'Navigate to Patients, tap the patient name, then tap "Log Visit". Fill in the vitals and notes, then save.',
+      'q': 'How do I log an individual visit?',
+      'a': 'Navigate to Individuals, tap the name, then tap "Log Visit". Fill in the vitals and notes, then save.',
       'icon': Icons.assignment_outlined,
     },
   ];

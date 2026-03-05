@@ -9,7 +9,7 @@ class AppStateProvider extends ChangeNotifier {
   String? _error;
 
   // Data lists
-  List<dynamic> _patients = [];
+  List<dynamic> _individuals = [];
   List<dynamic> _visits = [];
   List<dynamic> _inventory = [];
   List<dynamic> _learningModules = [];
@@ -27,7 +27,7 @@ class AppStateProvider extends ChangeNotifier {
   bool get isTransitioning => _isTransitioning;
   int get currentIndex => _currentIndex;
   String? get error => _error;
-  List<dynamic> get patients => _patients;
+  List<dynamic> get individuals => _individuals;
   List<dynamic> get visits => _visits;
   List<dynamic> get inventory => _inventory;
   List<dynamic> get learningModules => _learningModules;
@@ -51,7 +51,7 @@ class AppStateProvider extends ChangeNotifier {
 
   // Load from local storage
   void loadLocalData() {
-    _patients = _box.get('patients', defaultValue: []);
+    _individuals = _box.get('individuals', defaultValue: []);
     _visits = _box.get('visits', defaultValue: []);
     _inventory = _box.get('inventory', defaultValue: []);
     
@@ -64,16 +64,16 @@ class AppStateProvider extends ChangeNotifier {
     syncPendingRequests();
   }
 
-  // Fetch Patients
-  Future<void> fetchPatients() async {
+  // Fetch Individuals
+  Future<void> fetchIndividuals() async {
     setLoading(true);
     _error = null;
     try {
       final response = await ApiService.get('/patients');
-      _patients = response['patients'] ?? [];
-      _box.put('patients', _patients);
+      _individuals = response['patients'] ?? [];
+      _box.put('individuals', _individuals);
     } catch (e) {
-      _error = 'Failed to fetch patients: $e';
+      _error = 'Failed to fetch individuals: $e';
     } finally {
       setLoading(false);
     }
@@ -145,7 +145,7 @@ class AppStateProvider extends ChangeNotifier {
     _error = null;
     try {
       await Future.wait([
-        fetchPatients(),
+        fetchIndividuals(),
         fetchVisits(),
         fetchInventory(),
         fetchLearningModules(),

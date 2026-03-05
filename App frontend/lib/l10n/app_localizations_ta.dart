@@ -28,7 +28,7 @@ class AppLocalizationsTa extends AppLocalizations {
   String get dashboard => 'முகப்பு';
 
   @override
-  String get patients => 'நோயாளிகள்';
+  String get individuals => 'நபர்கள்';
 
   @override
   String get visits => 'பார்வைகள்';
@@ -43,5 +43,5 @@ class AppLocalizationsTa extends AppLocalizations {
   String get logVisit => 'பார்வையை பதிவு செய்';
 
   @override
-  String get addPatient => 'நோயாளியை சேர்';
+  String get addIndividual => 'நபரைச் சேர்';
 }

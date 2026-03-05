@@ -27,7 +27,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get dashboard => 'Dashboard';
 
   @override
-  String get patients => 'Patients';
+  String get individuals => 'Individuals';
 
   @override
   String get visits => 'Visits';
@@ -42,5 +42,5 @@ class AppLocalizationsEn extends AppLocalizations {
   String get logVisit => 'Log Visit';
 
   @override
-  String get addPatient => 'Add Patient';
+  String get addIndividual => 'Add Individual';
 }

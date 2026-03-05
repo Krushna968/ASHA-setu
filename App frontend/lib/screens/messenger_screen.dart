@@ -436,28 +436,28 @@ class _MessengerScreenState extends State<MessengerScreen> with SingleTickerProv
       children: [
         _buildTaskCard(
           title: 'Newborn Vaccination Follow-up',
-          patient: 'Baby of Priya Sharma',
+          individual: 'Baby of Priya Sharma',
           due: 'Today',
           priority: 'High',
           isCompleted: false,
         ),
         _buildTaskCard(
           title: 'Monthly Nutrition Report',
-          patient: 'Village Center',
+          individual: 'Village Center',
           due: 'Tomorrow',
           priority: 'Medium',
           isCompleted: false,
         ),
         _buildTaskCard(
           title: 'Update Pregnant Women Registry',
-          patient: 'All Wards',
+          individual: 'All Wards',
           due: 'Mar 5',
           priority: 'Low',
           isCompleted: false,
         ),
         _buildTaskCard(
           title: 'ANC Checkup Coordination',
-          patient: 'Meera Bai',
+          individual: 'Meera Bai',
           due: 'Feb 26',
           priority: 'Medium',
           isCompleted: true,
@@ -468,7 +468,7 @@ class _MessengerScreenState extends State<MessengerScreen> with SingleTickerProv
 
   Widget _buildTaskCard({
     required String title,
-    required String patient,
+    required String individual,
     required String due,
     required String priority,
     required bool isCompleted,
@@ -534,7 +534,7 @@ class _MessengerScreenState extends State<MessengerScreen> with SingleTickerProv
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    patient,
+                    individual,
                     style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
                   ),
                   const SizedBox(height: 12),

@@ -213,7 +213,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       "employeeId": "ASHA-01",
                       "village": "rampal",
                       "stats": {
-                        "patients": 8,
+                        "individuals": 8,
                         "tasks": 0,
                         "totalVisits": 3
                       }
@@ -239,6 +239,32 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   child: const Text('Bypass Login (9321609760)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 ),
+              ),
+
+              const SizedBox(height: 16),
+              // Register Link
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    _selectedLanguage == 'हिंदी' ? 'ASHA-Setu में नए हैं? ' : 'New to ASHA-Setu? ',
+                    style: TextStyle(color: Colors.grey[700], fontSize: 16),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/register');
+                    },
+                    child: Text(
+                      _selectedLanguage == 'हिंदी' ? 'पंजीकरण करें' : 'Register',
+                      style: TextStyle(
+                        color: MyTheme.primaryBlue,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
+                ],
               ),
 
               const SizedBox(height: 32), // Reduced from 64

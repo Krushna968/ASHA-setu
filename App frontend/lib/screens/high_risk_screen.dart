@@ -78,7 +78,7 @@ class _HighRiskScreenState extends State<HighRiskScreen> {
                 else if (highRiskHouseholds.isEmpty)
                   _buildEmptyState()
                 else
-                  _buildPatientList(filteredList, provider),
+                  _buildIndividualList(filteredList, provider),
               ],
             ),
           );
@@ -129,7 +129,7 @@ class _HighRiskScreenState extends State<HighRiskScreen> {
                     style: TextStyle(color: MyTheme.textLight, fontSize: 13),
                   ),
                   Text(
-                    '$count Patients',
+                    '$count Individuals',
                     style: const TextStyle(
                       color: MyTheme.criticalRed,
                       fontWeight: FontWeight.bold,
@@ -236,7 +236,7 @@ class _HighRiskScreenState extends State<HighRiskScreen> {
     );
   }
 
-  Widget _buildPatientList(List<Household> households, AreaMapProvider provider) {
+  Widget _buildIndividualList(List<Household> households, AreaMapProvider provider) {
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
       sliver: SliverList(
@@ -245,7 +245,7 @@ class _HighRiskScreenState extends State<HighRiskScreen> {
             final h = households[index];
             return FadeInUp(
               delay: Duration(milliseconds: index * 50),
-              child: _PatientCard(household: h, provider: provider),
+              child: _IndividualCard(household: h, provider: provider),
             );
           },
           childCount: households.length,
@@ -285,7 +285,7 @@ class _HighRiskScreenState extends State<HighRiskScreen> {
             const Icon(Icons.error_outline_rounded, color: MyTheme.criticalRed, size: 48),
             const SizedBox(height: 16),
             Text(
-              'Failed to load patients',
+              'Failed to load individuals',
               style: MyTheme.lightTheme.textTheme.titleLarge,
             ),
             const SizedBox(height: 8),
@@ -332,7 +332,7 @@ class _HighRiskScreenState extends State<HighRiskScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'All patients are in stable condition.',
+                    'All individuals are in stable condition.',
                     style: TextStyle(color: MyTheme.textLight),
                   ),
                 ],
@@ -345,11 +345,11 @@ class _HighRiskScreenState extends State<HighRiskScreen> {
   }
 }
 
-class _PatientCard extends StatelessWidget {
+class _IndividualCard extends StatelessWidget {
   final Household household;
   final AreaMapProvider provider;
 
-  const _PatientCard({required this.household, required this.provider});
+  const _IndividualCard({required this.household, required this.provider});
 
   @override
   Widget build(BuildContext context) {

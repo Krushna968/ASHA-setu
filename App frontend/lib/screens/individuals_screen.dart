@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
-import 'add_patient_screen.dart';
+import 'add_individual_screen.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state_provider.dart';
 
-class PatientsScreen extends StatefulWidget {
-  const PatientsScreen({super.key});
+class IndividualsScreen extends StatefulWidget {
+  const IndividualsScreen({super.key});
 
   @override
-  State<PatientsScreen> createState() => _PatientsScreenState();
+  State<IndividualsScreen> createState() => _IndividualsScreenState();
 }
 
-class _PatientsScreenState extends State<PatientsScreen>
+class _IndividualsScreenState extends State<IndividualsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   String _searchQuery = '';
@@ -30,7 +30,7 @@ class _PatientsScreenState extends State<PatientsScreen>
     super.initState();
     _tabController = TabController(length: _categories.length, vsync: this);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<AppStateProvider>(context, listen: false).fetchPatients();
+      Provider.of<AppStateProvider>(context, listen: false).fetchIndividuals();
     });
   }
 
@@ -41,13 +41,13 @@ class _PatientsScreenState extends State<PatientsScreen>
     super.dispose();
   }
 
-  Future<void> _fetchPatients() async {
-    await Provider.of<AppStateProvider>(context, listen: false).fetchPatients();
+  Future<void> _fetchIndividuals() async {
+    await Provider.of<AppStateProvider>(context, listen: false).fetchIndividuals();
   }
 
-  List<dynamic> _filterPatients(String category, List<dynamic> allPatients) {
+  List<dynamic> _filterIndividuals(String category, List<dynamic> allIndividuals) {
     List<dynamic> filtered =
-        category == 'All' ? allPatients : allPatients.where((p) => p['category'] == category).toList();
+        category == 'All' ? allIndividuals : allIndividuals.where((p) => p['category'] == category).toList();
 
     if (_searchQuery.isNotEmpty) {
       filtered = filtered.where((p) {
@@ -61,9 +61,9 @@ class _PatientsScreenState extends State<PatientsScreen>
     return filtered;
   }
 
-  Map<String, int> _getCategoryCounts(List<dynamic> allPatients) {
-    final counts = <String, int>{'All': allPatients.length};
-    for (final p in allPatients) {
+  Map<String, int> _getCategoryCounts(List<dynamic> allIndividuals) {
+    final counts = <String, int>{'All': allIndividuals.length};
+    for (final p in allIndividuals) {
       final cat = p['category'] ?? 'General';
       counts[cat] = (counts[cat] ?? 0) + 1;
     }
@@ -73,7 +73,7 @@ class _PatientsScreenState extends State<PatientsScreen>
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<AppStateProvider>(context);
-    final _allPatients = provider.patients;
+    final _allIndividuals = provider.individuals;
     final _isLoading = provider.isLoading;
     final _errorMsg = provider.error;
 
@@ -82,9 +82,9 @@ class _PatientsScreenState extends State<PatientsScreen>
       body: SafeArea(
         child: Column(
           children: [
-            _buildHeader(_isLoading, _allPatients.length),
+            _buildHeader(_isLoading, _allIndividuals.length),
             _buildSearchBar(),
-            _buildCategoryTabs(_allPatients, _isLoading),
+            _buildCategoryTabs(_allIndividuals, _isLoading),
             Expanded(
               child: _isLoading
                   ? const Center(
@@ -95,7 +95,7 @@ class _PatientsScreenState extends State<PatientsScreen>
                       : TabBarView(
                           controller: _tabController,
                           children: _categories.map((cat) {
-                            return _buildPatientList(_filterPatients(cat.name, _allPatients));
+                            return _buildIndividualList(_filterIndividuals(cat.name, _allIndividuals));
                           }).toList(),
                         ),
             ),
@@ -107,16 +107,16 @@ class _PatientsScreenState extends State<PatientsScreen>
         elevation: 6,
         icon: const Icon(Icons.person_add_rounded, color: Colors.white),
         label: const Text(
-          'Add Patient',
+          'Add Individual',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         onPressed: () async {
           final result = await Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => const AddPatientScreen()),
+            MaterialPageRoute(builder: (context) => const AddIndividualScreen()),
           );
           if (result == true) {
-            _fetchPatients();
+            _fetchIndividuals();
           }
         },
       ),
@@ -126,7 +126,7 @@ class _PatientsScreenState extends State<PatientsScreen>
   // ─────────────────────────────────────────────────────────
   // HEADER
   // ─────────────────────────────────────────────────────────
-  Widget _buildHeader(bool isLoading, int totalPatients) {
+  Widget _buildHeader(bool isLoading, int totalIndividuals) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
       child: Row(
@@ -135,7 +135,7 @@ class _PatientsScreenState extends State<PatientsScreen>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
-                'Patient Directory',
+                'Individual Directory',
                 style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
@@ -146,7 +146,7 @@ class _PatientsScreenState extends State<PatientsScreen>
               Text(
                 isLoading
                     ? 'Loading...'
-                    : '$totalPatients registered patients',
+                    : '$totalIndividuals registered individuals',
                 style: TextStyle(
                   fontSize: 13,
                   color: Colors.grey[500],
@@ -164,7 +164,7 @@ class _PatientsScreenState extends State<PatientsScreen>
             ),
             child: IconButton(
               icon: const Icon(Icons.sync_rounded, color: MyTheme.primaryBlue, size: 22),
-              onPressed: _fetchPatients,
+              onPressed: _fetchIndividuals,
               tooltip: 'Refresh',
             ),
           ),
@@ -218,8 +218,8 @@ class _PatientsScreenState extends State<PatientsScreen>
   // ─────────────────────────────────────────────────────────
   // CATEGORY TABS
   // ─────────────────────────────────────────────────────────
-  Widget _buildCategoryTabs(List<dynamic> allPatients, bool isLoading) {
-    final counts = _getCategoryCounts(allPatients);
+  Widget _buildCategoryTabs(List<dynamic> allIndividuals, bool isLoading) {
+    final counts = _getCategoryCounts(allIndividuals);
     return Container(
       margin: const EdgeInsets.only(top: 8),
       child: TabBar(
@@ -295,7 +295,7 @@ class _PatientsScreenState extends State<PatientsScreen>
             ),
             const SizedBox(height: 16),
             ElevatedButton.icon(
-              onPressed: _fetchPatients,
+              onPressed: _fetchIndividuals,
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Retry'),
               style: ElevatedButton.styleFrom(
@@ -311,10 +311,10 @@ class _PatientsScreenState extends State<PatientsScreen>
   }
 
   // ─────────────────────────────────────────────────────────
-  // PATIENT LIST
+  // INDIVIDUAL LIST
   // ─────────────────────────────────────────────────────────
-  Widget _buildPatientList(List<dynamic> patients) {
-    if (patients.isEmpty) {
+  Widget _buildIndividualList(List<dynamic> individuals) {
+    if (individuals.isEmpty) {
       return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -323,8 +323,8 @@ class _PatientsScreenState extends State<PatientsScreen>
             const SizedBox(height: 12),
             Text(
               _searchQuery.isNotEmpty
-                  ? 'No patients match "$_searchQuery"'
-                  : 'No patients in this category',
+                  ? 'No individuals match "$_searchQuery"'
+                  : 'No individuals in this category',
               style: TextStyle(color: Colors.grey[400], fontSize: 15),
             ),
           ],
@@ -333,25 +333,25 @@ class _PatientsScreenState extends State<PatientsScreen>
     }
 
     return RefreshIndicator(
-      onRefresh: _fetchPatients,
+      onRefresh: _fetchIndividuals,
       color: MyTheme.primaryBlue,
       child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
-        itemCount: patients.length,
+        itemCount: individuals.length,
         itemBuilder: (context, index) {
-          final patient = patients[index];
-          return _buildPatientCard(patient, index);
+          final individual = individuals[index];
+          return _buildIndividualCard(individual, index);
         },
       ),
     );
   }
 
-  Widget _buildPatientCard(Map<String, dynamic> patient, int index) {
-    final String name = patient['name'] ?? 'Unknown';
-    final int age = patient['age'] ?? 0;
-    final String address = patient['address'] ?? 'Unknown Address';
-    final String category = patient['category'] ?? 'General';
-    final List visits = patient['visitHistory'] ?? [];
+  Widget _buildIndividualCard(Map<String, dynamic> individual, int index) {
+    final String name = individual['name'] ?? 'Unknown';
+    final int age = individual['age'] ?? 0;
+    final String address = individual['address'] ?? 'Unknown Address';
+    final String category = individual['category'] ?? 'General';
+    final List visits = individual['visitHistory'] ?? [];
     final String? lastVisit = visits.isNotEmpty ? visits[0]['visitDate'] : null;
 
     // Generate initials
@@ -391,7 +391,7 @@ class _PatientsScreenState extends State<PatientsScreen>
             borderRadius: BorderRadius.circular(16),
             onTap: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Patient Details coming soon!')),
+                const SnackBar(content: Text('Individual Details coming soon!')),
               );
             },
             child: Padding(

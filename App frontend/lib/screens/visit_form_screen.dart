@@ -22,11 +22,11 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
   List<Map<String, dynamic>> _households = [];
   bool _isLoadingHouseholds = true;
 
-  // Step 1 — Patient Selection (filtered by house)
-  String? _selectedPatientId;
-  String _selectedPatientName = '';
-  List<dynamic> _householdPatients = [];
-  bool _isLoadingPatients = false;
+  // Step 1 — Individual Selection (filtered by house)
+  String? _selectedIndividualId;
+  String _selectedIndividualName = '';
+  List<dynamic> _householdIndividuals = [];
+  bool _isLoadingIndividuals = false;
   String _searchQuery = '';
   final _searchController = TextEditingController();
 
@@ -78,20 +78,20 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
     }
   }
 
-  Future<void> _loadPatientsForHousehold(String householdId) async {
-    setState(() => _isLoadingPatients = true);
+  Future<void> _loadIndividualsForHousehold(String householdId) async {
+    setState(() => _isLoadingIndividuals = true);
     try {
-      // Get all patients and filter by householdId
+      // Get all individuals and filter by householdId
       final provider = Provider.of<AppStateProvider>(context, listen: false);
-      await provider.fetchPatients();
+      await provider.fetchIndividuals();
       setState(() {
-        _householdPatients = provider.patients
+        _householdIndividuals = provider.individuals
             .where((p) => p['householdId'] == householdId)
             .toList();
-        _isLoadingPatients = false;
+        _isLoadingIndividuals = false;
       });
     } catch (e) {
-      setState(() => _isLoadingPatients = false);
+      setState(() => _isLoadingIndividuals = false);
     }
   }
 
@@ -103,7 +103,7 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
   }
 
   Future<void> _submitVisit() async {
-    if (_selectedPatientId == null) return;
+    if (_selectedIndividualId == null) return;
 
     setState(() => _isSubmitting = true);
 
@@ -120,7 +120,7 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
         if (!mounted) return;
         final mapProvider = Provider.of<AreaMapProvider>(context, listen: false);
         bool synced = await provider.logVisitOfflineSupport({
-        'patientId': _selectedPatientId,
+        'patientId': _selectedIndividualId,
         'visitDate': _visitDate.toIso8601String(),
         'outcome': outcome,
         'visitType': _visitType,
@@ -182,7 +182,7 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final steps = ['House', 'Patient', 'Details', 'Symptoms'];
+    final steps = ['House', 'Individual', 'Details', 'Symptoms'];
 
     return Scaffold(
       backgroundColor: MyTheme.backgroundWhite,
@@ -211,8 +211,8 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
               duration: const Duration(milliseconds: 300),
               child: _currentStep == 0
                   ? _buildStep0HouseSelect()
-                  : _currentStep == 1
-                      ? _buildStep1PatientSelect()
+                    : _currentStep == 1
+                        ? _buildStep1IndividualSelect()
                       : _currentStep == 2
                           ? _buildStep2Details()
                           : _buildStep3SymptomsAndClose(),
@@ -341,10 +341,10 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
                             setState(() {
                               _selectedHouseholdId = houseId;
                               _selectedHouseLabel = '$houseNum – $headName';
-                              _selectedPatientId = null;
-                              _selectedPatientName = '';
+                              _selectedIndividualId = null;
+                              _selectedIndividualName = '';
                             });
-                            _loadPatientsForHousehold(houseId);
+                            _loadIndividualsForHousehold(houseId);
                           },
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
@@ -397,11 +397,11 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
     );
   }
 
-  // ─── STEP 1 — Select Patient (filtered by house) ───────────────
-  Widget _buildStep1PatientSelect() {
+  // ─── STEP 1 — Select Individual (filtered by house) ───────────────
+  Widget _buildStep1IndividualSelect() {
     final filtered = _searchQuery.isEmpty
-        ? _householdPatients
-        : _householdPatients.where((p) {
+        ? _householdIndividuals
+        : _householdIndividuals.where((p) {
             final name = (p['name'] ?? '').toString().toLowerCase();
             return name.contains(_searchQuery.toLowerCase());
           }).toList();
@@ -444,7 +444,7 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
               controller: _searchController,
               onChanged: (v) => setState(() => _searchQuery = v),
               decoration: InputDecoration(
-                hintText: 'Search patient by name...',
+                hintText: 'Search individual by name...',
                 hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
                 prefixIcon: Icon(Icons.search_rounded, color: Colors.grey[400]),
                 border: InputBorder.none,
@@ -455,10 +455,10 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
         ),
         Padding(
           padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
-          child: Text('${filtered.length} patients in this house', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
+          child: Text('${filtered.length} individuals in this house', style: TextStyle(fontSize: 12, color: Colors.grey[500])),
         ),
         Expanded(
-          child: _isLoadingPatients
+          child: _isLoadingIndividuals
               ? const Center(child: CircularProgressIndicator(color: MyTheme.primaryBlue))
               : filtered.isEmpty
                   ? Center(
@@ -467,9 +467,9 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
                         children: [
                           Icon(Icons.person_off_outlined, size: 48, color: Colors.grey[300]),
                           const SizedBox(height: 12),
-                          Text('No patients in this house', style: TextStyle(color: Colors.grey[500])),
+                          Text('No individuals in this house', style: TextStyle(color: Colors.grey[500])),
                           const SizedBox(height: 4),
-                          Text('Register a patient to this house first', style: TextStyle(color: Colors.grey[400], fontSize: 12)),
+                          Text('Register an individual to this house first', style: TextStyle(color: Colors.grey[400], fontSize: 12)),
                         ],
                       ),
                     )
@@ -478,7 +478,7 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
                       itemCount: filtered.length,
                       itemBuilder: (context, i) {
                         final p = filtered[i];
-                        final isSelected = p['id'] == _selectedPatientId;
+                        final isSelected = p['id'] == _selectedIndividualId;
                         final name = p['name'] ?? 'Unknown';
                         final category = p['category'] ?? 'General';
                         final age = p['age'] ?? 0;
@@ -488,8 +488,8 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
                         return GestureDetector(
                           onTap: () {
                             setState(() {
-                              _selectedPatientId = p['id'];
-                              _selectedPatientName = name;
+                              _selectedIndividualId = p['id'];
+                              _selectedIndividualName = name;
                             });
                           },
                           child: AnimatedContainer(
@@ -567,7 +567,7 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
                 const SizedBox(width: 12),
                 const Icon(Icons.person_rounded, color: MyTheme.primaryBlue, size: 16),
                 const SizedBox(width: 4),
-                Flexible(child: Text(_selectedPatientName, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: MyTheme.primaryBlue))),
+                Flexible(child: Text(_selectedIndividualName, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: MyTheme.primaryBlue))),
               ],
             ),
           ),
@@ -793,7 +793,7 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
         canProceed = _selectedHouseholdId != null;
         break;
       case 1:
-        canProceed = _selectedPatientId != null;
+        canProceed = _selectedIndividualId != null;
         break;
       default:
         canProceed = true;

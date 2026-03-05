@@ -5,14 +5,14 @@ import '../providers/area_map_provider.dart';
 import '../theme/app_theme.dart';
 import '../services/api_service.dart';
 
-class AddPatientScreen extends StatefulWidget {
-  const AddPatientScreen({super.key});
+class AddIndividualScreen extends StatefulWidget {
+  const AddIndividualScreen({super.key});
 
   @override
-  State<AddPatientScreen> createState() => _AddPatientScreenState();
+  State<AddIndividualScreen> createState() => _AddIndividualScreenState();
 }
 
-class _AddPatientScreenState extends State<AddPatientScreen> {
+class _AddIndividualScreenState extends State<AddIndividualScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _ageController = TextEditingController();
@@ -176,7 +176,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Select the house number first, then fill in patient details.',
+                        'Select the house number first, then fill in individual details.',
                         style: TextStyle(color: Colors.grey[600], fontSize: 12.5, height: 1.4),
                       ),
                     ),
@@ -196,7 +196,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
               const SizedBox(height: 8),
               _buildTextField(
                 controller: _nameController,
-                hint: 'Enter patient\'s full name',
+                hint: 'Enter individual\'s full name',
                 icon: Icons.person_rounded,
                 validator: (val) => val == null || val.isEmpty ? 'Please enter name' : null,
               ),
@@ -257,7 +257,7 @@ class _AddPatientScreenState extends State<AddPatientScreen> {
                             Icon(Icons.person_add_rounded, size: 20),
                             SizedBox(width: 8),
                             Text(
-                              'Register Patient',
+                              'Register Individual',
                               style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                             ),
                           ],

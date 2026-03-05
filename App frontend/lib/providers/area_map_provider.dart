@@ -388,6 +388,23 @@ final _demoHouseholds = [
   Household(householdId: 'h_007', displayId: 'H007', headName: 'Geetha Nair', address: 'Ward 4, House 02', pendingTasksCount: 2, status: 'high-risk', isClosed: false, badges: ['antenatal']),
   Household(householdId: 'h_008', displayId: 'H008', headName: 'Priya Verma', address: 'Ward 4, House 03', pendingTasksCount: 0, status: 'completed', isClosed: false, badges: []),
   Household(householdId: 'h_009', displayId: 'H009', headName: 'Lalita Singh', address: 'Ward 4, House 04', pendingTasksCount: 0, status: 'closed', isClosed: true, badges: []),
+  Household(householdId: 'h_010', displayId: 'H010', headName: 'Anjali Gupta', address: 'Ward 4, House 05', pendingTasksCount: 1, status: 'pending', isClosed: false, badges: []),
+  Household(householdId: 'h_011', displayId: 'H011', headName: 'Rani Mukerji', address: 'Ward 4, House 06', pendingTasksCount: 0, status: 'completed', isClosed: false, badges: []),
+  Household(householdId: 'h_012', displayId: 'H012', headName: 'Deepika P.', address: 'Ward 4, House 07', pendingTasksCount: 0, status: 'completed', isClosed: false, badges: []),
+  Household(householdId: 'h_013', displayId: 'H013', headName: 'Priyanka C.', address: 'Ward 4, House 08', pendingTasksCount: 2, status: 'pending', isClosed: false, badges: []),
+  Household(householdId: 'h_014', displayId: 'H014', headName: 'Kareena K.', address: 'Ward 4, House 09', pendingTasksCount: 1, status: 'high-risk', isClosed: false, badges: []),
+  Household(householdId: 'h_015', displayId: 'H015', headName: 'Aishwarya R.', address: 'Ward 4, House 10', pendingTasksCount: 0, status: 'completed', isClosed: false, badges: []),
+  Household(householdId: 'h_016', displayId: 'H016', headName: 'Vidya Balan', address: 'Ward 4, House 11', pendingTasksCount: 0, status: 'completed', isClosed: false, badges: []),
+  Household(householdId: 'h_017', displayId: 'H017', headName: 'Madhuri D.', address: 'Ward 4, House 12', pendingTasksCount: 1, status: 'pending', isClosed: false, badges: []),
+  Household(householdId: 'h_018', displayId: 'H018', headName: 'Kajol D.', address: 'Ward 4, House 13', pendingTasksCount: 0, status: 'completed', isClosed: false, badges: []),
+  Household(householdId: 'h_019', displayId: 'H019', headName: 'Juhi Chawla', address: 'Ward 4, House 14', pendingTasksCount: 0, status: 'completed', isClosed: false, badges: []),
+  Household(householdId: 'h_020', displayId: 'H020', headName: 'Sridevi K.', address: 'Ward 4, House 15', pendingTasksCount: 2, status: 'pending', isClosed: false, badges: []),
+  Household(householdId: 'h_021', displayId: 'H021', headName: 'Rekha G.', address: 'Ward 4, House 16', pendingTasksCount: 0, status: 'completed', isClosed: false, badges: []),
+  Household(householdId: 'h_022', displayId: 'H022', headName: 'Hema Malini', address: 'Ward 4, House 17', pendingTasksCount: 0, status: 'completed', isClosed: false, badges: []),
+  Household(householdId: 'h_023', displayId: 'H023', headName: 'Jaya B.', address: 'Ward 4, House 18', pendingTasksCount: 1, status: 'pending', isClosed: false, badges: []),
+  Household(householdId: 'h_024', displayId: 'H024', headName: 'Shabana A.', address: 'Ward 4, House 19', pendingTasksCount: 0, status: 'completed', isClosed: false, badges: []),
+  Household(householdId: 'h_025', displayId: 'H025', headName: 'Smita Patil', address: 'Ward 4, House 20', pendingTasksCount: 0, status: 'completed', isClosed: false, badges: []),
+  Household(householdId: 'h_026', displayId: 'H026', headName: 'Nargis D.', address: 'Ward 4, House 21', pendingTasksCount: 1, status: 'pending', isClosed: false, badges: []),
 ];
 
 final Map<String, HouseholdDetail> _demoDetails = {

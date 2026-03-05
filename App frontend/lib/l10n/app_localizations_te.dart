@@ -28,7 +28,7 @@ class AppLocalizationsTe extends AppLocalizations {
   String get dashboard => 'డాష్‌బోర్డ్';
 
   @override
-  String get patients => 'రోగులు';
+  String get individuals => 'వ్యక్తులు';
 
   @override
   String get visits => 'సందర్శనలు';
@@ -43,5 +43,5 @@ class AppLocalizationsTe extends AppLocalizations {
   String get logVisit => 'సందర్శన నమోదు చేయండి';
 
   @override
-  String get addPatient => 'రోగిని చేర్చండి';
+  String get addIndividual => 'వ్యక్తిని చేర్చండి';
 }

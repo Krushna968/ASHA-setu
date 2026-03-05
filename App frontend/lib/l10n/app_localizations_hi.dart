@@ -28,7 +28,7 @@ class AppLocalizationsHi extends AppLocalizations {
   String get dashboard => 'डैशबोर्ड';
 
   @override
-  String get patients => 'मरीज़';
+  String get individuals => 'व्यक्तियों';
 
   @override
   String get visits => 'मुलाकातें';
@@ -43,5 +43,5 @@ class AppLocalizationsHi extends AppLocalizations {
   String get logVisit => 'मुलाकात दर्ज करें';
 
   @override
-  String get addPatient => 'मरीज़ जोड़ें';
+  String get addIndividual => 'व्यक्ति जोड़ें';
 }

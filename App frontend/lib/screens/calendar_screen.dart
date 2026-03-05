@@ -33,11 +33,11 @@ class _CalendarScreenState extends State<CalendarScreen> {
       final vDate = DateTime.parse(v['visitDate']);
       return _isSameDay(vDate, normalized);
     }).map((v) {
-      final patient = v['patient'] ?? {};
+      final individual = v['patient'] ?? {};
       final time = DateFormat('hh:mm a').format(DateTime.parse(v['visitDate']));
       
       return {
-        'title': 'Visit: ${patient['name'] ?? 'Unknown'}',
+        'title': 'Visit: ${individual['name'] ?? 'Unknown'}',
         'time': time,
         'status': v['outcome'] ?? 'Pending',
         'type': (v['visitType'] ?? 'visit').toString().toLowerCase(),

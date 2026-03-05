@@ -140,11 +140,11 @@ abstract class AppLocalizations {
   /// **'Dashboard'**
   String get dashboard;
 
-  /// No description provided for @patients.
+  /// No description provided for @individuals.
   ///
   /// In en, this message translates to:
-  /// **'Patients'**
-  String get patients;
+  /// **'Individuals'**
+  String get individuals;
 
   /// No description provided for @visits.
   ///
@@ -170,11 +170,11 @@ abstract class AppLocalizations {
   /// **'Log Visit'**
   String get logVisit;
 
-  /// No description provided for @addPatient.
+  /// No description provided for @addIndividual.
   ///
   /// In en, this message translates to:
-  /// **'Add Patient'**
-  String get addPatient;
+  /// **'Add Individual'**
+  String get addIndividual;
 }
 
 class _AppLocalizationsDelegate

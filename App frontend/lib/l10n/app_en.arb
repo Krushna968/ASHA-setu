@@ -5,10 +5,10 @@
   "mobileNumber": "Mobile Number",
   "sendOtp": "Send OTP",
   "dashboard": "Dashboard",
-  "patients": "Patients",
+  "individuals": "Individuals",
   "visits": "Visits",
   "inventory": "Inventory",
   "tasks": "Tasks",
   "logVisit": "Log Visit",
-  "addPatient": "Add Patient"
+  "addIndividual": "Add Individual"
 }
