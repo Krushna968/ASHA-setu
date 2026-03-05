@@ -19,6 +19,7 @@ import 'screens/help_support_screen.dart';
 import 'screens/add_individual_screen.dart';
 import 'screens/high_risk_screen.dart';
 import 'screens/registration_screen.dart';
+import 'screens/visited_report_screen.dart';
 import 'services/auth_service.dart';
 import 'providers/app_state_provider.dart';
 import 'services/notification_service.dart';
@@ -94,6 +95,7 @@ class AshaSetuApp extends StatelessWidget {
         '/help': (context) => const HelpSupportScreen(),
         '/add-individual': (context) => const AddIndividualScreen(),
         '/high-risk': (context) => const HighRiskScreen(),
+        '/visited-report': (context) => const VisitedReportScreen(),
         '/login': (context) => const LoginScreen(),
         '/register': (context) => const RegistrationScreen(),
       },

@@ -10,7 +10,6 @@ import '../services/auth_service.dart';
 import '../services/api_service.dart';
 import '../providers/area_map_provider.dart';
 import '../providers/app_state_provider.dart';
-import '../l10n/app_localizations.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -129,6 +128,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 24),
                     _buildCoveragePremium(),
                     const SizedBox(height: 32),
+                    _buildSectionHeader('REPORTS'),
+                    const SizedBox(height: 12),
+                    _buildSettingsList([
+                      _SettingItem(
+                        icon: Icons.assignment_rounded,
+                        bg: Colors.indigo.shade50,
+                        color: Colors.indigo.shade700,
+                        title: 'Daily Visit Report',
+                        subtitle: 'Today\'s house-wise visits',
+                        onTap: () {
+                          Navigator.pushNamed(context, '/visited-report');
+                        },
+                      ),
+                    ]),
+                    const SizedBox(height: 24),
                     _buildSectionHeader('ACCOUNT MANAGEMENT'),
                     const SizedBox(height: 12),
                     _buildSettingsList([
