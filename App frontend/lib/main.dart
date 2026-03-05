@@ -17,6 +17,7 @@ import 'screens/patients_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/help_support_screen.dart';
 import 'screens/add_patient_screen.dart';
+import 'screens/high_risk_screen.dart';
 import 'services/auth_service.dart';
 import 'providers/app_state_provider.dart';
 import 'services/notification_service.dart';
@@ -91,6 +92,7 @@ class AshaSetuApp extends StatelessWidget {
         '/profile': (context) => const ProfileScreen(),
         '/help': (context) => const HelpSupportScreen(),
         '/add-patient': (context) => const AddPatientScreen(),
+        '/high-risk': (context) => const HighRiskScreen(),
         '/login': (context) => const LoginScreen(),
       },
       builder: (context, child) {

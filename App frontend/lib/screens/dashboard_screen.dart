@@ -778,10 +778,7 @@ class _DashboardScreenState extends State<DashboardScreen>
           final appState = Provider.of<AppStateProvider>(context, listen: false);
           appState.setCurrentIndex(1);
         } else if (action.route == '/high-risk') {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const AreaTaskMapScreen(filterMode: 'highRisk')),
-          );
+          Navigator.pushNamed(context, '/high-risk');
         } else if (action.route != null) {
           Navigator.pushNamed(context, action.route!);
         }
