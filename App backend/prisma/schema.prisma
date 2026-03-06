@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,10 +11,10 @@ model Admin {
   id        String   @id @default(uuid())
   name      String
   email     String   @unique
-  password  String?
   role      String   @default("DISTRICT_OFFICER")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  password  String?
 }
 
 model Worker {
@@ -35,13 +32,13 @@ model Worker {
   fcmToken         String?
   createdAt        DateTime           @default(now())
   updatedAt        DateTime           @updatedAt
+  households       Household[]
+  inventory        InventoryItem[]
+  learningProgress LearningProgress[]
   patients         Patient[]
+  reports          Report[]
   tasks            Task[]
   visitHistory     VisitHistory[]
-  inventory        InventoryItem[]
-  households       Household[]
-  learningProgress LearningProgress[]
-  reports          Report[]
 }
 
 model Patient {
@@ -49,33 +46,33 @@ model Patient {
   name         String
   age          Int
   gender       String?
-  category     String // e.g., 'ANC', 'PNC', 'INFANT', 'GENERAL'
-  address      String? // Legacy field, now optional
-  relation     String? // e.g., 'Head (Mother)', 'Husband', 'Wife', 'Child'
-  pregnancyEDD DateTime? // Expected Date of Delivery for ANC
+  category     String
+  address      String?
+  relation     String?
+  pregnancyEDD DateTime?
   workerId     String
   householdId  String?
-  worker       Worker         @relation(fields: [workerId], references: [id])
-  household    Household?     @relation(fields: [householdId], references: [id])
-  visitHistory VisitHistory[]
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
+  household    Household?     @relation(fields: [householdId], references: [id])
+  worker       Worker         @relation(fields: [workerId], references: [id])
+  visitHistory VisitHistory[]
 }
 
 model Household {
   id                String    @id @default(uuid())
-  houseNumber       String // e.g., 'H001', 'H002'
-  headName          String // Name of the head of the family
+  houseNumber       String
+  headName          String
   address           String
   village           String?
-  status            String    @default("pending") // 'pending', 'completed', 'high-risk', 'closed'
+  status            String    @default("pending")
   pendingTasksCount Int       @default(0)
   isClosed          Boolean   @default(false)
-  familyMembers     Patient[] // Relation to individual patients in the family
   workerId          String
-  worker            Worker    @relation(fields: [workerId], references: [id])
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
+  worker            Worker    @relation(fields: [workerId], references: [id])
+  familyMembers     Patient[]
 
   @@unique([workerId, houseNumber])
 }
@@ -84,8 +81,8 @@ model LearningModule {
   id          String             @id @default(uuid())
   title       String
   description String?
-  contentUrl  String? // Link to video or article
-  durationMin Int? // Estimated duration in minutes
+  contentUrl  String?
+  durationMin Int?
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
   progress    LearningProgress[]
@@ -95,40 +92,38 @@ model LearningProgress {
   id          String         @id @default(uuid())
   workerId    String
   moduleId    String
-  status      String         @default("NOT_STARTED") // 'NOT_STARTED', 'IN_PROGRESS', 'COMPLETED'
+  status      String         @default("NOT_STARTED")
   completedAt DateTime?
-  worker      Worker         @relation(fields: [workerId], references: [id])
-  module      LearningModule @relation(fields: [moduleId], references: [id])
   updatedAt   DateTime       @updatedAt
+  module      LearningModule @relation(fields: [moduleId], references: [id])
+  worker      Worker         @relation(fields: [workerId], references: [id])
 
-  @@unique([workerId, moduleId]) // A worker can only have one progress record per module
+  @@unique([workerId, moduleId])
 }
 
 model Message {
-  id           String  @id @default(uuid())
+  id           String   @id @default(uuid())
   content      String
-  senderId     String // Worker ID or 'ADMIN'
-  receiverId   String // Worker ID or 'ADMIN'
-  senderType   String // 'ADMIN' or 'WORKER'
-  receiverType String // 'ADMIN' or 'WORKER'
-  isRead       Boolean @default(false)
-  reportId     String? // Link to a specific report if this is a forwarded report
-
-  createdAt DateTime @default(now())
+  senderId     String
+  receiverId   String
+  senderType   String
+  receiverType String
+  isRead       Boolean  @default(false)
+  createdAt    DateTime @default(now())
 }
 
 model Task {
   id          String   @id @default(uuid())
   title       String
   description String?
-  status      String   @default("PENDING") // 'PENDING', 'IN_PROGRESS', 'COMPLETED'
-  priority    String   @default("MEDIUM") // 'HIGH', 'MEDIUM', 'LOW'
+  status      String   @default("PENDING")
+  priority    String   @default("MEDIUM")
   dueDate     DateTime
   workerId    String
-  householdId String? // Link task to household
-  worker      Worker   @relation(fields: [workerId], references: [id])
+  householdId String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  worker      Worker   @relation(fields: [workerId], references: [id])
 }
 
 model VisitHistory {
@@ -137,32 +132,33 @@ model VisitHistory {
   patientId     String
   visitDate     DateTime @default(now())
   outcome       String
-  visitType     String? // e.g., 'Routine Checkup', 'ANC Follow-up'
-  symptoms      String? // Comma-separated symptom list
+  visitType     String?
+  symptoms      String?
   bloodPressure String?
   weight        Float?
   bloodSugar    Float?
   temperature   Float?
   notes         String?
-  isHouseClosed Boolean  @default(false) // Whether worker marked house as closed during this visit
-  worker        Worker   @relation(fields: [workerId], references: [id])
+  isHouseClosed Boolean  @default(false)
   patient       Patient  @relation(fields: [patientId], references: [id])
+  worker        Worker   @relation(fields: [workerId], references: [id])
 }
 
 model InventoryItem {
   id          String   @id @default(uuid())
-  name        String // e.g. Paracetamol, ORS, Iron Folic Acid
+  name        String
   quantity    Int      @default(0)
-  unit        String // e.g. tablets, packets, kits
+  unit        String
   workerId    String
-  worker      Worker   @relation(fields: [workerId], references: [id])
   lastUpdated DateTime @updatedAt
+  worker      Worker   @relation(fields: [workerId], references: [id])
 }
+
 model Report {
   id        String   @id @default(uuid())
   workerId  String
-  worker    Worker   @relation(fields: [workerId], references: [id])
   date      DateTime @default(now())
-  content   Json // Detailed tasks and activities
+  content   Json
   createdAt DateTime @default(now())
+  worker    Worker   @relation(fields: [workerId], references: [id])
 }

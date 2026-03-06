@@ -18,7 +18,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _mobileController = TextEditingController();
+  final TextEditingController _mobileController = TextEditingController(text: '9321609760');
   final TextEditingController _dobController = TextEditingController();
   final TextEditingController _aadhaarController = TextEditingController();
 

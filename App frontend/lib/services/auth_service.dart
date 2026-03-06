@@ -11,6 +11,16 @@ class AuthService {
     await prefs.setString(tokenKey, token);
     await prefs.setString(workerNameKey, workerData['name'] ?? '');
     await prefs.setString(workerIdKey, workerData['id'] ?? '');
+    if (token == 'mock_token') {
+       await prefs.setBool('is_mock', true);
+    } else {
+       await prefs.setBool('is_mock', false);
+    }
+  }
+
+  static Future<bool> isMockMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('is_mock') ?? false;
   }
 
   // Get the locally saved token
@@ -55,5 +65,6 @@ class AuthService {
     await prefs.remove(tokenKey);
     await prefs.remove(workerNameKey);
     await prefs.remove(workerIdKey);
+    await prefs.remove('is_mock');
   }
 }

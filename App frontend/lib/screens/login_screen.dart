@@ -14,7 +14,7 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController(text: '9321609760');
   bool _isLoading = false;
   String? _errorMessage;
 
@@ -31,6 +31,22 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     final formattedPhone = phone.startsWith('+91') ? phone : '+91$phone';
+
+    // Bypass for hardcoded testing number
+    if (phone == '9321609760') {
+      await Future.delayed(const Duration(milliseconds: 800)); // Brief delay for UX
+      if (!mounted) return;
+      setState(() => _isLoading = false);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OtpScreen(
+            mobileNumber: formattedPhone,
+          ),
+        ),
+      );
+      return;
+    }
 
     try {
       final result = await ApiService.sendOtp(formattedPhone);

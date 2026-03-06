@@ -1,7 +1,5 @@
 const Groq = require('groq-sdk');
 const prisma = require('../lib/prisma');
-const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
-
 // ─── Tool Definitions (what the AI can "call") ───────────────────────
 const TOOL_DEFINITIONS = [
     {
@@ -389,6 +387,11 @@ Help them with performance monitoring, trend analysis, resource allocation, and 
 
 // ─── Main Chat Function ──────────────────────────────────────────────
 async function chat(message, conversationHistory = [], role = 'worker', workerName = 'ASHA Worker', workerVillage = '', workerId = '') {
+    if (!process.env.GROQ_API_KEY) {
+        return { reply: 'SakhiAI is currently unavailable (Missing API Key). Please contact the administrator. 🙏', toolsUsed: false };
+    }
+
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
     const systemPrompt = buildSystemPrompt(role, workerName, workerVillage, workerId);
 
     const messages = [

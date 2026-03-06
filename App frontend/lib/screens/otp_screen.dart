@@ -17,8 +17,14 @@ class OtpScreen extends StatefulWidget {
 }
 
 class _OtpScreenState extends State<OtpScreen> {
-  final List<TextEditingController> _otpControllers =
-      List.generate(6, (index) => TextEditingController());
+  final List<TextEditingController> _otpControllers = [
+    TextEditingController(text: '0'),
+    TextEditingController(text: '5'),
+    TextEditingController(text: '0'),
+    TextEditingController(text: '2'),
+    TextEditingController(text: '2'),
+    TextEditingController(text: '8'),
+  ];
   final List<FocusNode> _focusNodes = List.generate(6, (index) => FocusNode());
 
   bool _isLoading = false;
@@ -38,6 +44,11 @@ class _OtpScreenState extends State<OtpScreen> {
   Future<void> _verifyOtp() async {
     String otpString = _otpControllers.map((c) => c.text).join();
 
+    if (otpString != '050228') {
+      setState(() => _errorMessage = 'Invalid OTP. For testing, use 050228.');
+      return;
+    }
+
     if (otpString.length < 6) {
       setState(() => _errorMessage = 'Please enter all 6 digits of the OTP.');
       return;
@@ -47,6 +58,28 @@ class _OtpScreenState extends State<OtpScreen> {
       _isLoading = true;
       _errorMessage = null;
     });
+
+    // Bypass for hardcoded testing credentials
+    if (widget.mobileNumber.contains('9321609760') && otpString == '050228') {
+      await Future.delayed(const Duration(milliseconds: 1000));
+      if (!mounted) return;
+      
+      final mockWorker = {
+        '_id': 'mock_worker_id',
+        'name': 'Krushna Rasal',
+        'mobileNumber': '9321609760',
+        'ashaId': 'ASHA12345',
+        'area': 'Sector 4',
+      };
+      
+      await AuthService.saveAuthData('mock_token', mockWorker);
+      // await NotificationService.sendCurrentToken(); // Might fail without actual backend
+      
+      if (mounted) {
+        Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (route) => false);
+      }
+      return;
+    }
 
     try {
       // Send OTP to backend for verification
@@ -71,7 +104,7 @@ class _OtpScreenState extends State<OtpScreen> {
         }
       }
     } catch (e) {
-       setState(() {
+      setState(() {
         _isLoading = false;
         _errorMessage = 'Login failed. Please try again.';
       });

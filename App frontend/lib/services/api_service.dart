@@ -7,7 +7,7 @@ import '../main.dart'; // Import to use navigatorKey
 class ApiService {
   // Base URL for the production backend on Render
   // static const String baseUrl = 'https://asha-setu-backend.onrender.com/api';
-  static const String baseUrl = 'http://10.75.109.134:5000/api';
+  static const String baseUrl = 'http://10.75.109.137:5000/api';
 
   // Include token in header
   static Future<Map<String, String>> _getHeaders() async {
@@ -49,6 +49,14 @@ class ApiService {
   }
 
   static Future<void> _handleUnauthorized() async {
+    // If we're in Mock/Testing mode, don't auto-logout.
+    // This allows the app to continue for demo purposes even if calls fail.
+    final bool isMock = await AuthService.isMockMode();
+    if (isMock) {
+       debugPrint('⚠️ Unauthorized call in Mock Mode. Skipping auto-logout.');
+       return;
+    }
+
     await AuthService.logout();
     if (navigatorKey.currentContext != null) {
       Navigator.pushNamedAndRemoveUntil(
