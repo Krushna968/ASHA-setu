@@ -15,6 +15,7 @@ class HighRiskScreen extends StatefulWidget {
 
 class _HighRiskScreenState extends State<HighRiskScreen> {
   String _activeFilter = 'All'; // All, Critical, Needs Attention, Monitored
+  final Set<String> _visitedHouseholdIds = {};
 
   @override
   void initState() {
@@ -245,7 +246,20 @@ class _HighRiskScreenState extends State<HighRiskScreen> {
             final h = households[index];
             return FadeInUp(
               delay: Duration(milliseconds: index * 50),
-              child: _IndividualCard(household: h, provider: provider),
+              child: _IndividualCard(
+                household: h, 
+                provider: provider,
+                isVisited: _visitedHouseholdIds.contains(h.householdId),
+                onToggleVisit: () {
+                  setState(() {
+                    if (_visitedHouseholdIds.contains(h.householdId)) {
+                      _visitedHouseholdIds.remove(h.householdId);
+                    } else {
+                      _visitedHouseholdIds.add(h.householdId);
+                    }
+                  });
+                },
+              ),
             );
           },
           childCount: households.length,
@@ -348,8 +362,15 @@ class _HighRiskScreenState extends State<HighRiskScreen> {
 class _IndividualCard extends StatelessWidget {
   final Household household;
   final AreaMapProvider provider;
+  final bool isVisited;
+  final VoidCallback onToggleVisit;
 
-  const _IndividualCard({required this.household, required this.provider});
+  const _IndividualCard({
+    required this.household, 
+    required this.provider,
+    required this.isVisited,
+    required this.onToggleVisit,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -437,29 +458,57 @@ class _IndividualCard extends StatelessWidget {
                     
                     const Divider(height: 24),
                     
-                    Row(
+                    Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: 8,
+                      runSpacing: 8,
                       children: [
-                        Expanded(
-                          child: TextButton.icon(
-                            onPressed: () => _showDetails(context),
-                            icon: const Icon(Icons.visibility_outlined, size: 18),
-                            label: const Text('View History'),
-                            style: TextButton.styleFrom(
-                              foregroundColor: MyTheme.textLight,
-                              alignment: Alignment.centerLeft,
-                            ),
-                          ),
-                        ),
-                        ElevatedButton(
-                          onPressed: () => Navigator.pushNamed(context, '/visit-form', arguments: household.householdId),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: MyTheme.criticalRed,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        TextButton.icon(
+                          onPressed: () => _showDetails(context),
+                          icon: const Icon(Icons.visibility_outlined, size: 18),
+                          label: const Text('History'),
+                          style: TextButton.styleFrom(
+                            foregroundColor: MyTheme.textLight,
+                            padding: EdgeInsets.zero,
                             minimumSize: Size.zero,
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
-                          child: const Text('Log Visit', style: TextStyle(fontSize: 13)),
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ElevatedButton(
+                              onPressed: onToggleVisit,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: isVisited ? MyTheme.successGreen : Colors.grey.shade100,
+                                foregroundColor: isVisited ? Colors.white : MyTheme.textLight,
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  side: BorderSide(
+                                    color: isVisited ? MyTheme.successGreen : Colors.grey.shade300,
+                                  ),
+                                ),
+                              ),
+                              child: Text(
+                                isVisited ? 'Visited' : 'Not Visited',
+                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            ElevatedButton(
+                              onPressed: () => Navigator.pushNamed(context, '/visit-form', arguments: household.householdId),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: MyTheme.criticalRed,
+                                foregroundColor: Colors.white,
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              ),
+                              child: const Text('Log', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
+                            ),
+                          ],
                         ),
                       ],
                     ),
