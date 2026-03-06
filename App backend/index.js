@@ -78,6 +78,7 @@ const learningRoutes = require('./src/routes/learningRoutes');
 const messageRoutes = require('./src/routes/messageRoutes');
 const reportRoutes = require('./src/routes/reportRoutes');
 const sakhiRoutes = require('./src/routes/sakhiRoutes');
+const aiRoutes = require('./src/routes/aiRoutes');
 
 // Mount Routes
 app.use('/api/auth', authRoutes);
@@ -91,6 +92,7 @@ app.use('/api/learning', learningRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/sakhi', sakhiRoutes);
+app.use('/api/ai', aiRoutes);
 
 // Basic health check endpoint
 app.get('/', (req, res) => {

@@ -64,6 +64,20 @@ class ApiService {
     }
   }
 
+  // Get AI Itinerary
+  static Future<List<dynamic>> getAiItinerary() async {
+    try {
+      final response = await get('/ai/itinerary');
+      if (response != null && response['itinerary'] != null) {
+        return response['itinerary'];
+      }
+      return [];
+    } catch (e) {
+      debugPrint("Failed to fetch AI itinerary: $e");
+      return [];
+    }
+  }
+
   // Get data (Helpers)
   static Future<dynamic> get(String endpoint) async {
     final headers = await _getHeaders();

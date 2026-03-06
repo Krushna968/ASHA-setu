@@ -133,6 +133,12 @@ class _VisitFormScreenState extends State<VisitFormScreen> {
         // Update Map Provider if house is closed or task completed
         if (_markHouseClosed) {
           mapProvider.closeHousehold(_selectedHouseholdId!);
+          
+          // Trigger AI to update the itinerary behind the scenes for reschedule logic
+          ApiService.getAiItinerary().catchError((e) {
+            debugPrint('Failed to background refresh AI itinerary: $e');
+            return []; // Return empty list on error to match Future<List<dynamic>> type
+          });
         }
         
         // Also refresh the whole area and dashboard stats

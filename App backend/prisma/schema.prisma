@@ -39,6 +39,7 @@ model Worker {
   reports          Report[]
   tasks            Task[]
   visitHistory     VisitHistory[]
+  aiDailyPlans     AiDailyPlan[]
 }
 
 model Patient {
@@ -57,6 +58,7 @@ model Patient {
   household    Household?     @relation(fields: [householdId], references: [id])
   worker       Worker         @relation(fields: [workerId], references: [id])
   visitHistory VisitHistory[]
+  aiRiskScore  Int            @default(0)
 }
 
 model Household {
@@ -161,4 +163,15 @@ model Report {
   content   Json
   createdAt DateTime @default(now())
   worker    Worker   @relation(fields: [workerId], references: [id])
+}
+
+model AiDailyPlan {
+  id            String   @id @default(uuid())
+  workerId      String
+  date          DateTime @default(now())
+  priorityQueue Json
+  reasoning     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  worker        Worker   @relation(fields: [workerId], references: [id])
 }

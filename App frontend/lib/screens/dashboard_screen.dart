@@ -28,6 +28,9 @@ class _DashboardScreenState extends State<DashboardScreen>
   int _visitsCount = 0;
   bool _isLoadingStats = true;
 
+  List<dynamic> _aiItinerary = [];
+  bool _isLoadingAi = true;
+
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
   late AnimationController _slideController;
@@ -75,28 +78,43 @@ class _DashboardScreenState extends State<DashboardScreen>
     if (mounted) {
       setState(() {
         _workerName = name ?? 'ASHA Worker';
+        _isLoadingAi = true;
       });
     }
 
     try {
-      final stats = await ApiService.get('/worker/stats');
-      if (mounted && !stats.containsKey('error')) {
+      final results = await Future.wait([
+        ApiService.get('/worker/stats'),
+        ApiService.getAiItinerary(),
+      ]);
+      
+      final stats = results[0];
+      final aiData = results[1] as List<dynamic>;
+
+      if (mounted) {
         setState(() {
-          _workerName = stats['name'] ?? _workerName;
-          _village = stats['village'] ?? 'Airoli';
-          _employeeId = stats['employeeId'] ?? 'A010';
-          _individualsCount = stats['patients'] ?? 0;
-          _tasksCount = stats['tasks'] ?? 0;
-          _visitsCount = stats['totalVisits'] ?? 0;
-          _profileImageUrl = stats['profileImage'];
-          _lastSyncTime = DateFormat('hh:mm a').format(DateTime.now());
+          if (stats is Map<String, dynamic> && !stats.containsKey('error')) {
+            _workerName = stats['name'] ?? _workerName;
+            _village = stats['village'] ?? 'Airoli';
+            _employeeId = stats['employeeId'] ?? 'A010';
+            _individualsCount = stats['patients'] ?? 0;
+            _tasksCount = stats['tasks'] ?? 0;
+            _visitsCount = stats['totalVisits'] ?? 0;
+            _profileImageUrl = stats['profileImage'];
+            _lastSyncTime = DateFormat('hh:mm a').format(DateTime.now());
+          }
+          _aiItinerary = aiData;
           _isLoadingStats = false;
+          _isLoadingAi = false;
         });
-      } else {
-        if (mounted) setState(() => _isLoadingStats = false);
       }
     } catch (e) {
-      if (mounted) setState(() => _isLoadingStats = false);
+      if (mounted) {
+        setState(() {
+          _isLoadingStats = false;
+          _isLoadingAi = false;
+        });
+      }
     }
   }
 
@@ -159,6 +177,10 @@ class _DashboardScreenState extends State<DashboardScreen>
                   _buildSectionTitle('Daily Stats'),
                   const SizedBox(height: 12),
                   _buildStatsRow(),
+                  const SizedBox(height: 16),
+                  _buildSectionTitle('AI Smart Schedule'),
+                  const SizedBox(height: 12),
+                  _buildAiSmartSchedule(),
                   const SizedBox(height: 24),
                   _buildActionRequiredCard(),
                   const SizedBox(height: 24),
@@ -1052,6 +1074,150 @@ class _DashboardScreenState extends State<DashboardScreen>
     } catch (e) {
       return 'Recent';
     }
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // AI SMART SCHEDULE
+  // ─────────────────────────────────────────────────────────
+  Widget _buildAiSmartSchedule() {
+    if (_isLoadingAi) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.grey[200]!),
+        ),
+        child: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (_aiItinerary.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.grey[200]!),
+        ),
+        child: Column(
+          children: [
+            Icon(Icons.auto_awesome, color: MyTheme.primaryBlue, size: 32),
+            const SizedBox(height: 12),
+            const Text(
+              "Your schedule is clear!",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              "AI will prioritize high-risk patients and rescheduled visits here.",
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey[600], fontSize: 12),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: MyTheme.primaryBlue.withValues(alpha: 0.3), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: MyTheme.primaryBlue.withValues(alpha: 0.05),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [MyTheme.primaryBlue.withValues(alpha: 0.1), Colors.transparent],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.auto_awesome, color: MyTheme.primaryBlue, size: 20),
+                const SizedBox(width: 8),
+                Text(
+                  "AI Prioritized Itinerary",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: MyTheme.primaryBlue,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ListView.separated(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: _aiItinerary.length > 3 ? 3 : _aiItinerary.length, // Show top 3
+            separatorBuilder: (context, index) => Divider(height: 1, color: Colors.grey[200]),
+            itemBuilder: (context, index) {
+              final item = _aiItinerary[index];
+              final isHighRisk = item['priority'] == 'High';
+              return ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                leading: CircleAvatar(
+                  backgroundColor: isHighRisk ? MyTheme.criticalRed.withValues(alpha: 0.1) : MyTheme.primaryBlue.withValues(alpha: 0.1),
+                  child: Icon(
+                    isHighRisk ? Icons.warning_rounded : Icons.person_rounded,
+                    color: isHighRisk ? MyTheme.criticalRed : MyTheme.primaryBlue,
+                    size: 20,
+                  ),
+                ),
+                title: Text(
+                  item['task'] ?? 'Visit Patient',
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                ),
+                subtitle: Text(
+                  item['reasoning'] ?? '',
+                  style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                trailing: const Icon(Icons.chevron_right, size: 20),
+                onTap: () {
+                  // Navigate to task details or patient profile
+                },
+              );
+            },
+          ),
+          if (_aiItinerary.length > 3)
+            InkWell(
+              onTap: () {
+                // Show full list
+              },
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  border: Border(top: BorderSide(color: Colors.grey[200]!)),
+                ),
+                child: Text(
+                  "View Full Itinerary",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: MyTheme.primaryBlue,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }
 
