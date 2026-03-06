@@ -49,6 +49,12 @@ class AppStateProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> triggerTransition({String? message, Duration duration = const Duration(milliseconds: 1500)}) async {
+    setTransitioning(true);
+    await Future.delayed(duration);
+    setTransitioning(false);
+  }
+
   void setLocale(Locale locale) {
     if (!['en', 'hi', 'mr', 'ta', 'te'].contains(locale.languageCode)) return;
     _locale = locale;
@@ -57,7 +63,9 @@ class AppStateProvider extends ChangeNotifier {
   }
 
   void setCurrentIndex(int index) {
+    if (_currentIndex == index) return;
     _currentIndex = index;
+    triggerTransition(message: 'Loading Section...');
     notifyListeners();
   }
 
@@ -102,7 +110,13 @@ class AppStateProvider extends ChangeNotifier {
     _error = null;
     try {
       final response = await ApiService.get('/visits');
-      _visits = response['visits'] ?? [];
+      final List<dynamic> fetchedVisits = response['visits'] ?? [];
+      print('APP_STATE: Fetched ${fetchedVisits.length} visits');
+      if (fetchedVisits.isNotEmpty) {
+        print('APP_STATE: Sample visit keys: ${fetchedVisits[0].keys}');
+        print('APP_STATE: Sample visit date: ${fetchedVisits[0]['visitDate']}');
+      }
+      _visits = fetchedVisits;
       _box.put('visits', _visits);
     } catch (e) {
       _error = 'Failed to fetch visits: $e';

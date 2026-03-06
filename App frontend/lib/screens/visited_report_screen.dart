@@ -68,31 +68,55 @@ class _VisitedReportScreenState extends State<VisitedReportScreen> {
       // 3. Filter selected date's visits
       final dateStr = DateFormat('yyyy-MM-dd').format(_selectedDate);
       
+      print('DEBUG: Total visits in local memory: ${provider.visits.length}');
+      print('DEBUG: Filtering for date: $dateStr');
+      if (provider.visits.isNotEmpty) {
+        print('DEBUG: Example visit date: ${provider.visits[0]['visitDate']}');
+      }
+
       final filteredVisits = provider.visits.where((v) {
         final visitDateStr = v['visitDate'] ?? '';
         return visitDateStr.startsWith(dateStr);
       }).toList();
 
+      print('DEBUG: Found ${filteredVisits.length} matching visits for $dateStr');
+
       // 4. Map visits with individual and house info
       final List<Map<String, dynamic>> processedVisits = [];
       for (var v in filteredVisits) {
         final patientId = v['patientId'];
+        
+        // Find individual in local cache
         final individual = provider.individuals.firstWhere(
           (p) => p['id'] == patientId,
           orElse: () => null,
         );
 
+        // Extract patient info - fallback to backend-provided 'patient' object if local individual missing
+        final patientMetadata = v['patient'] ?? individual;
+        final patientName = patientMetadata != null ? patientMetadata['name'] : 'Unknown';
+        
+        // Extract house info
+        String? houseId;
+        String houseLabel = 'Unknown House';
+        
         if (individual != null) {
-          final houseId = individual['householdId'];
-          processedVisits.add({
-            'houseId': houseId,
-            'houseLabel': houseMap[houseId] ?? 'Unknown House',
-            'patientName': individual['name'] ?? 'Unknown',
-            'visitType': v['visitType'] ?? 'Routine',
-            'time': _formatVisitTime(v['visitDate']),
-            'outcome': v['outcome'] ?? '',
-          });
+          houseId = individual['householdId'];
+          houseLabel = houseMap[houseId] ?? 'House $houseId';
+        } else if (v['patient'] != null && v['patient']['household'] != null) {
+          // Fallback using direct patient->household data from backend
+          final hNum = v['patient']['household']['houseNumber'];
+          houseLabel = 'H$hNum';
         }
+
+        processedVisits.add({
+          'houseId': houseId,
+          'houseLabel': houseLabel,
+          'patientName': patientName ?? 'Unknown',
+          'visitType': v['visitType'] ?? 'Routine',
+          'time': _formatVisitTime(v['visitDate']),
+          'outcome': v['outcome'] ?? '',
+        });
       }
 
       // 5. Sort by house label

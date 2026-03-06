@@ -175,18 +175,6 @@ class _OtpScreenState extends State<OtpScreen> {
                 ),
               ),
               
-              if (widget.mobileNumber.contains('9321609760')) ...[
-                const SizedBox(height: 12),
-                Text(
-                  'Demo OTP: 050228',
-                  style: TextStyle(
-                    color: MyTheme.primaryBlue,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
-              ],
-              
               if (_errorMessage != null) ...[
                 const SizedBox(height: 20),
                 Text(_errorMessage!, style: const TextStyle(color: Colors.red)),

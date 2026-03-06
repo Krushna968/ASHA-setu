@@ -618,15 +618,40 @@ class _HouseholdDetailsSheetState extends State<_HouseholdDetailsSheet> {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   children: [
                     _buildSectionTitle('Family Members'),
-                    ...detail.members.map((m) => ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      leading: CircleAvatar(
-                        backgroundColor: MyTheme.secondaryBlue,
-                        child: Text(m['name'][0], style: const TextStyle(color: MyTheme.primaryBlue, fontWeight: FontWeight.bold)),
-                      ),
-                      title: Text(m['name'], style: const TextStyle(fontWeight: FontWeight.w600)),
-                      subtitle: Text('${m['relation']} • ${m['age']} yrs'),
-                    )),
+                    ...detail.members.map((m) {
+                      String subtitleStr = '${m['relation']} • ${m['age']} yrs';
+                      if (m['pregnancyEDD'] != null) {
+                        try {
+                          final edd = DateTime.parse(m['pregnancyEDD']);
+                          subtitleStr += '\nEDD: ${edd.day.toString().padLeft(2, '0')}/${edd.month.toString().padLeft(2, '0')}/${edd.year}';
+                        } catch (_) {}
+                      }
+
+                      return ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        leading: CircleAvatar(
+                          backgroundColor: MyTheme.secondaryBlue,
+                          child: Text(m['name'][0], style: const TextStyle(color: MyTheme.primaryBlue, fontWeight: FontWeight.bold)),
+                        ),
+                        title: Row(
+                          children: [
+                            Expanded(child: Text(m['name'], style: const TextStyle(fontWeight: FontWeight.w600))),
+                            if (m['category'] == 'ANC')
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.purple.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                  border: Border.all(color: Colors.purple.withOpacity(0.3)),
+                                ),
+                                child: const Text('ANC', style: TextStyle(fontSize: 10, color: Colors.purple, fontWeight: FontWeight.bold)),
+                              ),
+                          ],
+                        ),
+                        subtitle: Text(subtitleStr),
+                        isThreeLine: m['pregnancyEDD'] != null,
+                      );
+                    }),
                     
                     const SizedBox(height: 20),
                     _buildSectionTitle('Pending Tasks'),

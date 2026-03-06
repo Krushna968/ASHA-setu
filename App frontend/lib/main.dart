@@ -28,9 +28,11 @@ import 'services/notification_service.dart';
 import 'providers/area_map_provider.dart';
 import 'l10n/app_localizations.dart';
 import 'widgets/loading_transition_overlay.dart';
+import 'services/navigation_observer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
   
   try {
     if (kIsWeb) {
@@ -64,6 +66,8 @@ void main() async {
   );
 }
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 class AshaSetuApp extends StatelessWidget {
   const AshaSetuApp({super.key});
 
@@ -72,37 +76,16 @@ class AshaSetuApp extends StatelessWidget {
     return Consumer<AppStateProvider>(
       builder: (context, appState, child) {
         return MaterialApp(
+          navigatorKey: navigatorKey,
           title: 'ASHA Setu',
           locale: appState.locale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           theme: MyTheme.lightTheme,
-          home: FutureBuilder<List<bool>>(
-            future: Future.wait([
-              AuthService.isLoggedIn(),
-              AuthService.isLanguageSelected(),
-            ]),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Scaffold(
-                  body: Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              }
-              
-              final isLoggedIn = snapshot.data?[0] ?? false;
-              final isLanguageSelected = snapshot.data?[1] ?? false;
-              
-              if (isLoggedIn) {
-                return const MainScreen(); // Direct to dashboard
-              } else if (isLanguageSelected) {
-                return const LoginScreen(); // Skip language, go to login
-              } else {
-                return const LanguageSelectionScreen(); // Show language first
-              }
-            },
-          ),
+          navigatorObservers: [
+            AppNavigationObserver(appState),
+          ],
+          home: const AppBootstrapper(),
           routes: {
             '/login': (context) => const LoginScreen(),
             '/dashboard': (context) => const MainScreen(),
@@ -117,9 +100,9 @@ class AshaSetuApp extends StatelessWidget {
             '/help': (context) => const HelpSupportScreen(),
             '/add-individual': (context) => const AddIndividualScreen(),
             '/high-risk': (context) => const HighRiskScreen(),
-            '/login': (context) => const LoginScreen(),
             '/register': (context) => const RegistrationScreen(),
             '/language': (context) => const LanguageSelectionScreen(),
+            '/visited-report': (context) => const VisitedReportScreen(),
           },
           debugShowCheckedModeBanner: false,
           builder: (context, child) {
@@ -136,46 +119,55 @@ class AshaSetuApp extends StatelessWidget {
                 ),
               ],
             );
-<<<<<<< HEAD
           },
-=======
-          }
-          final isLoggedIn = snapshot.data ?? false;
-          return isLoggedIn ? const MainScreen() : const LoginScreen();
-        },
-      ),
-      routes: {
-        '/dashboard': (context) => const MainScreen(),
-        '/visit-form': (context) => const VisitFormScreen(),
-        '/individuals': (context) => const IndividualsScreen(),
-        '/messenger': (context) => const MessengerScreen(),
-        '/emergency': (context) => const EmergencyScreen(),
-        '/calendar': (context) => const CalendarScreen(),
-        '/inventory': (context) => const InventoryScreen(),
-        '/learning': (context) => const LearningScreen(),
-        '/profile': (context) => const ProfileScreen(),
-        '/help': (context) => const HelpSupportScreen(),
-        '/add-individual': (context) => const AddIndividualScreen(),
-        '/high-risk': (context) => const HighRiskScreen(),
-        '/visited-report': (context) => const VisitedReportScreen(),
-        '/login': (context) => const LoginScreen(),
-        '/register': (context) => const RegistrationScreen(),
-      },
-      builder: (context, child) {
-        return Stack(
-          children: [
-            if (child != null) child,
-            Consumer<AppStateProvider>(
-              builder: (context, appState, _) {
-                if (appState.isTransitioning) {
-                  return const LoadingTransitionScreen(message: 'Loading ASHA-Setu...');
-                }
-                return const SizedBox.shrink();
-              },
-            ),
-          ],
->>>>>>> origin/main
         );
+      },
+    );
+  }
+}
+
+class AppBootstrapper extends StatefulWidget {
+  const AppBootstrapper({super.key});
+
+  @override
+  State<AppBootstrapper> createState() => _AppBootstrapperState();
+}
+
+class _AppBootstrapperState extends State<AppBootstrapper> {
+  late Future<List<bool>> _bootFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _bootFuture = Future.wait([
+      AuthService.isLoggedIn(),
+      AuthService.isLanguageSelected(),
+    ]);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<bool>>(
+      future: _bootFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(),
+            ),
+          );
+        }
+        
+        final isLoggedIn = snapshot.data?[0] ?? false;
+        final isLanguageSelected = snapshot.data?[1] ?? false;
+        
+        if (isLoggedIn) {
+          return const MainScreen();
+        } else if (isLanguageSelected) {
+          return const LoginScreen();
+        } else {
+          return const LanguageSelectionScreen();
+        }
       },
     );
   }

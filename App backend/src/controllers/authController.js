@@ -1,18 +1,12 @@
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../lib/prisma');
 const jwt = require('jsonwebtoken');
 const admin = require('firebase-admin');
+const twilio = require('twilio');
 
-const prisma = new PrismaClient();
-
-const { SNSClient, PublishCommand } = require("@aws-sdk/client-sns");
-
-const snsClient = new SNSClient({
-    region: process.env.AWS_REGION || "ap-south-1",
-    credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    },
-});
+const twilioClient = twilio(
+    process.env.TWILIO_ACCOUNT_SID,
+    process.env.TWILIO_AUTH_TOKEN
+);
 
 const loginWorker = async (req, res) => {
     try {
@@ -44,34 +38,22 @@ const loginWorker = async (req, res) => {
         console.log(`[DEBUG] Worker found: ${worker.name} (ID: ${worker.id})`);
 
         // Generate OTP
-        let otp = Math.floor(100000 + Math.random() * 900000).toString();
-        let otpExpiry = new Date(Date.now() + 10 * 60000); // 10 minutes
-
-        // HACKATHON DEMO BYPASS
-        const isDemoUser = dbNumber === '9321609760';
-        if (isDemoUser) {
-            otp = '050228';
-            otpExpiry = new Date(Date.now() + 24 * 60 * 60000); // 24 hours for demo
-            console.log(`[DEMO] Bypassing SNS for demo user. OTP set to: ${otp}`);
-        }
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const otpExpiry = new Date(Date.now() + 10 * 60000); // 10 minutes
 
         await prisma.worker.update({
             where: { id: worker.id },
             data: { otp, otpExpiry }
         });
 
-        if (isDemoUser) {
-            return res.json({ message: 'OTP sent successfully (Demo Mode)' });
-        }
+        // Send OTP via Twilio
+        console.log(`Sending Twilio OTP to ${fullNumber}`);
 
-        // Send OTP via AWS SNS
-        console.log(`Sending OTP to ${fullNumber}`);
-        const params = {
-            Message: `Your ASHA-Setu login OTP is: ${otp}`,
-            PhoneNumber: fullNumber
-        };
-        const snsResponse = await snsClient.send(new PublishCommand(params));
-        console.log("SNS Response:", snsResponse);
+        await twilioClient.messages.create({
+            body: `Your ASHA-Setu login OTP is: ${otp}`,
+            from: process.env.TWILIO_PHONE_NUMBER || process.env.TWILIO_MESSAGING_SERVICE_SID,
+            to: fullNumber
+        });
 
         res.json({ message: 'OTP sent successfully' });
     } catch (error) {

@@ -156,9 +156,9 @@ class _DashboardScreenState extends State<DashboardScreen>
                   _buildHeader(),
                   _buildCircularCenterpiece(),
                   const SizedBox(height: 16),
-                  _buildLiveStatsRow(),
-                  const SizedBox(height: 20),
-                  _buildCondensedStatsRow(),
+                  _buildSectionTitle('Daily Stats'),
+                  const SizedBox(height: 12),
+                  _buildStatsRow(),
                   const SizedBox(height: 24),
                   _buildActionRequiredCard(),
                   const SizedBox(height: 24),
@@ -306,36 +306,36 @@ class _DashboardScreenState extends State<DashboardScreen>
   // ─────────────────────────────────────────────────────────
   // LIVE STATS ROW — Patients, Tasks, Visits
   // ─────────────────────────────────────────────────────────
-  Widget _buildLiveStatsRow() {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildSimpleStat(
-            label: AppLocalizations.of(context)!.individuals,
-            value: _isLoadingStats ? '—' : '$_individualsCount',
-            icon: Icons.people_rounded,
-            color: MyTheme.primaryBlue,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildSimpleStat(
-            label: AppLocalizations.of(context)!.tasks,
-            value: _isLoadingStats ? '—' : '$_tasksCount',
-            icon: Icons.assignment_turned_in_rounded,
-            color: MyTheme.successGreen,
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildSimpleStat(
-            label: AppLocalizations.of(context)!.visits,
-            value: _isLoadingStats ? '—' : '$_visitsCount',
-            icon: Icons.directions_walk_rounded,
-            color: MyTheme.warningOrange,
-          ),
-        ),
-      ],
+  Widget _buildStatsRow() {
+    return Consumer<AreaMapProvider>(
+      builder: (context, provider, child) {
+        return Row(
+          children: [
+            // Individuals Stat
+            Expanded(
+              child: _buildSimpleStat(
+                label: AppLocalizations.of(context)!.individuals,
+                value: _isLoadingStats ? '—' : '$_individualsCount',
+                icon: Icons.people_rounded,
+                color: MyTheme.primaryBlue,
+              ),
+            ),
+            const SizedBox(width: 12),
+            // High Risk Stat
+            Expanded(
+              child: GestureDetector(
+                onTap: () => Navigator.pushNamed(context, '/high-risk'),
+                child: _buildSimpleStat(
+                  label: AppLocalizations.of(context)!.highRisk,
+                  value: '${provider.highRiskCount}',
+                  icon: Icons.warning_rounded,
+                  color: provider.highRiskCount > 0 ? MyTheme.criticalRed : MyTheme.successGreen,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -381,40 +381,6 @@ class _DashboardScreenState extends State<DashboardScreen>
           ),
         ],
       ),
-    );
-  }
-
-  // ─────────────────────────────────────────────────────────
-  // CONDENSED STATS ROW
-  // ─────────────────────────────────────────────────────────
-  Widget _buildCondensedStatsRow() {
-    return Consumer<AreaMapProvider>(
-      builder: (context, provider, child) {
-        return Row(
-          children: [
-            Expanded(
-              child: GestureDetector(
-                onTap: () => Navigator.pushNamed(context, '/high-risk'),
-                child: _buildSmallStatCard(
-                  icon: Icons.warning_rounded,
-                  label: AppLocalizations.of(context)!.highRisk,
-                  value: '${provider.highRiskCount}',
-                  color: provider.highRiskCount > 0 ? MyTheme.criticalRed : MyTheme.successGreen,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _buildSmallStatCard(
-                icon: Icons.pending_actions_rounded,
-                label: AppLocalizations.of(context)!.dueToday,
-                value: '${provider.dueTodayCount}',
-                color: provider.hasOverdue ? MyTheme.criticalRed : MyTheme.primaryBlue,
-              ),
-            ),
-          ],
-        );
-      },
     );
   }
 
@@ -876,9 +842,9 @@ class _DashboardScreenState extends State<DashboardScreen>
             MaterialPageRoute(builder: (_) => const AreaTaskMapScreen()),
           );
         } else if (action.route == '/calendar_action') {
-          // Navigate to the Calendar tab
+          // Navigate to the Calendar/Tasks tab
           final appState = Provider.of<AppStateProvider>(context, listen: false);
-          appState.setCurrentIndex(1);
+          appState.setCurrentIndex(2);
         } else if (action.route == '/high-risk') {
           Navigator.pushNamed(context, '/high-risk');
         } else if (action.route != null) {
@@ -933,7 +899,14 @@ class _DashboardScreenState extends State<DashboardScreen>
     
     // Convert visits to RecentItems
     final recentItems = visits.take(3).map((v) {
-      final String name = v['patientName'] ?? v['headName'] ?? 'Unknown';
+      // Logic for extracting name: Look for nested 'patient' object from backend, then local keys, then fallback
+      String name = 'Unknown';
+      if (v['patient'] != null && v['patient']['name'] != null) {
+        name = v['patient']['name'];
+      } else {
+        name = v['patientName'] ?? v['headName'] ?? 'Unknown';
+      }
+
       final String type = v['visitType'] ?? v['outcome'] ?? 'Visit';
       final String timeAgo = _formatVisitTime(v['visitDate'] ?? v['createdAt']);
       

@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 
 // Log a visit
 const logVisit = async (req, res) => {
@@ -100,6 +99,7 @@ async function _recalcHouseholdStatus(householdId) {
 const getVisits = async (req, res) => {
     try {
         const workerId = req.user.id;
+        console.log(`[Backend] Fetching visits for workerId: ${workerId}`);
 
         const visits = await prisma.visitHistory.findMany({
             where: { workerId },

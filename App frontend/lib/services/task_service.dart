@@ -120,4 +120,22 @@ class TaskService extends ChangeNotifier {
              t.due.day == normalized.day;
     }).toList();
   }
+
+  Map<String, dynamic> getTodayActivitySummary() {
+    final now = DateTime.now();
+    final todayTasks = getTasksForDay(now);
+    final completed = todayTasks.where((t) => t.isCompleted).toList();
+    
+    return {
+      'total': todayTasks.length,
+      'completed': completed.length,
+      'pending': todayTasks.length - completed.length,
+      'completedTasks': completed.map((t) => {
+        'title': t.title,
+        'patient': t.patient,
+        'time': t.formattedTime,
+      }).toList(),
+    };
+  }
 }
+

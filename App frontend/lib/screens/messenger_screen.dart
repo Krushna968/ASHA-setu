@@ -3,6 +3,8 @@ import '../theme/app_theme.dart';
 import '../services/task_service.dart';
 import 'chat_screen.dart';
 import 'package:intl/intl.dart';
+import '../services/api_service.dart';
+import '../services/auth_service.dart';
 
 class MessengerScreen extends StatefulWidget {
   const MessengerScreen({super.key});
@@ -123,6 +125,10 @@ class _MessengerScreenState extends State<MessengerScreen> with SingleTickerProv
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: MyTheme.textDark),
               ),
               const Spacer(),
+              _buildIconButton(Icons.send_to_mobile_rounded, () {
+                _sendDailyReport();
+              }, tooltip: 'Send Today\'s Report'),
+              const SizedBox(width: 8),
               _buildIconButton(Icons.refresh_rounded, () {
                 // Refresh logic
               }),
@@ -137,15 +143,100 @@ class _MessengerScreenState extends State<MessengerScreen> with SingleTickerProv
     );
   }
 
-  Widget _buildIconButton(IconData icon, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(10)),
-        child: Icon(icon, color: Colors.grey[600], size: 22),
+  Widget _buildIconButton(IconData icon, VoidCallback onTap, {String? tooltip}) {
+    return Tooltip(
+      message: tooltip ?? '',
+      child: GestureDetector(
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(color: Colors.grey[50], borderRadius: BorderRadius.circular(10)),
+          child: Icon(icon, color: icon == Icons.send_to_mobile_rounded ? MyTheme.primaryBlue : Colors.grey[600], size: 22),
+        ),
       ),
     );
+  }
+
+  void _sendDailyReport() async {
+    final activity = TaskService().getTodayActivitySummary();
+    
+    if (activity['completed'] == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('No completed tasks to report for today yet.'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    // Show confirmation dialog with a summary
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Send Today\'s Report'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('You are about to send today\'s activity report to the Admin Portal.'),
+            const SizedBox(height: 12),
+            Text('• Tasks Completed: ${activity['completed']}'),
+            Text('• Tasks Pending: ${activity['pending']}'),
+            const SizedBox(height: 8),
+            const Text('This report will be available for download as a PDF by your supervisor.', style: TextStyle(fontSize: 12, color: Colors.grey)),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(backgroundColor: MyTheme.primaryBlue),
+            child: const Text('Send Report'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final workerId = await AuthService.getWorkerId();
+      final response = await ApiService.post('/reports/daily', {
+        'workerId': workerId,
+        'reportData': activity,
+      });
+
+      Navigator.pop(context); // Close loading
+
+      if (response != null && !response.containsKey('error')) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Report sent successfully!'),
+            backgroundColor: MyTheme.successGreen,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else {
+        throw Exception(response?['error'] ?? 'Server error');
+      }
+    } catch (e) {
+      Navigator.pop(context); // Close loading
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('❌ Error: $e'),
+          backgroundColor: MyTheme.criticalRed,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   Widget _buildSearchBar() {

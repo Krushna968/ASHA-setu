@@ -14,6 +14,7 @@ model Admin {
   id        String   @id @default(uuid())
   name      String
   email     String   @unique
+  password  String?
   role      String   @default("DISTRICT_OFFICER")
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -40,8 +41,7 @@ model Worker {
   inventory        InventoryItem[]
   households       Household[]
   learningProgress LearningProgress[]
-  messagesSent     Message[]          @relation("SentMessages")
-  messagesReceived Message[]          @relation("ReceivedMessages")
+  reports          Report[]
 }
 
 model Patient {
@@ -107,15 +107,12 @@ model LearningProgress {
 model Message {
   id           String  @id @default(uuid())
   content      String
-  senderId     String // Could be Admin or Worker
-  receiverId   String // Could be Admin or Worker
+  senderId     String // Worker ID or 'ADMIN'
+  receiverId   String // Worker ID or 'ADMIN'
   senderType   String // 'ADMIN' or 'WORKER'
   receiverType String // 'ADMIN' or 'WORKER'
   isRead       Boolean @default(false)
-
-  // Optional relations (Prisma requires specific fields, we'll map them loosely)
-  workerSender   Worker? @relation("SentMessages", fields: [senderId], references: [id], map: "Message_WorkerSender_fkey")
-  workerReceiver Worker? @relation("ReceivedMessages", fields: [receiverId], references: [id], map: "Message_WorkerReceiver_fkey")
+  reportId     String? // Link to a specific report if this is a forwarded report
 
   createdAt DateTime @default(now())
 }
@@ -160,4 +157,12 @@ model InventoryItem {
   workerId    String
   worker      Worker   @relation(fields: [workerId], references: [id])
   lastUpdated DateTime @updatedAt
+}
+model Report {
+  id        String   @id @default(uuid())
+  workerId  String
+  worker    Worker   @relation(fields: [workerId], references: [id])
+  date      DateTime @default(now())
+  content   Json // Detailed tasks and activities
+  createdAt DateTime @default(now())
 }

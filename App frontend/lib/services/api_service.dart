@@ -1,10 +1,13 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter/material.dart';
 import 'auth_service.dart';
+import '../main.dart'; // Import to use navigatorKey
 
 class ApiService {
   // Base URL for the production backend on Render
-  static const String baseUrl = 'https://asha-setu-backend.onrender.com/api';
+  // static const String baseUrl = 'https://asha-setu-backend.onrender.com/api';
+  static const String baseUrl = 'http://10.75.109.134:5000/api';
 
   // Include token in header
   static Future<Map<String, String>> _getHeaders() async {
@@ -45,14 +48,21 @@ class ApiService {
     }
   }
 
+  static Future<void> _handleUnauthorized() async {
+    await AuthService.logout();
+    if (navigatorKey.currentContext != null) {
+      Navigator.pushNamedAndRemoveUntil(
+          navigatorKey.currentContext!, '/login', (route) => false);
+    }
+  }
+
   // Get data (Helpers)
   static Future<dynamic> get(String endpoint) async {
     final headers = await _getHeaders();
     final response = await http.get(Uri.parse('$baseUrl$endpoint'), headers: headers);
     
     if (response.statusCode == 401) {
-      // Handle unauthorized (token expired etc)
-      await AuthService.logout();
+      await _handleUnauthorized();
       throw Exception('Unauthorized');
     }
     
@@ -67,6 +77,11 @@ class ApiService {
       body: json.encode(body)
     );
     
+    if (response.statusCode == 401) {
+      await _handleUnauthorized();
+      throw Exception('Unauthorized');
+    }
+    
     return json.decode(response.body);
   }
 
@@ -78,10 +93,14 @@ class ApiService {
       body: json.encode(body)
     );
     
+    if (response.statusCode == 401) {
+      await _handleUnauthorized();
+      throw Exception('Unauthorized');
+    }
+    
     return json.decode(response.body);
   }
 
-  // Upload a file using MultipartRequest
   static Future<dynamic> postMultipart(String endpoint, String filePath, String fileField) async {
     final token = await AuthService.getToken();
     final request = http.MultipartRequest('POST', Uri.parse('$baseUrl$endpoint'));
@@ -94,6 +113,11 @@ class ApiService {
     
     final streamedResponse = await request.send();
     final response = await http.Response.fromStream(streamedResponse);
+    
+    if (response.statusCode == 401) {
+      await _handleUnauthorized();
+      throw Exception('Unauthorized');
+    }
     
     return json.decode(response.body);
   }

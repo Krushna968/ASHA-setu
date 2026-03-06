@@ -20,6 +20,7 @@ class _AddIndividualScreenState extends State<AddIndividualScreen> {
   String _selectedCategory = 'General';
   String? _selectedHouseholdId;
   String _selectedRelation = 'Member';
+  DateTime? _selectedEDD;
 
   final List<_CategoryOption> _categories = [
     _CategoryOption('General', Icons.person_rounded, Colors.teal, 'Regular health checkups'),
@@ -86,6 +87,19 @@ class _AddIndividualScreenState extends State<AddIndividualScreen> {
       return;
     }
 
+    if (_selectedCategory == 'ANC' && _selectedEDD == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Please select an Expected Date of Delivery (EDD)'),
+          backgroundColor: MyTheme.warningOrange,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          margin: const EdgeInsets.all(16),
+        ),
+      );
+      return;
+    }
+
     setState(() => _isSubmitting = true);
 
     try {
@@ -95,6 +109,8 @@ class _AddIndividualScreenState extends State<AddIndividualScreen> {
         'category': _selectedCategory,
         'householdId': _selectedHouseholdId,
         'relation': _selectedRelation,
+        if (_selectedCategory == 'ANC' && _selectedEDD != null)
+          'pregnancyEDD': _selectedEDD!.toIso8601String(),
       });
 
       if (!response.containsKey('error')) {
@@ -223,6 +239,14 @@ class _AddIndividualScreenState extends State<AddIndividualScreen> {
               const SizedBox(height: 10),
               _buildCategorySelector(),
               const SizedBox(height: 20),
+
+              // EDD Picker (Only for ANC)
+              if (_selectedCategory == 'ANC') ...[
+                _buildLabel('Expected Date of Delivery (EDD)', true),
+                const SizedBox(height: 8),
+                _buildEDDPicker(),
+                const SizedBox(height: 20),
+              ],
 
               // Relation
               _buildLabel('Relation in Family', false),
@@ -385,6 +409,70 @@ class _AddIndividualScreenState extends State<AddIndividualScreen> {
         isExpanded: true,
         items: _relations.map((r) => DropdownMenuItem(value: r, child: Text(r, style: const TextStyle(fontSize: 14)))).toList(),
         onChanged: (val) => setState(() => _selectedRelation = val ?? 'Member'),
+      ),
+    );
+  }
+
+  // ─── EDD Date Picker ────────────────────────────────────────────
+  Future<void> _selectEDD(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now().add(const Duration(days: 30)),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 300)),
+      builder: (context, child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: MyTheme.primaryBlue,
+              onPrimary: Colors.white,
+              onSurface: MyTheme.textDark,
+            ),
+            textButtonTheme: TextButtonThemeData(
+              style: TextButton.styleFrom(
+                foregroundColor: MyTheme.primaryBlue,
+              ),
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+    if (picked != null && picked != _selectedEDD) {
+      setState(() {
+        _selectedEDD = picked;
+      });
+    }
+  }
+
+  Widget _buildEDDPicker() {
+    return GestureDetector(
+      onTap: () => _selectEDD(context),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade200),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withAlpha(8), blurRadius: 8, offset: const Offset(0, 2)),
+          ],
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.calendar_today_rounded, color: MyTheme.primaryBlue, size: 20),
+            const SizedBox(width: 12),
+            Text(
+              _selectedEDD == null
+                  ? 'Select EDD'
+                  : '${_selectedEDD!.day.toString().padLeft(2, '0')}/${_selectedEDD!.month.toString().padLeft(2, '0')}/${_selectedEDD!.year}',
+              style: TextStyle(
+                fontSize: 14,
+                color: _selectedEDD == null ? Colors.grey[400] : MyTheme.textDark,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

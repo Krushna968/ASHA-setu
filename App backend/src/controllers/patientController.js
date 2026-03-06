@@ -1,10 +1,9 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 
 // Add a new patient
 const addPatient = async (req, res) => {
     try {
-        const { name, age, category, address, householdId, relation, gender } = req.body;
+        const { name, age, category, address, householdId, relation, gender, pregnancyEDD } = req.body;
         const workerId = req.user.id; // from JWT token auth middleware
 
         if (!name || !age || !category) {
@@ -19,6 +18,7 @@ const addPatient = async (req, res) => {
             workerId,
             relation: relation || null,
             gender: gender || null,
+            pregnancyEDD: (category === 'ANC' && pregnancyEDD) ? new Date(pregnancyEDD) : null,
         };
 
         // If householdId is provided, link to household (preferred over address)

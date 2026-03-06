@@ -24,6 +24,11 @@ class AuthService {
     return prefs.getString(workerNameKey);
   }
 
+  static Future<String?> getWorkerId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(workerIdKey);
+  }
+
   // Check if user is already logged in (has valid token)
   static Future<bool> isLoggedIn() async {
     final prefs = await SharedPreferences.getInstance();

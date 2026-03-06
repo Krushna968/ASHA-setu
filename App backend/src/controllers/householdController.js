@@ -1,41 +1,80 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 
-// Create a new household
+// Create a new household (along with the head member)
 const createHousehold = async (req, res) => {
     try {
-        const { houseNumber, headName, address, village } = req.body;
+        const { houseNumber, headName, address, village, age, category, gender, pregnancyEDD } = req.body;
         const workerId = req.user.id;
+
+        console.log('--- Creating Household ---');
+        console.log('Body:', req.body);
+        console.log('WorkerId:', workerId);
 
         if (!houseNumber || !headName || !address) {
             return res.status(400).json({ error: 'House number, head name, and address are required' });
         }
 
-        // Check for duplicate house number for this worker
-        const existing = await prisma.household.findFirst({
-            where: { workerId, houseNumber: houseNumber.toUpperCase() }
-        });
-        if (existing) {
-            return res.status(409).json({ error: `House ${houseNumber} already exists` });
-        }
-
-        const household = await prisma.household.create({
-            data: {
-                houseNumber: houseNumber.toUpperCase(),
-                headName,
-                address,
-                village: village || null,
-                workerId,
-                status: 'pending',
-                pendingTasksCount: 0,
-                isClosed: false,
+        // Check if household already exists for this worker (Matching DB Unique Constraint: [workerId, houseNumber])
+        const existingHousehold = await prisma.household.findFirst({
+            where: {
+                workerId: workerId,
+                houseNumber: houseNumber.toUpperCase()
             }
         });
 
-        res.status(201).json({ message: 'Household created', household });
+        if (existingHousehold) {
+            console.log('Household already exists:', existingHousehold.id);
+            return res.status(400).json({
+                success: false,
+                message: 'Household already exists with this house number and village'
+            });
+        }
+
+        // Use a transaction to ensure both household and head patient are created
+        const result = await prisma.$transaction(async (tx) => {
+            const household = await tx.household.create({
+                data: {
+                    houseNumber: houseNumber.toUpperCase(),
+                    headName,
+                    address,
+                    village: village || null,
+                    workerId,
+                    status: (category === 'ANC' || category === 'PNC') ? 'high-risk' : 'pending',
+                    pendingTasksCount: 0,
+                    isClosed: false,
+                }
+            });
+
+            const headMember = await tx.patient.create({
+                data: {
+                    name: headName,
+                    age: parseInt(age) || 0,
+                    category: category || 'General',
+                    gender: gender || 'Female', // Default to Female as ASHA mainly works with women/children
+                    relation: 'Head (Mother)',
+                    pregnancyEDD: (category === 'ANC' && pregnancyEDD) ? new Date(pregnancyEDD) : null,
+                    workerId,
+                    householdId: household.id,
+                }
+            });
+
+            return { household, headMember };
+        });
+
+        res.status(201).json({
+            message: 'Household and head member created',
+            household: result.household,
+            headMember: result.headMember
+        });
     } catch (error) {
-        console.error("createHousehold error", error);
-        res.status(500).json({ error: 'Failed to create household' });
+        console.error("createHousehold error:", error);
+        if (error.code === 'P2002') {
+            return res.status(400).json({
+                error: 'Duplicate entry',
+                message: 'A household with this house number already exists for you.'
+            });
+        }
+        res.status(500).json({ error: 'Failed to create household', details: error.message });
     }
 };
 
@@ -43,6 +82,7 @@ const createHousehold = async (req, res) => {
 const getWorkerHouseholds = async (req, res) => {
     try {
         const workerId = req.user.id;
+        console.log(`[DEBUG] Fetching households for worker: ${workerId}`);
 
         const households = await prisma.household.findMany({
             where: { workerId },
@@ -107,6 +147,7 @@ const getWorkerHouseholds = async (req, res) => {
             });
         }
 
+        console.log(`[DEBUG] Found ${enriched.length} enriched households for worker ${workerId}`);
         res.json({ households: enriched });
     } catch (error) {
         console.error("getWorkerHouseholds error", error);
@@ -180,6 +221,7 @@ const getHouseholdDetail = async (req, res) => {
                 age: m.age,
                 relation: m.relation || 'Member',
                 category: m.category,
+                pregnancyEDD: m.pregnancyEDD,
             })),
             latestVisits: latestVisits.map(v => ({
                 type: v.visitType || v.outcome,

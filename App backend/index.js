@@ -63,6 +63,9 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 const { startCronJobs } = require('./src/utils/cronJobs');
 startCronJobs();
 
+// Import Middleware
+const authMiddleware = require('./src/middleware/authMiddleware');
+
 // Import Routes
 const authRoutes = require('./src/routes/authRoutes');
 const patientRoutes = require('./src/routes/patientRoutes');
@@ -73,6 +76,8 @@ const inventoryRoutes = require('./src/routes/inventoryRoutes');
 const householdRoutes = require('./src/routes/householdRoutes');
 const learningRoutes = require('./src/routes/learningRoutes');
 const messageRoutes = require('./src/routes/messageRoutes');
+const reportRoutes = require('./src/routes/reportRoutes');
+const sakhiRoutes = require('./src/routes/sakhiRoutes');
 
 // Mount Routes
 app.use('/api/auth', authRoutes);
@@ -84,9 +89,11 @@ app.use('/api/inventory', inventoryRoutes);
 app.use('/api/households', householdRoutes);
 app.use('/api/learning', learningRoutes);
 app.use('/api/messages', messageRoutes);
+app.use('/api/reports', reportRoutes);
+app.use('/api/sakhi', sakhiRoutes);
 
 // Basic health check endpoint
-app.get('/api/health', (req, res) => {
+app.get('/', (req, res) => {
     res.json({ status: 'ok', message: 'ASHA-Setu Mobile Backend is running' });
 });
 
@@ -94,13 +101,34 @@ app.get('/api/health', (req, res) => {
 app.get('/api/db-check', async (req, res) => {
     try {
         const { PrismaClient } = require('@prisma/client');
-        const prisma = new PrismaClient();
-        const count = await prisma.worker.count();
+        const prisma = require('./src/lib/prisma');
+
+        // Raw query to list all tables in public schema
+        const tables = await prisma.$queryRaw`SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'`;
+
+        const workerCount = await prisma.worker.count().catch(() => -1);
+        const visitCount = await prisma.visitHistory.count().catch(() => -1);
+        const patientCount = await prisma.patient.count().catch(() => -1);
+
         await prisma.$disconnect();
-        res.json({ status: 'ok', workerCount: count });
+        res.json({
+            status: 'ok',
+            tables: tables.map(t => t.table_name),
+            workerCount,
+            visitCount,
+            patientCount
+        });
     } catch (error) {
         res.status(500).json({ status: 'error', message: error.message });
     }
+});
+
+// Debug endpoint to check current user token
+app.get('/api/check-user', authMiddleware, (req, res) => {
+    res.json({
+        user: req.user,
+        message: 'Authorized'
+    });
 });
 
 const PORT = process.env.PORT || 5000;

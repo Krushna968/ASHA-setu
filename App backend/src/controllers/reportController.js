@@ -1,86 +1,68 @@
-const { PrismaClient } = require('@prisma/client');
-const PDFDocument = require('pdfkit');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 
-const generateMonthlyReportPdf = async (req, res) => {
+exports.submitDailyReport = async (req, res) => {
     try {
-        const workerId = req.user.id;
+        const { workerId, reportData } = req.body;
 
-        // Fetch worker stats
-        const worker = await prisma.worker.findUnique({
-            where: { id: workerId },
-            include: {
-                _count: {
-                    select: { patients: true, tasks: true }
-                },
-                visitHistory: {
-                    where: {
-                        visitDate: {
-                            gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1) // Start of current month
-                        }
-                    }
-                }
+        if (!workerId || !reportData) {
+            return res.status(400).json({ error: 'Worker ID and report data are required' });
+        }
+
+        // Check if report for today already exists (optional, but good for cleanliness)
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
+        const report = await prisma.report.create({
+            data: {
+                workerId,
+                content: reportData,
+                date: new Date(),
             }
         });
 
-        if (!worker) {
-            return res.status(404).json({ error: 'Worker not found' });
-        }
-
-        // Create PDF document
-        const doc = new PDFDocument({ margin: 50 });
-
-        // Setup response headers
-        res.setHeader('Content-disposition', 'attachment; filename="ASHA_Monthly_Report.pdf"');
-        res.setHeader('Content-type', 'application/pdf');
-
-        doc.pipe(res);
-
-        // Add Header
-        doc.fontSize(20).text('ASHA Setu - Monthly Activity Report', { align: 'center' });
-        doc.moveDown();
-        doc.fontSize(12).text(`Worker Name: ${worker.name}`);
-        doc.text(`Employee ID: ${worker.employeeId}`);
-        doc.text(`Village: ${worker.village}`);
-        doc.text(`Date Generated: ${new Date().toLocaleDateString()}`);
-        doc.moveDown();
-
-        // Add Summary Stats
-        doc.fontSize(16).text('Summary Statistics', { underline: true });
-        doc.fontSize(12).text(`Total Registered Patients: ${worker._count.patients}`);
-        doc.text(`Total Tasks Tracked: ${worker._count.tasks}`);
-        doc.text(`Total Lifetime Visits: ${worker.totalVisits}`);
-        doc.text(`Visits This Month: ${worker.visitHistory.length}`);
-        doc.moveDown();
-
-        // Add Recent Visits Table-like structure
-        doc.fontSize(16).text('Recent Visits This Month', { underline: true });
-        doc.moveDown();
-
-        if (worker.visitHistory.length === 0) {
-            doc.fontSize(12).text('No visits recorded this month.');
-        } else {
-            worker.visitHistory.slice(0, 10).forEach((visit, index) => {
-                doc.fontSize(12).text(`${index + 1}. Date: ${new Date(visit.visitDate).toLocaleDateString()} | Outcome: ${visit.outcome}`);
-                if (visit.notes) {
-                    doc.fontSize(10).text(`   Notes: ${visit.notes}`);
-                }
-                doc.moveDown(0.5);
-            });
-        }
-
-        // Add Footer
-        doc.moveDown(2);
-        doc.fontSize(10).text('This is an auto-generated report for Government HMIS integration.', { align: 'center', color: 'grey' });
-
-        doc.end();
-
+        res.status(201).json({
+            message: 'Report submitted successfully',
+            reportId: report.id
+        });
     } catch (error) {
-        console.error("PDF Generation Error:", error);
-        if (!res.headersSent) {
-            res.status(500).json({ error: 'Failed to generate PDF report' });
-        }
+        console.error('Error submitting report:', error);
+        res.status(500).json({ error: 'Failed to submit report' });
     }
 };
 
-module.exports = { generateMonthlyReportPdf };
+exports.getWorkerReports = async (req, res) => {
+    try {
+        const { workerId } = req.params;
+
+        const reports = await prisma.report.findMany({
+            where: { workerId },
+            orderBy: { date: 'desc' }
+        });
+
+        res.json(reports);
+    } catch (error) {
+        console.error('Error fetching reports:', error);
+        res.status(500).json({ error: 'Failed to fetch reports' });
+    }
+};
+
+exports.generateMonthlyReportPdf = async (req, res) => {
+    try {
+        const workerId = req.user?.id;
+        if (!workerId) return res.status(401).json({ error: 'Unauthorized' });
+
+        const reports = await prisma.report.findMany({
+            where: { workerId },
+            orderBy: { date: 'desc' },
+            take: 30
+        });
+
+        res.json({
+            message: 'Report data retrieved. PDF generation is handled client-side.',
+            reports
+        });
+    } catch (error) {
+        console.error('Error generating report:', error);
+        res.status(500).json({ error: 'Failed to generate report' });
+    }
+};

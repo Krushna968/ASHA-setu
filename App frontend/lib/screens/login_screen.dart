@@ -168,51 +168,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
               ),
 
-              const SizedBox(height: 16),
-              // Bypass Login Button
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: OutlinedButton(
-                  onPressed: () async {
-                    setState(() => _isLoading = true);
-                    // Use a pre-generated valid token for 9321609760
-                    const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImM1NWQ0NjQ0LWI0MDUtNGZlNS1hOTJhLTUyMmE5NDQ5YjM1YSIsImVtcGxveWVlSWQiOiJBU0hBLTAxIiwibW9iaWxlTnVtYmVyIjoiOTMyMTYwOTc2MCIsImlhdCI6MTc3MjU1MTIwMCwiZXhwIjoxODA0MDg3MjAwfQ.bM4RPvDUyvSQ4_Lu4nMCZkYXSGYAMWiR2pXKOjKS_Pg";
-                    final worker = {
-                      "id": "c55d4644-b405-4fe5-a92a-522a9449b35a",
-                      "name": "Krushna rasal",
-                      "employeeId": "ASHA-01",
-                      "village": "Airoli Sector 4, Navi Mumbai",
-                      "stats": {
-                        "individuals": 8,
-                        "tasks": 0,
-                        "totalVisits": 3
-                      }
-                    };
-                    
-                    try {
-                      await AuthService.saveAuthData(token, worker);
-                      await NotificationService.sendCurrentToken();
-                      
-                      if (mounted) {
-                        Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (route) => false);
-                      }
-                    } catch (e) {
-                      if (mounted) {
-                        setState(() => _isLoading = false);
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Bypass failed: $e')));
-                      }
-                    }
-                  },
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.teal,
-                    side: const BorderSide(color: Colors.teal),
-                  ),
-                  child: const Text('Bypass Login (9321609760)', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                ),
-              ),
-
-              const SizedBox(height: 16),
               // Register Link
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,

@@ -1,6 +1,5 @@
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../lib/prisma');
 const admin = require('firebase-admin');
-const prisma = new PrismaClient();
 
 const getWorkerStats = async (req, res) => {
     try {

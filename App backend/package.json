@@ -18,10 +18,12 @@
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "firebase-admin": "^13.7.0",
+    "groq-sdk": "^0.37.0",
     "jsonwebtoken": "^9.0.3",
     "multer": "^2.0.2",
     "node-cron": "^4.2.1",
-    "pdfkit": "^0.17.2"
+    "pdfkit": "^0.17.2",
+    "twilio": "^5.12.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.14",

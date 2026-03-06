@@ -3,11 +3,12 @@ import 'package:provider/provider.dart';
 import '../providers/area_map_provider.dart';
 import '../theme/app_theme.dart';
 import '../widgets/household_detail_sheet.dart';
+import 'add_household_screen.dart'; // New Import
 import 'dart:math' as math;
 
 // filterMode: 'all' = full household list | 'highRisk' = filtered high-risk list
 class AreaTaskMapScreen extends StatefulWidget {
-  final String filterMode; // 'all' or 'highRisk'
+  final String filterMode; // 'all' or 'highRisk' or 'grid'
   const AreaTaskMapScreen({super.key, this.filterMode = 'all'});
 
   @override
@@ -15,9 +16,13 @@ class AreaTaskMapScreen extends StatefulWidget {
 }
 
 class _AreaTaskMapScreenState extends State<AreaTaskMapScreen> {
+  // We'll track the mode locally if we want to switch to 'grid' after adding
+  late String _currentMode;
+
   @override
   void initState() {
     super.initState();
+    _currentMode = widget.filterMode;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       Provider.of<AreaMapProvider>(context, listen: false).refreshArea();
     });
@@ -30,15 +35,14 @@ class _AreaTaskMapScreenState extends State<AreaTaskMapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final filterMode = widget.filterMode;
     return Consumer<AreaMapProvider>(
       builder: (context, provider, _) {
-        final filteredHouseholds = filterMode == 'highRisk'
+        final filteredHouseholds = _currentMode == 'highRisk'
             ? provider.households.where((h) => h.status == 'high-risk').toList()
             : provider.households;
 
-        final title = filterMode == 'highRisk' ? 'High Risk Houses' : 'All Households';
-        final subtitle = filterMode == 'highRisk'
+        final title = _currentMode == 'highRisk' ? 'High Risk Houses' : 'All Households';
+        final subtitle = _currentMode == 'highRisk'
             ? '${filteredHouseholds.length} high-risk homes'
             : '${provider.households.length} total homes';
 
@@ -56,14 +60,17 @@ class _AreaTaskMapScreenState extends State<AreaTaskMapScreen> {
               ],
             ),
             actions: [
-              if (filterMode == 'all')
+              if (_currentMode == 'all')
                 IconButton(
-                  icon: const Icon(Icons.map_outlined),
-                  tooltip: 'View Map',
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AreaTaskMapScreen(filterMode: 'grid')),
-                  ),
+                  icon: const Icon(Icons.grid_view_rounded), // Changed icon to match "Map/Grid" feel
+                  tooltip: 'View Grid',
+                  onPressed: () => setState(() => _currentMode = 'grid'),
+                )
+              else if (_currentMode == 'grid')
+                IconButton(
+                  icon: const Icon(Icons.list_alt_rounded),
+                  tooltip: 'View List',
+                  onPressed: () => setState(() => _currentMode = 'all'),
                 ),
               IconButton(
                 icon: const Icon(Icons.refresh_rounded),
@@ -76,9 +83,26 @@ class _AreaTaskMapScreenState extends State<AreaTaskMapScreen> {
               ? _buildLoadingState()
               : (provider.error != null && provider.households.isEmpty)
                   ? _buildErrorState(provider)
-                  : filterMode == 'grid'
+                  : _currentMode == 'grid'
                       ? _buildGridView(provider, context)
-                      : _buildListView(filteredHouseholds, provider, filterMode),
+                      : _buildListView(filteredHouseholds, provider, _currentMode),
+          floatingActionButton: _currentMode != 'highRisk' ? FloatingActionButton.extended(
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AddHouseholdScreen()),
+              );
+              if (result == true) {
+                // If succeeded, switch to grid mode to show the "Houses Map"
+                setState(() => _currentMode = 'grid');
+              }
+            },
+            backgroundColor: MyTheme.primaryBlue,
+            foregroundColor: Colors.white,
+            elevation: 4,
+            icon: const Icon(Icons.add_home_work_rounded),
+            label: const Text('Add House', style: TextStyle(fontWeight: FontWeight.bold)),
+          ) : null,
         );
       },
     );

@@ -6,6 +6,7 @@ import 'dashboard_screen.dart';
 import 'messenger_screen.dart';
 import 'calendar_screen.dart';
 import 'profile_screen.dart';
+import 'sakhi_chat_screen.dart';
 import '../l10n/app_localizations.dart';
 
 class MainScreen extends StatefulWidget {
@@ -65,6 +66,35 @@ class _MainScreenState extends State<MainScreen> {
                 BottomNavigationBarItem(icon: const Icon(Icons.calendar_today), label: AppLocalizations.of(context)!.calendar),
                 BottomNavigationBarItem(icon: const Icon(Icons.person_outline), label: AppLocalizations.of(context)!.profile),
               ],
+            ),
+            floatingActionButton: Container(
+              height: 65,
+              width: 65,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: FloatingActionButton(
+                onPressed: () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const SakhiChatScreen()));
+                },
+                backgroundColor: Colors.white,
+                elevation: 0,
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/images/SakhiAI.png',
+                    fit: BoxFit.cover,
+                    width: 65,
+                    height: 65,
+                  ),
+                ),
+              ),
             ),
           ),
         );

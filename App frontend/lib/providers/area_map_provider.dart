@@ -241,28 +241,44 @@ class AreaMapProvider extends ChangeNotifier {
     }
   }
 
-  /// Create a new household
-  Future<bool> createHousehold({
+  /// Create a new household (including head member)
+  Future<String?> createHousehold({
     required String houseNumber,
     required String headName,
     required String address,
     String? village,
+    required int age,
+    required String category,
+    String? gender,
+    String? pregnancyEDD,
   }) async {
     try {
       final body = {
         'houseNumber': houseNumber,
         'headName': headName,
         'address': address,
-        if (village != null) 'village': village,
+        'village': village,
+        'age': age,
+        'category': category,
+        if (gender != null) 'gender': gender,
+        if (pregnancyEDD != null) 'pregnancyEDD': pregnancyEDD,
       };
+      // If ApiService throws an Exception, it will be caught below
       final response = await ApiService.post('/households', body);
-      if (response != null && !response.containsKey('error')) {
+      
+      if (response != null) {
+        if (response.containsKey('error')) {
+            return response['message'] ?? response['error']?.toString() ?? 'Failed to register household';
+        }
         await refreshArea();
-        return true;
+        return null; // Success
       }
-      return false;
-    } catch (_) {
-      return false;
+      return 'Unknown error occurred. Please try again.';
+    } catch (e) {
+      if (e.toString().contains('Unauthorized')) {
+          return 'Session expired. Please close the app and login again.';
+      }
+      return 'Connection failed. Please check your network ($e)';
     }
   }
 
